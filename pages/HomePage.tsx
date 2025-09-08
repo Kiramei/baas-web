@@ -6,16 +6,17 @@ import Button from '../components/ui/Button';
 import Logger from '../components/ui/Logger';
 import AssetsDisplay from '../components/AssetsDisplay';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
-import {FileUp, KeyboardIcon, Logs, Play, Square} from 'lucide-react';
+import {FileUp, Hourglass, KeyboardIcon, Logs, Play, Square} from 'lucide-react';
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 
 import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
+import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const {scriptRunning, startScript, stopScript, logs, assets} = useApp();
+  const {scriptRunning, startScript, stopScript, logs, assets, schedulerStatus} = useApp();
   const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
   const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
@@ -62,7 +63,10 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
     <div className="h-full flex flex-col min-h-0 gap-2">
       {/* 头部 */}
       <div className="flex justify-between items-center shrink-0">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('home')}</h2>
+        <div className={'flex'}>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('home')}</h2>
+          <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
@@ -84,17 +88,23 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
         </div>
       </div>
 
+
+      {/* 状态 */}
+      <TaskStatus schedulerStatus={schedulerStatus}/>
+
+
       {/* 资产区 */}
       <div className="shrink-0">
         <AssetsDisplay assets={assets}/>
       </div>
+
 
       {/* 日志卡片 */}
       <Card className="flex-1 min-h-100 flex flex-col">
         <CardHeader className="flex justify-between items-center">
           <CardTitle>
             <div className="flex items-center gap-2">
-              <Logs /> {t('logs')}
+              <Logs/> {t('logs')}
             </div>
 
           </CardTitle>

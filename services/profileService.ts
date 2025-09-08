@@ -19,7 +19,27 @@ export interface ProfileDTO {
 
 export async function listProfiles(): Promise<ProfileDTO[]> {
   // TODO: GET /api/profiles
-  return []; // 返回空代表后端暂无数据；Header 会给出兜底
+  return [
+    {
+      id: '1',
+      name: '默认配置',
+      server: 'CN',
+      settings: DEFAULT_CONFIG
+    },
+    {
+      id: '2',
+      name: '测试配置',
+      server: 'Global',
+      settings: {
+        server: 'Global',
+        adbIP: '127.0.0.1',
+        adbPort: '16385',
+        open_emulator_stat: false
+      }
+    }
+
+
+  ]; // 返回空代表后端暂无数据；Header 会给出兜底
 }
 
 export async function createProfile(payload: {

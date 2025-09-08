@@ -1,7 +1,7 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
 import {useApp} from '@/contexts/AppContext';
-import {ChevronLeft, ChevronRight, FilePlus2, Pencil, Trash2, X} from 'lucide-react';
+import {ChevronLeft, ChevronRight, FilePlus2, Loader2, Pencil, Trash2, X} from 'lucide-react';
 import {AnimatePresence, motion, Reorder} from 'framer-motion';
 import {
   createProfile, DEFAULT_CONFIG,
@@ -73,13 +73,17 @@ const Header: React.FC = () => {
   // 对话框：删除确认
   const [confirmDelete, setConfirmDelete] = React.useState<null | Tab>(null);
 
+  const hideCtxMenu = () => setCtxMenu(null);
+
   // 打开时列出配置（第 5 点：列出配置）
   React.useEffect(() => {
+
     (async () => {
       setLoading(true);
       try {
         const list = await listProfiles();
         if (list.length) {
+          console.log(list)
           setTabs(list);
           // activeProfile 不存在或不在列表里，就切到第一个
           const exists = list.find(p => p.id === activeProfile?.id);
@@ -171,15 +175,15 @@ const Header: React.FC = () => {
       return next;
     });
   };
-
   // 关闭右键菜单
   React.useEffect(() => {
-    const hide = () => setCtxMenu(null);
-    window.addEventListener('click', hide);
-    window.addEventListener('contextmenu', hide);
+
+
+    window.addEventListener('click', hideCtxMenu);
+    // window.addEventListener('contextmenu', hide);
     return () => {
-      window.removeEventListener('click', hide);
-      window.removeEventListener('contextmenu', hide);
+      window.removeEventListener('click', hideCtxMenu);
+      window.removeEventListener('contextmenu', hideCtxMenu);
     };
   }, []);
 
@@ -221,11 +225,11 @@ const Header: React.FC = () => {
                   key={tab.id}
                   value={tab}
                   layout
-                  whileDrag={{scale: 1.02}}
+                  whileDrag={{scale: 1.1}}
                   className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
                               border transition-colors cursor-pointer
                               ${active
-                    ? 'bg-slate-200/60 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600'
+                    ? 'bg-primary-900/15 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600 shadow-sm'
                     : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'}
                             `}
                   onPointerDown={(e) => {
@@ -241,6 +245,13 @@ const Header: React.FC = () => {
                   }}
                   onClick={() => onSelect(tab)}
                 >
+
+                  {/* 左侧运行中图标 */}
+                  {(
+                    false &&
+                    <Loader2 className="w-4 h-4 mr-2 text-primary-500 animate-spin"/>
+                  )}
+
                   {/* 标题（配置名） */}
                   <motion.span
                     className="truncate pr-5"

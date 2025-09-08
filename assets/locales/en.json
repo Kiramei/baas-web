@@ -110,5 +110,7 @@
   "hotkey.clear.logs": "Clear Logs",
   "hotkey.focus.search": "Focus Search",
   "hotkey.help.about": "Help / About",
-  "log.export": "Export Log"
+  "log.export": "Export Log",
+
+  "nextTask": "Next Task"
 }

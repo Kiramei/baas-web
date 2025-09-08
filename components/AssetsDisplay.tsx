@@ -74,7 +74,7 @@ const AssetsDisplay: React.FC<AssetsDisplayProps> = ({assets}) => {
     },
     {
       name: t('property.keystone.piece'),
-      value: assets.pyroxene.count.toLocaleString(),cc
+      value: assets.pyroxene.count.toLocaleString(),
       time: assets.pyroxene.time,
       icon: '../assets/icons/property/item_icon_craftitem_0.webp'
     },

@@ -119,5 +119,7 @@
   "hotkey.clear.logs": "清空日志",
   "hotkey.focus.search": "聚焦搜索",
   "hotkey.help.about": "帮助 / 关于",
-  "log.export": "导出日志"
+  "log.export": "导出日志",
+
+  "nextTask": "下一个任务"
 }

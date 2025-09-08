@@ -72,10 +72,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsLoading(false);
   }, [activeProfile]);
 
-  useEffect(() => {
-    fetchProfiles();
-    api.getInitialLogs().then(setLogs);
-  }, [fetchProfiles]);
+  // useEffect(() => {
+  //   fetchProfiles();
+  //   api.getInitialLogs().then(setLogs);
+  // }, [fetchProfiles]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
