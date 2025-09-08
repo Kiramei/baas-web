@@ -1,0 +1,5 @@
+{
+  "name": "Blue Archive Auto Script GUI",
+  "description": "A modern, refactored GUI for the Blue Archive Auto Script, built with React and Tauri for a superior user experience. It provides intuitive management for multiple configurations, task scheduling, and detailed settings.",
+  "requestFramePermissions": []
+}

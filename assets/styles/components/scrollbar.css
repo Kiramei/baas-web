@@ -1,0 +1,45 @@
+/* 灰色系、深色背景友好、嵌入式圆角滚动条 */
+.scroll-embedded {
+  /* 统一变量，可在容器上覆盖 */
+  --sb-size: 10px;
+  --sb-track: rgba(255, 255, 255, 0.06);  /* 轨道：很浅的灰，贴合暗背景 */
+  --sb-thumb: rgba(255, 255, 255, 0.28);  /* 拇指：可见但不刺眼 */
+  --sb-thumb-hover: rgba(255, 255, 255, 0.38);
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) var(--sb-track);
+
+  /* 预留滚动槽，避免内容抖动/被遮住 */
+  scrollbar-gutter: stable both-edges;
+}
+
+/* WebKit 系（Chrome / Edge / Safari） */
+.scroll-embedded::-webkit-scrollbar {
+  width: var(--sb-size);
+  height: var(--sb-size);
+}
+
+.scroll-embedded::-webkit-scrollbar-track {
+  background: var(--sb-track);
+  border-radius: 999px;
+  margin: 4px; /* 与容器边缘留点“呼吸感”，看起来更内嵌 */
+}
+
+.scroll-embedded::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--sb-track); /* 留白边，和轨道融合更“内嵌” */
+  box-shadow: inset 0 0 2px rgba(0,0,0,.25); /* 轻微内阴影，低调 */
+  transition: background .2s ease, opacity .2s ease;
+}
+
+.scroll-embedded::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-thumb-hover);
+  opacity: .95;
+}
+
+/* 可选：在特别深的容器里把滚动条再细一点 */
+.scroll-embedded.is-compact {
+  --sb-size: 8px;
+}

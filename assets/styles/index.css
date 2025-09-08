@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "./variables/colors.css";
+@import "./variables/font.css";
+@import "./components/scrollbar.css";
+@import "./components/cursor.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html, body, #root {
+  height: 100%;
+}
