@@ -1,16 +1,21 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { useApp } from '@/contexts/AppContext';
-import { ChevronLeft, ChevronRight, FilePlus2, Pencil, Trash2, X } from 'lucide-react';
-import { motion, Reorder, AnimatePresence } from 'framer-motion';
+import {useTranslation} from 'react-i18next';
+import {useApp} from '@/contexts/AppContext';
+import {ChevronLeft, ChevronRight, FilePlus2, Pencil, Trash2, X} from 'lucide-react';
+import {AnimatePresence, motion, Reorder} from 'framer-motion';
 import {
-  createProfile, deleteProfile as apiDelete,
-  listProfiles, reorderProfiles, updateProfile,
-  type ProfileDTO, type ServerCode
+  createProfile, DEFAULT_CONFIG,
+  deleteProfile as apiDelete,
+  listProfiles,
+  type ProfileDTO,
+  reorderProfiles,
+  type ServerCode,
+  updateProfile
 } from '@/services/profileService';
+import {AppSettings} from "@/lib/types.ts";
 
 // 小工具：去抖，避免拖拽过程中频繁打后端
-const useDebounce = <T,>(fn: (arg: T) => void, ms = 300) => {
+const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
   const t = React.useRef<number | null>(null);
   return React.useCallback((arg: T) => {
     if (t.current) window.clearTimeout(t.current);
@@ -24,8 +29,8 @@ const noScrollbarStyle = '[-ms-overflow-style:none] [scrollbar-width:none] [&::-
 type Tab = ProfileDTO;
 
 const Header: React.FC = () => {
-  const { t } = useTranslation();
-  const { activeProfile, setActiveProfile } = useApp();
+  const {t} = useTranslation();
+  const {activeProfile, setActiveProfile} = useApp();
 
   // Tabs（配置）本地状态；从后端拉取为准
   const [tabs, setTabs] = React.useState<Tab[]>([]);
@@ -33,7 +38,7 @@ const Header: React.FC = () => {
 
   // 溢出滚动控制
   const stripRef = React.useRef<HTMLDivElement>(null);
-  const [canScroll, setCanScroll] = React.useState({ left: false, right: false });
+  const [canScroll, setCanScroll] = React.useState({left: false, right: false});
   const updateScrollButtons = React.useCallback(() => {
     const el = stripRef.current;
     if (!el) return;
@@ -49,7 +54,7 @@ const Header: React.FC = () => {
     const onResize = () => updateScrollButtons();
     const onScroll = () => updateScrollButtons();
     window.addEventListener('resize', onResize);
-    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener('scroll', onScroll, {passive: true});
     return () => {
       window.removeEventListener('resize', onResize);
       el.removeEventListener('scroll', onScroll as any);
@@ -57,7 +62,7 @@ const Header: React.FC = () => {
   }, [updateScrollButtons]);
 
   const scrollBy = (dx: number) => {
-    stripRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
+    stripRef.current?.scrollBy({left: dx, behavior: 'smooth'});
   };
 
   // 右键菜单
@@ -82,11 +87,21 @@ const Header: React.FC = () => {
           setTimeout(() => {
             // 滚动使激活 tab 可见
             const el = document.getElementById(`tab-${(exists ?? list[0]).id}`);
-            el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
           }, 0);
         } else {
           // 后端为空时，给个兜底（创建一个默认配置，但不立刻打后端）
-          const fallback: Tab = { id: crypto.randomUUID(), name: t('defaultProfile') || 'Default', server: 'CN' as ServerCode };
+          const fallback: Tab = {
+            id: crypto.randomUUID(),
+            name: t('defaultProfile') || 'Default',
+            server: 'CN' as ServerCode,
+            settings: {
+              server: 'CN',
+              adbIP: '127.0.0.1',
+              adbPort: '16384',
+              open_emulator_stat: true
+            } as AppSettings
+          };
           setTabs([fallback]);
           setActiveProfile(fallback);
         }
@@ -99,7 +114,8 @@ const Header: React.FC = () => {
 
   // 拖拽排序（第 7 点）
   const debouncedPersistOrder = useDebounce((tabsNow: Tab[]) => {
-    reorderProfiles(tabsNow.map(t => t.id)).catch(() => {});
+    reorderProfiles(tabsNow.map(t => t.id)).catch(() => {
+    });
   }, 500);
 
   const onReorder = (next: Tab[]) => {
@@ -111,20 +127,20 @@ const Header: React.FC = () => {
     setActiveProfile(tab);
     // 确保选中项出现在视野内
     const el = document.getElementById(`tab-${tab.id}`);
-    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
   };
 
   // 新建配置（第 5/6 点）
   const handleCreate = async (name: string, server: ServerCode) => {
     // 重名校验
     if (tabs.some(t => t.name.trim() === name.trim())) throw new Error(t('nameExists') || 'Name already exists');
-    const created = await createProfile({ name: name.trim(), server });
+    const created = await createProfile({name: name.trim(), server, settings: DEFAULT_CONFIG});
     setTabs(prev => [...prev, created]);
     setActiveProfile(created);
     // 轻微“出现”动画由 motion 在 Tab 上处理（mount 时从 0→1）
     setTimeout(() => {
       const el = document.getElementById(`tab-${created.id}`);
-      el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
     }, 0);
   };
 
@@ -132,9 +148,9 @@ const Header: React.FC = () => {
   const handleEdit = async (id: string, name: string, server: ServerCode) => {
     const trimmed = name.trim();
     if (tabs.some(t => t.id !== id && t.name.trim() === trimmed)) throw new Error(t('nameExists') || 'Name already exists');
-    await updateProfile(id, { name: trimmed, server });
-    setTabs(prev => prev.map(t => t.id === id ? { ...t, name: trimmed, server } : t));
-    if (activeProfile?.id === id) setActiveProfile({ ...activeProfile, name: trimmed, server });
+    await updateProfile(id, {name: trimmed, server});
+    setTabs(prev => prev.map(t => t.id === id ? {...t, name: trimmed, server} : t));
+    if (activeProfile?.id === id) setActiveProfile({...activeProfile, name: trimmed});
   };
 
   // 删除配置（第 2/5 点）
@@ -168,7 +184,8 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center px-3">
+    <header
+      className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center px-3">
       {/* 左侧：滚动控制 */}
       <div className="flex items-center gap-1 mr-2">
         <button
@@ -176,14 +193,14 @@ const Header: React.FC = () => {
           onClick={() => scrollBy(-200)}
           aria-label="scroll-left"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5"/>
         </button>
         <button
           className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 ${!canScroll.right ? 'opacity-40 pointer-events-none' : ''}`}
           onClick={() => scrollBy(200)}
           aria-label="scroll-right"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5"/>
         </button>
       </div>
 
@@ -204,7 +221,7 @@ const Header: React.FC = () => {
                   key={tab.id}
                   value={tab}
                   layout
-                  whileDrag={{ scale: 1.02 }}
+                  whileDrag={{scale: 1.02}}
                   className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
                               border transition-colors cursor-pointer
                               ${active
@@ -220,7 +237,7 @@ const Header: React.FC = () => {
                   }}
                   onContextMenu={(e) => {
                     e.preventDefault();
-                    setCtxMenu({ x: e.clientX, y: e.clientY, tab });
+                    setCtxMenu({x: e.clientX, y: e.clientY, tab});
                   }}
                   onClick={() => onSelect(tab)}
                 >
@@ -228,8 +245,8 @@ const Header: React.FC = () => {
                   <motion.span
                     className="truncate pr-5"
                     layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
                   >
                     {tab.name}
                   </motion.span>
@@ -238,9 +255,12 @@ const Header: React.FC = () => {
                   <button
                     title={t('delete') || 'Delete'}
                     className="absolute right-1 p-1 rounded opacity-60 hover:opacity-100 hover:bg-slate-200/70 dark:hover:bg-slate-700/70"
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(tab); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDelete(tab);
+                    }}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5"/>
                   </button>
                 </Reorder.Item>
               );
@@ -252,10 +272,10 @@ const Header: React.FC = () => {
       {/* 右侧：新建按钮 */}
       <div className="ml-3">
         <button
-          onClick={() => setEditor({ mode: 'create' })}
+          onClick={() => setEditor({mode: 'create'})}
           className="flex items-center px-3 h-9 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
-          <FilePlus2 className="w-4 h-4 mr-2" />
+          <FilePlus2 className="w-4 h-4 mr-2"/>
           {t('addProfile')}
         </button>
       </div>
@@ -264,24 +284,30 @@ const Header: React.FC = () => {
       <AnimatePresence>
         {ctxMenu && ctxMenu.tab && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ type: 'tween', duration: 0.12 }}
+            initial={{opacity: 0, scale: 0.96}}
+            animate={{opacity: 1, scale: 1}}
+            exit={{opacity: 0, scale: 0.96}}
+            transition={{type: 'tween', duration: 0.12}}
             className="fixed z-50 min-w-[160px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1"
-            style={{ top: ctxMenu.y + 2, left: ctxMenu.x + 2 }}
+            style={{top: ctxMenu.y + 2, left: ctxMenu.x + 2}}
           >
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
-              onClick={() => { setEditor({ mode: 'edit', tab: ctxMenu.tab! }); setCtxMenu(null); }}
+              onClick={() => {
+                setEditor({mode: 'edit', tab: ctxMenu.tab!});
+                setCtxMenu(null);
+              }}
             >
-              <Pencil className="w-4 h-4" /> {t('rename') || 'Edit'}
+              <Pencil className="w-4 h-4"/> {t('rename') || 'Edit'}
             </button>
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
-              onClick={() => { setConfirmDelete(ctxMenu.tab!); setCtxMenu(null); }}
+              onClick={() => {
+                setConfirmDelete(ctxMenu.tab!);
+                setCtxMenu(null);
+              }}
             >
-              <Trash2 className="w-4 h-4" /> {t('delete') || 'Delete'}
+              <Trash2 className="w-4 h-4"/> {t('delete') || 'Delete'}
             </button>
           </motion.div>
         )}
@@ -324,7 +350,7 @@ export default Header;
 
 /** ---------------- 辅助组件（Modal） ---------------- */
 
-const overlayCls = "fixed inset-0 bg-black/30 backdrop-blur-[1px] flex items-center justify-center z-50";
+const overlayCls = "fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50";
 
 function ProfileEditorModal(props: {
   open: boolean;
@@ -334,7 +360,7 @@ function ProfileEditorModal(props: {
   onSubmit: (vals: { name: string; server: ServerCode }) => Promise<void>;
   checkName: (name: string, selfId?: string) => boolean;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [name, setName] = React.useState(props.initial?.name ?? '');
   const [server, setServer] = React.useState<ServerCode>(props.initial?.server ?? 'CN');
   const [err, setErr] = React.useState<string | null>(null);
@@ -354,7 +380,7 @@ function ProfileEditorModal(props: {
     if (props.checkName(nm, props.initial?.id)) return setErr(t('nameExists') || 'Name already exists');
     try {
       setSubmitting(true);
-      await props.onSubmit({ name: nm, server });
+      await props.onSubmit({name: nm, server});
     } catch (e: any) {
       setErr(e?.message || t('saveFailed') || 'Save failed');
     } finally {
@@ -364,12 +390,14 @@ function ProfileEditorModal(props: {
 
   if (!props.open) return null;
   return (
-    <div className={overlayCls} onMouseDown={(e) => { if (e.target === e.currentTarget) props.onClose(); }}>
+    <div className={overlayCls} onMouseDown={(e) => {
+      if (e.target === e.currentTarget) props.onClose();
+    }}>
       <motion.div
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0,   scale: 1 }}
-        exit={{ opacity: 0, y: 12, scale: 0.98 }}
-        transition={{ duration: 0.18, type: 'tween', ease: 'easeOut' }}
+        initial={{opacity: 0, y: 12, scale: 0.98}}
+        animate={{opacity: 1, y: 0, scale: 1}}
+        exit={{opacity: 0, y: 12, scale: 0.98}}
+        transition={{duration: 0.18, type: 'tween', ease: 'easeOut'}}
         className="w-[420px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5"
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -440,26 +468,28 @@ function ConfirmDeleteModal(props: {
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   if (!props.open) return null;
   return (
-    <div className={overlayCls} onMouseDown={(e) => { if (e.target === e.currentTarget) props.onCancel(); }}>
+    <div className={overlayCls} onMouseDown={(e) => {
+      if (e.target === e.currentTarget) props.onCancel();
+    }}>
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 8 }}
-        transition={{ duration: 0.16 }}
+        initial={{opacity: 0, y: 8}}
+        animate={{opacity: 1, y: 0}}
+        exit={{opacity: 0, y: 8}}
+        transition={{duration: 0.16}}
         className="w-[420px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 p-2">
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-5 h-5"/>
           </div>
           <div className="flex-1">
             <div className="text-lg font-semibold">{t('confirmDeleteTitle') || 'Delete configuration?'}</div>
             <div className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              {t('confirmDeleteMessage', { name: props.name }) || `Are you sure you want to delete "${props.name}"?`}
+              {t('confirmDeleteMessage', {name: props.name}) || `Are you sure you want to delete "${props.name}"?`}
             </div>
           </div>
         </div>

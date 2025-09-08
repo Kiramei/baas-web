@@ -104,5 +104,11 @@
   "Leave empty to unbind": "Leave empty to unbind",
   "Please fix invalid or duplicated hotkeys.": "Please fix invalid or duplicated hotkeys.",
 
-  "hotkey.switch.start": "Start/Stop"
+  "hotkey.switch.start": "Start/Stop",
+  "hotkey.toggle.scroll": "Toggle Scroll To End",
+  "hotkey.open.settings": "Open Settings",
+  "hotkey.clear.logs": "Clear Logs",
+  "hotkey.focus.search": "Focus Search",
+  "hotkey.help.about": "Help / About",
+  "log.export": "Export Log"
 }

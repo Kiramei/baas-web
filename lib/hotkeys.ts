@@ -5,11 +5,11 @@ import type { HotkeyConfig } from '@/components/HotkeyConfig';
 export function getDefaultHotkeys(t: TFunction): HotkeyConfig[] {
   return [
     { id: 'toggle-run',    label: t('hotkey.switch.start'), value: 'Ctrl+Enter' },
-    { id: 'toggle-scroll', label: t('Toggle Scroll To Esssnd1'), value: 'Ctrl+Shift+S' },
-    { id: 'open-settings', label: t('Open Settingssss'), value: 'Ctrl+,' },
-    { id: 'clear-logs',    label: t('Clear Logsss'), value: '' },
-    { id: 'focus-search',  label: t('Focus Search'), value: 'Ctrl+K' },
-    { id: 'help',          label: t('Help / About'), value: 'F1' },
+    { id: 'toggle-scroll', label: t('hotkey.toggle.scroll'), value: 'Ctrl+Shift+S' },
+    { id: 'open-settings', label: t('hotkey.open.settings'), value: 'Ctrl+,' },
+    { id: 'clear-logs',    label: t('hotkey.clear.logs'), value: '' },
+    { id: 'focus-search',  label: t('hotkey.focus.search'), value: 'Ctrl+K' },
+    { id: 'help',          label: t('hotkey.help.about'), value: 'F1' },
   ];
 }
 

@@ -113,6 +113,11 @@
   "Leave empty to unbind": "留空表示不绑定",
   "Please fix invalid or duplicated hotkeys.": "请修复无效或重复的快捷键。",
 
-  "hotkey.switch.start": "开始/停止"
-
+  "hotkey.switch.start": "开始/停止",
+  "hotkey.toggle.scroll": "切换滚动到底部",
+  "hotkey.open.settings": "打开设置",
+  "hotkey.clear.logs": "清空日志",
+  "hotkey.focus.search": "聚焦搜索",
+  "hotkey.help.about": "帮助 / 关于",
+  "log.export": "导出日志"
 }

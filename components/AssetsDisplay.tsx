@@ -74,7 +74,7 @@ const AssetsDisplay: React.FC<AssetsDisplayProps> = ({assets}) => {
     },
     {
       name: t('property.keystone.piece'),
-      value: assets.pyroxene.count.toLocaleString(),
+      value: assets.pyroxene.count.toLocaleString(),cc
       time: assets.pyroxene.time,
       icon: '../assets/icons/property/item_icon_craftitem_0.webp'
     },
@@ -87,7 +87,7 @@ const AssetsDisplay: React.FC<AssetsDisplayProps> = ({assets}) => {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-1">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-1">
       {assetItems.map(item => (
         <div key={item.name}
              className="bg-white dark:bg-slate-800/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start">

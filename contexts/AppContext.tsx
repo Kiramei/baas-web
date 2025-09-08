@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { ConfigProfile, SchedulerStatus, Asset, LogEntry } from '@/lib/types.ts';
+import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings} from '@/lib/types.ts';
 import api from '@/services/api';
 import {
   listProfiles,
@@ -100,7 +100,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   /** —— 配置：创建 —— */
-  const createProfile = useCallback(async (payload: { name: string; server: ServerCode }) => {
+  const createProfile = useCallback(async (payload: { name: string; server: ServerCode, settings: AppSettings }) => {
     // 重名校验（本地先卡一次，后端也应兜底）
     if (profiles.some(p => p.name.trim() === payload.name.trim())) {
       throw new Error('Name already exists');

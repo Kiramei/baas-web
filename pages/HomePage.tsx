@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import Logger from '../components/ui/Logger';
 import AssetsDisplay from '../components/AssetsDisplay';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
-import {KeyboardIcon, Play, Square} from 'lucide-react';
+import {FileUp, KeyboardIcon, Logs, Play, Square} from 'lucide-react';
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 
@@ -44,6 +44,20 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
     setHotkeyModalOpen(false);
   };
 
+  const exportLog = () => {
+    const content = logs.map(
+      l => `[${l.timestamp}] ${l.level}: ${l.message}`
+    ).join('\n');
+
+    const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `logs-${new Date().toISOString()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="h-full flex flex-col min-h-0 gap-2">
       {/* 头部 */}
@@ -78,12 +92,27 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
       {/* 日志卡片 */}
       <Card className="flex-1 min-h-100 flex flex-col">
         <CardHeader className="flex justify-between items-center">
-          <CardTitle>{t('logs')}</CardTitle>
-          <SwitchButton
-            checked={scrollToEnd}
-            onChange={setScrollToEnd}
-            labels={{on: t('log.scroll.on'), off: t('log.scroll.off')}}
-          />
+          <CardTitle>
+            <div className="flex items-center gap-2">
+              <Logs /> {t('logs')}
+            </div>
+
+          </CardTitle>
+          <div className={'flex items-center justify-center'}>
+            <SwitchButton
+              checked={scrollToEnd}
+              onChange={setScrollToEnd}
+              labels={{on: t('log.scroll.on'), off: t('log.scroll.off')}}
+            />
+            <Button onClick={exportLog} className='ml-2'>
+              <div className='flex'>
+                <FileUp size={20} className={'mr-2'}/>
+                {t('log.export')}
+              </div>
+
+            </Button>
+          </div>
+
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 p-0 flex">
