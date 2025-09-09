@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, {createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef} from 'react';
 import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings} from '@/lib/types.ts';
 import api from '@/services/api';
 import {
@@ -77,22 +77,75 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   //   api.getInitialLogs().then(setLogs);
   // }, [fetchProfiles]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const status = await api.getSchedulerStatus();
-      setSchedulerStatus(status);
-      setScriptRunning(status.runningTask !== null);
+    const pollMs = 1
+    // 保存上次值以做浅比较，避免无变化 setState
+    const prevRef = useRef({
+        schedulerStatus: null as any,
+        scriptRunning: false,
+        assets: null as Asset,
+        logs: [] as LogEntry[],
+    });
 
-      const newAssets = await api.getAssets();
-      setAssets(newAssets);
+    useEffect(() => {
+        let cancelled = false;
+        let timer: any = null;
 
-      // A real app would use Tauri events for logs instead of polling
-      const latestLogs = await api.getInitialLogs();
-      setLogs(latestLogs);
+        const shallowEqual = (a: any, b: any) => {
+            if (Object.is(a, b)) return true;
+            if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
+            const ka = Object.keys(a), kb = Object.keys(b);
+            if (ka.length !== kb.length) return false;
+            for (const k of ka) if (!Object.is(a[k], (b as any)[k])) return false;
+            return true;
+        };
 
-    }, 1);
-    return () => clearInterval(interval);
-  }, []);
+        const arrayShallowEqual = (a: any[], b: any[]) => {
+            if (a === b) return true;
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) return false;
+            return true;
+        };
+
+        const tick = async () => {
+            try {
+                const status = await api.getSchedulerStatus();
+                const running = status?.runningTask != null;
+
+                if (!shallowEqual(status, prevRef.current.schedulerStatus)) {
+                    prevRef.current.schedulerStatus = status;
+                    setSchedulerStatus(status);
+                }
+
+                if (running !== prevRef.current.scriptRunning) {
+                    prevRef.current.scriptRunning = running;
+                    setScriptRunning(running);
+                }
+
+                const newAssets = await api.getAssets();
+                if (!shallowEqual(newAssets, prevRef.current.assets)) {
+                    prevRef.current.assets = newAssets;
+                    setAssets(newAssets);
+                }
+
+                // （真的应用里建议用事件流而不是每次都“全量拉日志”）
+                const latestLogs = await api.getInitialLogs();
+                if (!arrayShallowEqual(latestLogs, prevRef.current.logs)) {
+                    prevRef.current.logs = latestLogs;
+                    setLogs(latestLogs);
+                }
+            } finally {
+                if (!cancelled) timer = setTimeout(tick, pollMs);
+            }
+        };
+
+        // 启动
+        tick();
+
+        return () => {
+            cancelled = true;
+            if (timer) clearTimeout(timer);
+        };
+    }, [pollMs]);
 
   const saveProfile = async (profile: ConfigProfile) => {
     await api.saveProfile(profile);

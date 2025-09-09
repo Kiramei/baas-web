@@ -34,7 +34,7 @@ const Header: React.FC = () => {
 
   // Tabs（配置）本地状态；从后端拉取为准
   const [tabs, setTabs] = React.useState<Tab[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  const [_, setLoading] = React.useState(false);
 
   // 溢出滚动控制
   const stripRef = React.useRef<HTMLDivElement>(null);
@@ -83,7 +83,6 @@ const Header: React.FC = () => {
       try {
         const list = await listProfiles();
         if (list.length) {
-          console.log(list)
           setTabs(list);
           // activeProfile 不存在或不在列表里，就切到第一个
           const exists = list.find(p => p.id === activeProfile?.id);
