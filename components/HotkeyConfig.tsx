@@ -109,7 +109,7 @@ const HotkeySettingsModal: React.FC<{
           className="px-1 py-0.5 bg-slate-200/70 dark:bg-slate-700/60 rounded">F5</code>. {t('Leave empty to unbind')}.
         </p>
 
-        <div className="mb-2">
+        <div className="mb-2 p-1">
           <input
             type="text"
             value={search}

@@ -121,5 +121,12 @@
   "hotkey.help.about": "帮助 / 关于",
   "log.export": "导出日志",
 
-  "nextTask": "下一个任务"
+  "nextTask": "下一个任务",
+
+  "rename": "重命名",
+  "delete": "删除",
+
+  "editProfile": "编辑配置",
+  "profileName": "配置名",
+  "createProfile": "新增配置"
 }

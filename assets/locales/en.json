@@ -112,5 +112,8 @@
   "hotkey.help.about": "Help / About",
   "log.export": "Export Log",
 
-  "nextTask": "Next Task"
+  "nextTask": "Next Task",
+
+  "rename": "Rename",
+  "delete": "Delete"
 }
