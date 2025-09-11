@@ -10,13 +10,25 @@ import ArenaConfig from '../features/ArenaConfig';
 import EmulatorConfig from '../features/EmulatorConfig';
 import PushConfig from '../features/PushConfig';
 import OtherConfig from '@/features/OtherConfig';
-import type {LucideProps} from 'lucide-react';
+import {BrushCleaning, LucideProps} from 'lucide-react';
 import {Coffee, Dices, Settings2, ShoppingCart, Swords} from 'lucide-react';
 import {motion, Variants} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext';
-import {ProfileProps} from "@/lib/types.ts"; // 取 activeProfile / updateProfile
+import {ProfileProps} from "@/lib/types.ts";
+import DailySweep from "@/features/DailySweep.tsx"; // 取 activeProfile / updateProfile
 
-type Feature = 'cafe' | 'schedule' | 'shop' | 'arena' | 'server' | 'emulator' | 'push' | 'other';
+type Feature = 'cafe' | 'schedule' | 'shop' | 'arena' | 'dailySweep' | 'server' | 'emulator' | 'push' | 'other';
+const FeatureWidthDict = {
+  'cafe': 50,
+  'schedule': 50,
+  'shop': 50,
+  'arena': 30,
+  'dailySweep': 50,
+  'server': 30,
+  'emulator': 30,
+  'push': 30,
+  'other': 30,
+}
 
 // ✅ 新：给 Feature 的最小建议 props（向后兼容）
 export interface FeatureComponentProps {
@@ -36,6 +48,7 @@ const featureMap: Record<Feature, {
   schedule: {icon: Dices, descKey: 'scheduleDesc', component: ScheduleConfig},
   shop: {icon: ShoppingCart, descKey: 'shopDesc', component: ShopConfig},
   arena: {icon: Swords, descKey: 'arenaDesc', component: ArenaConfig},
+  dailySweep: {icon: BrushCleaning, descKey: 'dailySweepDesc', component: DailySweep},
   server: {icon: Settings2, descKey: 'serverDesc', component: ServerConfig},
   emulator: {icon: Settings2, descKey: 'emulatorDesc', component: EmulatorConfig},
   push: {icon: Settings2, descKey: 'pushDesc', component: PushConfig},
@@ -81,11 +94,18 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
   }, [profile, settings, updateProfile]);
 
   const [modalContent, setModalContent] = useState<Feature | null>(null);
-  const openModal = (feature: Feature) => setModalContent(feature);
-  const closeModal = () => setModalContent(null);
+  const [modalWidth, setModalWidth] = useState<number | null>(null);
+
+  const openModal = (feature: Feature) => {
+    setModalWidth(FeatureWidthDict[feature]);
+    setModalContent(feature);
+  }
+  const closeModal = () => {
+    setModalContent(null);
+  }
 
   const featureGroups: Record<string, Feature[]> = {
-    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'arena'],
+    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'arena', 'dailySweep'],
     [t('generalSettings')]: ['server', 'emulator', 'push', 'other'],
   };
 
@@ -113,9 +133,10 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
   return (
     <div className="space-y-8">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('configuration')}</h2>
-        {/* 可选：当前配置名 */}
-        {profile && <div className="text-sm text-slate-500 dark:text-slate-400">#{profile.name}</div>}
+        <div className={'flex'}>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('configuration')}</h2>
+          <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
+        </div>
       </div>
 
       {/* 卡片栅格 + 入场级联动画 */}
@@ -132,7 +153,7 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
 
       {/* 弹窗：把 profileId / settings / onChange 下发（Feature 可按需使用） */}
       {modalContent && CurrentModalContent && (
-        <Modal isOpen title={t(modalContent)} onClose={closeModal}>
+        <Modal isOpen title={t(modalContent)} onClose={closeModal} width={modalWidth}>
           <CurrentModalContent
             onClose={closeModal}
             profileId={profile?.id}

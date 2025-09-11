@@ -110,10 +110,28 @@
   "hotkey.clear.logs": "Clear Logs",
   "hotkey.focus.search": "Focus Search",
   "hotkey.help.about": "Help / About",
+  "Search hotkeys": "Search hotkeys",
   "log.export": "Export Log",
 
   "nextTask": "Next Task",
 
   "rename": "Rename",
-  "delete": "Delete"
+  "delete": "Delete",
+
+
+  "creditpoints": "Creditpoints",
+
+  "confirmDeleteTitle": "Confirm Profile Deletion",
+  "confirmDeleteMessage": "Do you really want to delete this Profile? The deletion can't be undone.",
+
+  "ui.zoom": "UI Zoom Setting",
+
+  "commonShop.title": "Common Shop",
+  "tacticalShop.title": "Tactical Shop",
+  "commonShop.refreshTimes": "Shop Refresh Times",
+  "commonShop.refreshDesc": "Automatically refresh the shop",
+  "add": "Add",
+  "Add Student": "Add Student",
+
+  "placeholder.config.insert": "Please insert your config here."
 }

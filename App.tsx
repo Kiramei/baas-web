@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import { AppProvider } from '@/contexts/AppContext';
 import { ThemeProvider } from '@/hooks/useTheme';
 import MainLayout from '@/components/layout/MainLayout';

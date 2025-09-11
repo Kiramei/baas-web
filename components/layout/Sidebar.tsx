@@ -37,19 +37,20 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
       <nav className="flex-1 px-4 py-6">
         <ul>
           {navItems.map(item => (
-            <li key={item.id}>
-              <button
-                onClick={() => setActivePage(item.id)}
-                className={`flex items-center w-full px-4 py-3 my-1 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                  activePage === item.id
-                    ? 'bg-primary-500 text-white'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <item.icon className="w-5 h-5 mr-3" />
-                <span>{item.label}</span>
-              </button>
-            </li>
+              <li key={item.id}>
+                {item.id == 'settings' && <hr key={item.id + "hr"} className="border-[1px] border-slate-300 dark:border-slate-500" />}
+                <button
+                  onClick={() => setActivePage(item.id)}
+                  className={`flex items-center w-full px-4 py-3 my-1 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    activePage === item.id
+                      ? 'bg-primary-500 text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 mr-3" />
+                  <span>{item.label}</span>
+                </button>
+              </li>
           ))}
         </ul>
       </nav>

@@ -1,5 +1,4 @@
-
-import type { ConfigProfile, AppSettings, SchedulerStatus, LogEntry, Asset } from '../lib/types.ts';
+import type {ConfigProfile, AppSettings, SchedulerStatus, LogEntry, Asset, UISettings} from '../lib/types.ts';
 
 // This file mocks the Tauri backend API.
 // In a real Tauri app, you would replace these functions with `invoke` calls.
@@ -35,16 +34,16 @@ let mockSchedulerStatus: SchedulerStatus = {
 };
 
 let mockLogEntries: LogEntry[] = [
-    { id: 1, timestamp: new Date().toISOString(), level: 'INFO', message: 'Application initialized.' },
-  { id: 2, timestamp: new Date().toISOString(), level: 'INFO', message: 'Waiting for script to start.' }
+  {id: 1, timestamp: new Date().toISOString(), level: 'INFO', message: 'Application initialized.'},
+  {id: 2, timestamp: new Date().toISOString(), level: 'INFO', message: 'Waiting for script to start.'}
 ];
 let logIdCounter = 3;
 
 let mockAssets: Asset = {
-    ap: { count: 120, max: 120, time: Date.now() / 1000 - 60 },
-    creditpoints: { count: 1500000, time: Date.now() / 1000 - 120 },
-    pyroxene: { count: 24000, time: Date.now() / 1000 - 180 },
-    tactical_challenge_coin: { count: 500, time: Date.now() / 1000 - 3600 },
+  ap: {count: 120, max: 120, time: Date.now() / 1000 - 60},
+  creditpoints: {count: 1500000, time: Date.now() / 1000 - 120},
+  pyroxene: {count: 24000, time: Date.now() / 1000 - 180},
+  tactical_challenge_coin: {count: 500, time: Date.now() / 1000 - 3600},
 };
 
 
@@ -54,18 +53,18 @@ const api = {
   },
 
   saveProfile: async (profile: ConfigProfile): Promise<void> => {
-     return new Promise(resolve => {
-        setTimeout(() => {
-            const index = mockProfiles.findIndex(p => p.id === profile.id);
-            if (index > -1) {
-                mockProfiles[index] = profile;
-            } else {
-                mockProfiles.push(profile);
-            }
-            console.log('Saved profile:', profile);
-            resolve();
-        }, MOCK_DELAY)
-     });
+    return new Promise(resolve => {
+      setTimeout(() => {
+        const index = mockProfiles.findIndex(p => p.id === profile.id);
+        if (index > -1) {
+          mockProfiles[index] = profile;
+        } else {
+          mockProfiles.push(profile);
+        }
+        console.log('Saved profile:', profile);
+        resolve();
+      }, MOCK_DELAY)
+    });
   },
 
   deleteProfile: async (profileId: string): Promise<void> => {
@@ -81,11 +80,11 @@ const api = {
   getSchedulerStatus: async (): Promise<SchedulerStatus> => {
     return new Promise(resolve => setTimeout(() => resolve(mockSchedulerStatus), MOCK_DELAY));
   },
-  
+
   getInitialLogs: async (): Promise<LogEntry[]> => {
     return new Promise(resolve => setTimeout(() => resolve([...mockLogEntries]), 100));
   },
-  
+
   getAssets: async (): Promise<Asset> => {
     // Simulate asset updates
     mockAssets.ap.count = Math.min(mockAssets.ap.max, mockAssets.ap.count + 5);
@@ -94,44 +93,78 @@ const api = {
 
   startScript: async (): Promise<void> => {
     return new Promise(resolve => {
-        setTimeout(() => {
-            if (mockSchedulerStatus.runningTask === null && mockSchedulerStatus.taskQueue.length > 0) {
-                const nextTask = mockSchedulerStatus.taskQueue.shift()!;
-                mockSchedulerStatus.runningTask = nextTask;
-                const log: LogEntry = {id: logIdCounter++, timestamp: new Date().toISOString(), level: 'INFO', message: `Script started. Running task: ${nextTask}`};
-                mockLogEntries.push(log);
-                
-                // Simulate task completion
-                setTimeout(() => {
-                    const completedTask = mockSchedulerStatus.runningTask;
-                    mockSchedulerStatus.runningTask = null;
-                    const log: LogEntry = {id: logIdCounter++, timestamp: new Date().toISOString(), level: 'INFO', message: `Task completed: ${completedTask}`};
-                    mockLogEntries.push(log);
-                    api.startScript(); // try to start next task
-                }, 5000 + Math.random() * 3000);
-                // }, 1000);
-            } else if (mockSchedulerStatus.runningTask === null && mockSchedulerStatus.taskQueue.length === 0) {
-                 const log: LogEntry = {id: logIdCounter++, timestamp: new Date().toISOString(), level: 'INFO', message: `All tasks completed.`};
-                 mockLogEntries.push(log);
-            }
-            resolve();
-        }, MOCK_DELAY)
+      setTimeout(() => {
+        if (mockSchedulerStatus.runningTask === null && mockSchedulerStatus.taskQueue.length > 0) {
+          const nextTask = mockSchedulerStatus.taskQueue.shift()!;
+          mockSchedulerStatus.runningTask = nextTask;
+          const log: LogEntry = {
+            id: logIdCounter++,
+            timestamp: new Date().toISOString(),
+            level: 'INFO',
+            message: `Script started. Running task: ${nextTask}`
+          };
+          mockLogEntries.push(log);
+
+          // Simulate task completion
+          setTimeout(() => {
+            const completedTask = mockSchedulerStatus.runningTask;
+            mockSchedulerStatus.runningTask = null;
+            const log: LogEntry = {
+              id: logIdCounter++,
+              timestamp: new Date().toISOString(),
+              level: 'INFO',
+              message: `Task completed: ${completedTask}`
+            };
+            mockLogEntries.push(log);
+            api.startScript(); // try to start next task
+          }, 5000 + Math.random() * 3000);
+          // }, 1000);
+        } else if (mockSchedulerStatus.runningTask === null && mockSchedulerStatus.taskQueue.length === 0) {
+          const log: LogEntry = {
+            id: logIdCounter++,
+            timestamp: new Date().toISOString(),
+            level: 'INFO',
+            message: `All tasks completed.`
+          };
+          mockLogEntries.push(log);
+        }
+        resolve();
+      }, MOCK_DELAY)
     });
   },
 
   stopScript: async (): Promise<void> => {
     return new Promise(resolve => {
-        setTimeout(() => {
-            if(mockSchedulerStatus.runningTask) {
-                mockSchedulerStatus.taskQueue.unshift(mockSchedulerStatus.runningTask);
-                mockSchedulerStatus.runningTask = null;
-            }
-             const log: LogEntry = {id: logIdCounter++, timestamp: new Date().toISOString(), level: 'WARN', message: `Script stopped by user.`};
-             mockLogEntries.push(log);
-            resolve();
-        }, MOCK_DELAY)
+      setTimeout(() => {
+        if (mockSchedulerStatus.runningTask) {
+          mockSchedulerStatus.taskQueue.unshift(mockSchedulerStatus.runningTask);
+          mockSchedulerStatus.runningTask = null;
+        }
+        const log: LogEntry = {
+          id: logIdCounter++,
+          timestamp: new Date().toISOString(),
+          level: 'WARN',
+          message: `Script stopped by user.`
+        };
+        mockLogEntries.push(log);
+        resolve();
+      }, MOCK_DELAY)
     });
   },
+
+  getUISettings: async (): Promise<UISettings> => {
+    return new Promise(resolve => {
+      const returnValue: UISettings = {
+        "lang": "",
+        "theme": "",
+        "startupWidth": 1280,
+        "startupHeight": 720,
+        "zoomScale": 100,
+        "scrollToEnd": true
+      }
+      resolve(returnValue)
+    })
+  }
 
 };
 

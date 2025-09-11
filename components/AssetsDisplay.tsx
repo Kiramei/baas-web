@@ -92,7 +92,7 @@ const AssetsDisplay: React.FC<AssetsDisplayProps> = ({assets}) => {
         <div key={item.name}
              className="bg-white dark:bg-slate-800/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start">
           <div className={'flex flex-col items-center justify-center mr-4 min-w-10 ml-1'}>
-            <img src={item.icon} className={`w-8 h-6`} alt={item.name} />
+            <img src={item.icon} className={`w-8 h-6`} alt={item.name}/>
             <div className="text-sm text-slate-500 dark:text-slate-400">{item.name}</div>
           </div>
           <div>

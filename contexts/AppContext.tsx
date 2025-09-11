@@ -1,6 +1,5 @@
-
 import React, {createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef} from 'react';
-import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings} from '@/lib/types.ts';
+import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings, UISettings} from '@/lib/types.ts';
 import api from '@/services/api';
 import {
   listProfiles,
@@ -34,6 +33,7 @@ interface AppContextType {
   schedulerStatus: SchedulerStatus;
   logs: LogEntry[];
   assets: Asset | null;
+  uiSettings: UISettings;
 
   refreshProfiles: () => Promise<void>;
 }
@@ -52,15 +52,17 @@ const toConfigProfile = (dto: ProfileDTO): ConfigProfile => ({
   },
 });
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [profiles, setProfiles] = useState<ConfigProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<ConfigProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [scriptRunning, setScriptRunning] = useState(false);
-  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus>({ runningTask: null, taskQueue: [] });
+  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus>({runningTask: null, taskQueue: []});
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [assets, setAssets] = useState<Asset | null>(null);
+
+  const [uiSettings, setUiSettings] = useState<UISettings | null>(null);
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -77,79 +79,93 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   //   api.getInitialLogs().then(setLogs);
   // }, [fetchProfiles]);
 
-    const pollMs = 1
-    // 保存上次值以做浅比较，避免无变化 setState
-    const prevRef = useRef({
-        schedulerStatus: null as any,
-        scriptRunning: false,
-        assets: null as Asset,
-        logs: [] as LogEntry[],
-    });
+  const pollMs = 1
+  // 保存上次值以做浅比较，避免无变化 setState
+  const prevRef = useRef({
+    schedulerStatus: null as any,
+    scriptRunning: false,
+    assets: null as Asset,
+    UISettings: {},
+    logs: [] as LogEntry[],
+  });
 
-    useEffect(() => {
-        let cancelled = false;
-        let timer: any = null;
+  const shallowEqual = (a: any, b: any) => {
+    if (Object.is(a, b)) return true;
+    if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
+    const ka = Object.keys(a), kb = Object.keys(b);
+    if (ka.length !== kb.length) return false;
+    for (const k of ka) if (!Object.is(a[k], (b as any)[k])) return false;
+    return true;
+  };
 
-        const shallowEqual = (a: any, b: any) => {
-            if (Object.is(a, b)) return true;
-            if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;
-            const ka = Object.keys(a), kb = Object.keys(b);
-            if (ka.length !== kb.length) return false;
-            for (const k of ka) if (!Object.is(a[k], (b as any)[k])) return false;
-            return true;
-        };
+  useEffect(() => {
+    let cancelled = false;
+    let timer: any = null;
 
-        const arrayShallowEqual = (a: any[], b: any[]) => {
-            if (a === b) return true;
-            if (a.length !== b.length) return false;
-            for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) return false;
-            return true;
-        };
 
-        const tick = async () => {
-            try {
-                const status = await api.getSchedulerStatus();
-                const running = status?.runningTask != null;
+    const arrayShallowEqual = (a: any[], b: any[]) => {
+      if (a === b) return true;
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) if (!Object.is(a[i], b[i])) return false;
+      return true;
+    };
 
-                if (!shallowEqual(status, prevRef.current.schedulerStatus)) {
-                    prevRef.current.schedulerStatus = status;
-                    setSchedulerStatus(status);
-                }
+    const tick = async () => {
+      try {
+        const status = await api.getSchedulerStatus();
+        const running = status?.runningTask != null;
 
-                if (running !== prevRef.current.scriptRunning) {
-                    prevRef.current.scriptRunning = running;
-                    setScriptRunning(running);
-                }
+        if (!shallowEqual(status, prevRef.current.schedulerStatus)) {
+          prevRef.current.schedulerStatus = status;
+          setSchedulerStatus(status);
+        }
 
-                const newAssets = await api.getAssets();
-                if (!shallowEqual(newAssets, prevRef.current.assets)) {
-                    prevRef.current.assets = newAssets;
-                    setAssets(newAssets);
-                }
+        if (running !== prevRef.current.scriptRunning) {
+          prevRef.current.scriptRunning = running;
+          setScriptRunning(running);
+        }
 
-                // （真的应用里建议用事件流而不是每次都“全量拉日志”）
-                const latestLogs = await api.getInitialLogs();
-                if (!arrayShallowEqual(latestLogs, prevRef.current.logs)) {
-                    prevRef.current.logs = latestLogs;
-                    setLogs(latestLogs);
-                }
-            } finally {
-                if (!cancelled) timer = setTimeout(tick, pollMs);
-            }
-        };
+        const newAssets = await api.getAssets();
+        if (!shallowEqual(newAssets, prevRef.current.assets)) {
+          prevRef.current.assets = newAssets;
+          setAssets(newAssets);
+        }
 
-        // 启动
-        tick();
+        // （真的应用里建议用事件流而不是每次都“全量拉日志”）
+        const latestLogs = await api.getInitialLogs();
+        if (!arrayShallowEqual(latestLogs, prevRef.current.logs)) {
+          prevRef.current.logs = latestLogs;
+          setLogs(latestLogs);
+        }
+      } finally {
+        if (!cancelled) timer = setTimeout(tick, pollMs);
+      }
+    };
 
-        return () => {
-            cancelled = true;
-            if (timer) clearTimeout(timer);
-        };
-    }, [pollMs]);
+    // 启动
+    tick();
+
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [pollMs]);
+
+  useEffect(() => {
+    const mount = async () => {
+      const newUISettings = await api.getUISettings();
+      setUiSettings(newUISettings);
+    }
+    mount().then(r => {
+
+    })
+  }, []);
+
 
   const saveProfile = async (profile: ConfigProfile) => {
     await api.saveProfile(profile);
-    fetchProfiles();
+    await fetchProfiles();
   };
 
   /** —— 配置：创建 —— */
@@ -166,19 +182,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [profiles]);
 
   /** —— 配置：更新（改名/改服务器/或扩展 settings） —— */
-  const updateProfile = useCallback(async (id: string, patch: { name?: string; server?: ServerCode; settings?: any }) => {
+  const updateProfile = useCallback(async (id: string, patch: {
+    name?: string;
+    server?: ServerCode;
+    settings?: any
+  }) => {
     // 先打后端（只传 name/server；settings 若也要落库，可扩展你的 API）
-    const { name, server } = patch;
+    const {name, server} = patch;
     if (name !== undefined || server !== undefined) {
-      await apiUpdateProfile(id, { name, server });
+      await apiUpdateProfile(id, {name, server});
     }
     // 本地同步
     setProfiles(prev => prev.map(p => {
       if (p.id !== id) return p;
-      const next = { ...p };
+      const next = {...p};
       if (name !== undefined) next.name = name;
-      if (server !== undefined) next.settings = { ...next.settings, server };
-      if (patch.settings) next.settings = { ...next.settings, ...patch.settings };
+      if (server !== undefined) next.settings = {...next.settings, server};
+      if (patch.settings) next.settings = {...next.settings, ...patch.settings};
       return next;
     }));
     if (activeProfile?.id === id) {
@@ -187,7 +207,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         name: patch.name ?? prev.name,
         settings: {
           ...prev.settings,
-          ...(patch.server ? { server: patch.server } : {}),
+          ...(patch.server ? {server: patch.server} : {}),
           ...(patch.settings || {}),
         },
       } : prev);
@@ -230,7 +250,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const newProfile: ConfigProfile = {
       id: `config_${Date.now()}`,
       name,
-      settings: profiles[0]?.settings || { server: 'CN', adbIP: '127.0.0.1', adbPort: '16384', open_emulator_stat: true },
+      settings: profiles[0]?.settings || {server: 'CN', adbIP: '127.0.0.1', adbPort: '16384', open_emulator_stat: true},
     };
     await api.saveProfile(newProfile);
     await fetchProfiles();
@@ -292,6 +312,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     schedulerStatus,
     logs,
     assets,
+
+    uiSettings,
 
     refreshProfiles,
   };

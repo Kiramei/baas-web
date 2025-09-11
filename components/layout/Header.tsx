@@ -228,8 +228,8 @@ const Header: React.FC = () => {
                   className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
                               border transition-colors cursor-pointer
                               ${active
-                    ? 'bg-primary-900/15 dark:bg-slate-700/60 border-slate-300 dark:border-slate-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'}
+                    ? 'bg-primary-900/15 dark:bg-slate-500/60 border-slate-300 dark:border-slate-600 shadow-sm dark:hover:bg-slate-700 hover:bg-slate-200'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 dark:hover:bg-slate-700 '}
                             `}
                   onPointerDown={(e) => {
                     // 中键关闭（浏览器行为）

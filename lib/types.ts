@@ -43,6 +43,18 @@ export interface AppSettings {
   [key: string]: any; 
 }
 
+export interface UISettings {
+  lang: string;
+  theme: string;
+
+  startupWidth: number;
+  startupHeight: number;
+  zoomScale: number;
+
+  scrollToEnd: boolean;
+
+}
+
 export type Theme = 'light' | 'dark' | 'system';
 
 export interface LogEntry {

@@ -13,6 +13,7 @@ import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
+import {attachCtrlWheelZoom} from "@/lib/zoom.ts";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
@@ -27,6 +28,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
 
   // 懒加载：仅在模态框打开时获取远端热键
   const {hotkeys, setHotkeys, loading, save} = useRemoteHotkeys(t, hotkeyModalOpen);
+
 
   const handlers = useMemo(() => ({
     'toggle-run': () => (scriptRunning ? stopScript() : startScript()),

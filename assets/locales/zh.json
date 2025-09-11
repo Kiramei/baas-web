@@ -119,6 +119,7 @@
   "hotkey.clear.logs": "清空日志",
   "hotkey.focus.search": "聚焦搜索",
   "hotkey.help.about": "帮助 / 关于",
+  "Search hotkeys": "搜索快捷键",
   "log.export": "导出日志",
 
   "nextTask": "下一个任务",
@@ -128,5 +129,23 @@
 
   "editProfile": "编辑配置",
   "profileName": "配置名",
-  "createProfile": "新增配置"
+  "createProfile": "新增配置",
+
+  "creditpoints": "信用点",
+  "pyroxene": "青辉石",
+
+  "confirmDeleteTitle": "删除确认",
+  "confirmDeleteMessage": "确认删除该配置？该操作不可撤销。",
+
+
+  "ui.zoom": "UI 缩放设置",
+
+  "commonShop.title": "普通商店",
+  "tacticalShop.title": "竞技场商店",
+  "commonShop.refreshTimes": "商店刷新次数",
+  "commonShop.refreshDesc": "自动刷新商店",
+  "add": "添加",
+  "Add Student": "添加学生",
+
+  "placeholder.config.insert": "请于此键入您的配置"
 }

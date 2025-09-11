@@ -7,9 +7,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  width?: number;
 }
 
-export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children}) => {
+export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, width = 40}) => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -35,7 +36,7 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children}) 
         animate={{opacity: 1, y: 0}}
         exit={{opacity: 0, y: 8}}
         transition={{duration: 0.16}}
-        className="w-[420px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5"
+        className={`w-[${width}%] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
