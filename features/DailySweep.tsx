@@ -2,6 +2,8 @@ import React, {useState, useEffect, useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
+import {BadgeQuestionMark} from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
 // 假定后端提供这个函数：把字符串转成任务
 // 这里先写个 mock（你可以替换成实际 import）
@@ -129,9 +131,20 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
     <div className="space-y-6">
       {/* 普通关卡 */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          {t("stage.normalLabel")}
+        <label className="text-sm font-medium mb-2 flex items-center">
+          <span>{t("stage.normalLabel")}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" className="ml-1">
+                <BadgeQuestionMark size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-sm">
+              {t("stage.normalDesc")}
+            </TooltipContent>
+          </Tooltip>
         </label>
+
         <div className="flex gap-2">
           <input
             type="text"
@@ -147,10 +160,8 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
             {t("confirm")}
           </button>
         </div>
-        <p className="text-xs text-slate-500">
-          {t("stage.normalDesc")}
-        </p>
       </div>
+
 
       {/* 困难关卡 */}
       <div>
@@ -163,7 +174,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
             value={hardInput}
             onChange={(e) => setHardInput(e.target.value)}
             className="flex-1 px-3 py-2 border rounded"
-            placeholder="1-1-1,1-2-3"
+            placeholder={t('placeholder.config.insert')}
           />
           <button
             onClick={saveHard}

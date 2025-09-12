@@ -1,11 +1,11 @@
 /* 默认指针（普通状态） */
-html, body {
-  cursor: url('/assets/cursors/normal.cur'), auto;
+html, body, label {
+    cursor: url('/assets/cursors/normal.cur'), auto;
 }
 
 /* 链接/按钮（手指） */
-a, button, [role="button"], .cursor-link, .cursor-pointer{
-  cursor: url('/assets/cursors/link.cur'), pointer;
+a, button, [role="button"], .cursor-link, .cursor-pointer, select {
+    cursor: url('/assets/cursors/link.cur'), pointer;
 }
 
 input[type="text"],
@@ -14,5 +14,5 @@ input[type="number"],
 textarea,
 [contenteditable="true"],
 .cursor-text {
-  cursor: url('/assets/cursors/text_static_white.cur') 7 16, text;
+    cursor: url('/assets/cursors/text_static_white.cur') 7 16, text;
 }

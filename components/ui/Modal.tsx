@@ -36,8 +36,9 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, w
         animate={{opacity: 1, y: 0}}
         exit={{opacity: 0, y: 8}}
         transition={{duration: 0.16}}
-        className={`w-[${width}%] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5`}
+        className={`rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5`}
         onMouseDown={(e) => e.stopPropagation()}
+        style={{width: `${width}%`}}
       >
         <div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
@@ -45,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, w
             <X className="w-5 h-5 text-slate-500"/>
           </button>
         </div>
-        <div className="py-2 overflow-y-auto">
+        <div className="py-2 overflow-y-auto px-1">
           {children}
         </div>
       </motion.div>

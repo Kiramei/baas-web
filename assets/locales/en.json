@@ -133,5 +133,10 @@
   "add": "Add",
   "Add Student": "Add Student",
 
-  "placeholder.config.insert": "Please insert your config here."
+  "placeholder.config.insert": "Please insert your config here.",
+  "stage.normalLabel": "Normal Map Clear Setting",
+  "stage.hardLabel": "Hard Map Clear Setting",
+  "stage.normalDesc": "Exp: 1-1-1, 1-2-1",
+  "dailySweep": "Daily",
+  "dailySweepDesc": "Automate daily clear."
 }
