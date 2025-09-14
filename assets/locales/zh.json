@@ -22,6 +22,8 @@
   "daysAgo": "{{count}}天前",
   "configProfile": "配置: {{name}}",
   "addProfile": "新增配置",
+  "on": "开",
+  "off": "关",
   "confirm": "确定",
   "cancel": "取消",
   "save": "保存",
@@ -103,8 +105,8 @@
   "property.pass": "通行证",
 
 
-  "log.scroll.on": "滑动到底部：开",
-  "log.scroll.off": "滑动到底部：关",
+  "log.scroll": "滑动到底部",
+
 
   "hotkeys": "快捷键",
   "Invalid hotkey format": "快捷键格式无效",

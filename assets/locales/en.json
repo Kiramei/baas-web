@@ -24,6 +24,8 @@
   "daysAgo": "{{count}}d ago",
   "configProfile": "Config: {{name}}",
   "addProfile": "Add Profile",
+  "on": "开",
+  "off": "关",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "save": "Save",
@@ -111,7 +113,10 @@
   "hotkey.focus.search": "Focus Search",
   "hotkey.help.about": "Help / About",
   "Search hotkeys": "Search hotkeys",
+
+  "log.scroll": "Scroll to the bottom",
   "log.export": "Export Log",
+
 
   "nextTask": "Next Task",
 

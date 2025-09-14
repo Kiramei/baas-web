@@ -1,13 +1,14 @@
 import React from 'react';
+import {t} from "i18next";
 
 interface SwitchButtonProps {
   checked: boolean;
-  labels: { on: string; off: string }; // 按钮文字变化
+  label: string; // 按钮文字变化
   onChange: (checked: boolean) => void; // 状态切换的回调
   className?: string;
 }
 
-const SwitchButton: React.FC<SwitchButtonProps> = ({checked, labels, onChange, className = '', ...props}) => {
+const SwitchButton: React.FC<SwitchButtonProps> = ({checked, label, onChange, className = '', ...props}) => {
   return (
     <button
       onClick={() => onChange(!checked)}
@@ -18,7 +19,7 @@ const SwitchButton: React.FC<SwitchButtonProps> = ({checked, labels, onChange, c
       } ${className}`}
       {...props}
     >
-      {checked ? labels.on : labels.off}
+      {label} : {checked ? t("on") : t("off")}
     </button>
   );
 };

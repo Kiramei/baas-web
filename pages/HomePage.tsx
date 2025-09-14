@@ -114,7 +114,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
             <SwitchButton
               checked={scrollToEnd}
               onChange={setScrollToEnd}
-              labels={{on: t('log.scroll.on'), off: t('log.scroll.off')}}
+              label={t('log.scroll')}
             />
             <Button onClick={exportLog} className='ml-2'>
               <div className='flex'>
