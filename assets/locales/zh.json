@@ -149,5 +149,10 @@
   "add": "添加",
   "Add Student": "添加学生",
 
-  "placeholder.config.insert": "请于此键入您的配置"
+  "placeholder.config.insert": "请于此键入您的配置",
+  "placeholder.stage": "选择学生",
+  "stage.normalLabel": "普通图每日扫荡",
+  "stage.hardLabel": "困难图每日扫荡",
+  "dailySweep": "日常",
+  "dailySweepDesc": "自动日常任务"
 }

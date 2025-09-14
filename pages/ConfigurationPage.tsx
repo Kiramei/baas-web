@@ -23,7 +23,7 @@ const FeatureWidthDict = {
   'schedule': 50,
   'shop': 50,
   'arena': 30,
-  'dailySweep': 50,
+  'dailySweep': 70,
   'server': 30,
   'emulator': 30,
   'push': 30,
