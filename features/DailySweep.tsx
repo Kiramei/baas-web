@@ -3,7 +3,7 @@ import {useTranslation} from "react-i18next";
 import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {BadgeQuestionMark} from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip"
 
 // 假定后端提供这个函数：把字符串转成任务
 // 这里先写个 mock（你可以替换成实际 import）
@@ -37,11 +37,15 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
   const [mainlineInput, setMainlineInput] = useState(ext.mainlinePriority);
   const [hardInput, setHardInput] = useState(ext.hardPriority);
 
+  const [errorEmit1, setErrorEmit1] = useState<string | null>(null);
+  const [errorEmit2, setErrorEmit2] = useState<string | null>(null);
+
   // 学生关卡字典
   const studentTaskDict = useMemo(() => {
     const dict: Record<string, string[]> = {
-      [t("stage.byStudent")]: [],
-      [t("stage.AliceBaby")]: [],
+      [t("placeholder.stage")]: [],
+      [t("stage.byStudent")]: ['1-1-1'],
+      [t("stage.AliceBaby")]: ['1-1-2'],
     };
     if (lessonConfig?.hard_task_student_material) {
       lessonConfig.hard_task_student_material.forEach(([stage, studentName]: any) => {
@@ -56,34 +60,35 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
   const [selectedStudent, setSelectedStudent] = useState(Object.keys(studentTaskDict)[0]);
 
   const saveMainline = async () => {
-    try {
-      const cleaned = mainlineInput.replace(/ /g, "").replace(/，/g, ",");
-      if (!activeProfile) return;
-      if (cleaned === "") {
-        await saveProfile({
-          ...activeProfile,
-          settings: {
-            ...activeProfile.settings,
-            mainlinePriority: "",
-            unfinished_normal_tasks: [],
-          } as AppSettings,
-        });
-        alert(t("stage.normalCleared"));
-        return;
-      }
-      const parsed = cleaned.split(",").map((x) => readTask(x, true));
-      await saveProfile({
-        ...activeProfile,
-        settings: {
-          ...activeProfile.settings,
-          mainlinePriority: cleaned,
-          unfinished_normal_tasks: parsed,
-        } as AppSettings,
-      });
-      alert(t("stage.normalSaved") + cleaned);
-    } catch (e: any) {
-      alert(t("stage.normalFailed") + e.message);
-    }
+    // try {
+    //   const cleaned = mainlineInput.replace(/ /g, "").replace(/，/g, ",");
+    //   if (!activeProfile) return;
+    //   if (cleaned === "") {
+    //     await saveProfile({
+    //       ...activeProfile,
+    //       settings: {
+    //         ...activeProfile.settings,
+    //         mainlinePriority: "",
+    //         unfinished_normal_tasks: [],
+    //       } as AppSettings,
+    //     });
+    //     alert(t("stage.normalCleared"));
+    //     return;
+    //   }
+    //   const parsed = cleaned.split(",").map((x) => readTask(x, true));
+    //   await saveProfile({
+    //     ...activeProfile,
+    //     settings: {
+    //       ...activeProfile.settings,
+    //       mainlinePriority: cleaned,
+    //       unfinished_normal_tasks: parsed,
+    //     } as AppSettings,
+    //   });
+    //   alert(t("stage.normalSaved") + cleaned);
+    // } catch (e: any) {
+    //   alert(t("stage.normalFailed") + e.message);
+    // }
+    onClose()
   };
 
   const saveHard = async () => {
@@ -120,7 +125,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
   // 下拉框选择学生时，往 input_hard 里追加
   const handleStudentSelect = (student: string) => {
     setSelectedStudent(student);
-    if (student === t("stage.byStudent")) return;
+    if (student === t("placeholder.stage")) return;
     const stages = studentTaskDict[student];
     if (!stages) return;
     const current = hardInput ? hardInput + "," : "";
@@ -128,7 +133,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 普通关卡 */}
       <div>
         <label className="text-sm font-medium mb-2 flex items-center">
@@ -136,7 +141,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <button type="button" className="ml-1">
-                <BadgeQuestionMark size={18} />
+                <BadgeQuestionMark size={18}/>
               </button>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs text-sm">
@@ -153,20 +158,28 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
             className="flex-1 px-3 py-2 border rounded"
             placeholder={t('placeholder.config.insert')}
           />
-          <button
-            onClick={saveMainline}
-            className="px-4 py-2 bg-primary-600 text-white rounded"
-          >
-            {t("confirm")}
-          </button>
         </div>
+
+        {errorEmit1 && (<p className="text-sm font-medium text-red-600 dark:text-red-300 mt-1">
+          {errorEmit1}
+        </p>)}
       </div>
 
 
       {/* 困难关卡 */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          {t("stage.hardLabel")}
+        <label className="text-sm font-medium mb-2 flex items-center">
+          <span>{t("stage.hardLabel")}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" className="ml-1">
+                <BadgeQuestionMark size={18}/>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-sm">
+              {t("stage.hardDesc")}
+            </TooltipContent>
+          </Tooltip>
         </label>
         <div className="flex gap-2">
           <input
@@ -176,19 +189,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
             className="flex-1 px-3 py-2 border rounded"
             placeholder={t('placeholder.config.insert')}
           />
-          <button
-            onClick={saveHard}
-            className="px-4 py-2 bg-primary-600 text-white rounded"
-          >
-            {t("confirm")}
-          </button>
-        </div>
-        <p className="text-xs text-slate-500">
-          {t("stage.hardDesc")}
-        </p>
-
-        {/* 学生选择 */}
-        <div className="mt-2">
+          {/* 学生选择 */}
           <select
             value={selectedStudent}
             onChange={(e) => handleStudentSelect(e.target.value)}
@@ -201,6 +202,18 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
             ))}
           </select>
         </div>
+
+        {errorEmit2 && (<p className="text-sm font-medium text-red-600 dark:text-red-300 mt-1">
+          {errorEmit2}
+        </p>)}
+      </div>
+      <div className="mt-6 flex justify-end">
+        <button
+          onClick={saveMainline}
+          className="px-4 py-1 bg-primary-600 text-white rounded dark:hover:bg-primary-700 hover:bg-primary-400 "
+        >
+          {t("confirm")}
+        </button>
       </div>
     </div>
   );

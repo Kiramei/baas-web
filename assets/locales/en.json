@@ -138,5 +138,6 @@
   "stage.hardLabel": "Hard Map Clear Setting",
   "stage.normalDesc": "Exp: 1-1-1, 1-2-1",
   "dailySweep": "Daily",
-  "dailySweepDesc": "Automate daily clear."
+  "dailySweepDesc": "Automate daily clear",
+  "placeholder.stage": "Choose Student"
 }
