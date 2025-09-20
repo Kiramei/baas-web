@@ -1,45 +1,31 @@
-/* 灰色系、深色背景友好、嵌入式圆角滚动条 */
+/* src/input.css */
+@tailwind utilities;
+
+::-webkit-scrollbar {
+    z-index: 999;
+    width: 7px;
+    height: 9px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: var(--color-primary-500);
+    background-image: -webkit-linear-gradient(45deg,hsla(0,0%,100%,.2) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.2) 0,hsla(0,0%,100%,.2) 75%,transparent 0,transparent);
+}
+::-webkit-scrollbar-track {
+    /* background:hsla(0,0%,92.9%,.33333); */
+    border-radius: 10px
+}
+
 .scroll-embedded {
-  /* 统一变量，可在容器上覆盖 */
-  --sb-size: 10px;
-  --sb-track: rgba(255, 255, 255, 0.06);  /* 轨道：很浅的灰，贴合暗背景 */
-  --sb-thumb: rgba(255, 255, 255, 0.28);  /* 拇指：可见但不刺眼 */
-  --sb-thumb-hover: rgba(255, 255, 255, 0.38);
+  /* 
+   * 关键属性: 始终为滚动条保留空间，防止页面内容跳动。
+   * 这解决了“滚动条不能遮盖原内容”的核心问题。
+   */
+  scrollbar-gutter: stable;
+  /* 应用滚动条样式 */
+  /* @apply scrollbar-thin scrollbar-track-slate-200 scrollbar-thumb-cyan-600 hover:scrollbar-thumb-cyan-700; */
 
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: var(--sb-thumb) var(--sb-track);
-
-  /* 预留滚动槽，避免内容抖动/被遮住 */
-  scrollbar-gutter: stable both-edges;
-}
-
-/* WebKit 系（Chrome / Edge / Safari） */
-.scroll-embedded::-webkit-scrollbar {
-  width: var(--sb-size);
-  height: var(--sb-size);
-}
-
-.scroll-embedded::-webkit-scrollbar-track {
-  background: var(--sb-track);
-  border-radius: 999px;
-  margin: 4px; /* 与容器边缘留点“呼吸感”，看起来更内嵌 */
-}
-
-.scroll-embedded::-webkit-scrollbar-thumb {
-  background: var(--sb-thumb);
-  border-radius: 999px;
-  border: 2px solid var(--sb-track); /* 留白边，和轨道融合更“内嵌” */
-  box-shadow: inset 0 0 2px rgba(0,0,0,.25); /* 轻微内阴影，低调 */
-  transition: background .2s ease, opacity .2s ease;
-}
-
-.scroll-embedded::-webkit-scrollbar-thumb:hover {
-  background: var(--sb-thumb-hover);
-  opacity: .95;
-}
-
-/* 可选：在特别深的容器里把滚动条再细一点 */
-.scroll-embedded.is-compact {
-  --sb-size: 8px;
+  /* &:where(.dark, .dark *) {
+    @apply scrollbar-track-slate-700 hover:scrollbar-thumb-cyan-500;
+  } */
 }

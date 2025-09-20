@@ -122,7 +122,7 @@ const HotkeySettingsModal: React.FC<{
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-2 h-64 max-h-64 overflow-y-auto mt-4 p-2 rounded-xl border-primary-500 dark:border-primary-800 border-2">
+        <div className="grid grid-cols-1 gap-2 h-64 max-h-64 overflow-y-auto mt-4 p-2 scroll-embedded">
           {filteredDraft.map(cfg => {
             const hasDup = !!duplicates[cfg.id];
             const err = errors[cfg.id];

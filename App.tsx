@@ -92,7 +92,7 @@ const Main: React.FC = () => {
   return (
     <MainLayout activePage={activePage} setActivePage={setActivePage}>
       {/* 外层容器固定尺寸，内部页面叠放 */}
-      <div className="relative flex-1 min-h-0 h-full overflow-hidden">
+      <div className="relative flex-1 min-h-0 h-full overflow-hidden scroll-embedded">
         {/* ⬇️ 用“已见实例键”来渲染，确保同一页面不同配置能各自保活 */}
         {Array.from(seenKeysRef.current).map((instKey) => {
           const [page, pid] = parseInstanceKey(instKey);
@@ -100,7 +100,7 @@ const Main: React.FC = () => {
           return (
             <motion.div
               key={instKey} // ⬅️ 关键：实例键作为 key，区分不同配置的同一页面
-              className="absolute inset-0 overflow-y-auto"
+              className="absolute inset-0 overflow-y-auto scroll-embedded pr-2"
               variants={variants}
               initial={isActive ? 'show' : 'hide'}
               animate={isActive ? 'show' : 'hide'}
