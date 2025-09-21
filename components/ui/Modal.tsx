@@ -36,11 +36,12 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, w
         animate={{opacity: 1, y: 0}}
         exit={{opacity: 0, y: 8}}
         transition={{duration: 0.16}}
-        className={`rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5`}
         onMouseDown={(e) => e.stopPropagation()}
+        className='rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl p-5 px-3'
         style={{width: `${width}%`}}
       >
-        <div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
+        <div className='overflow-auto px-2' style={{maxHeight: 'calc(100vh - 80px)'}}>
+<div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
             <X className="w-5 h-5 text-slate-500"/>
@@ -49,6 +50,9 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, w
         <div className="py-2 overflow-y-auto px-1">
           {children}
         </div>
+
+        </div>
+        
       </motion.div>
     </div>
   );

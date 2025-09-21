@@ -172,7 +172,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
             onReorder={(newOrder) =>
               setDraft((d) => ({...d, lesson_favorStudent: newOrder}))
             }
-            className="flex gap-2 py-2 min-w-max"
+            className="flex gap-2 min-w-max"
           >
             {draft.lesson_favorStudent.map((name, index) => (
               <Reorder.Item

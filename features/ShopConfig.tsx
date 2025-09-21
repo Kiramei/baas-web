@@ -2,6 +2,7 @@ import React, {useState, useEffect, useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {useApp} from "../contexts/AppContext";
 import type {AppSettings} from "../lib/types.ts";
+import { EllipsisWithTooltip } from "@/components/ui/etooltip.tsx";
 
 const _default_goods_ = [
   ["初级经验书", 12500, "creditpoints"],
@@ -158,7 +159,7 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({onClose}) => {
       </div>
 
       {/* 商品列表 */}
-      <div className="max-h-[40vh] overflow-y-auto space-y-3 pr-1 grid grid-cols-2 gap-1">
+      <div className="max-h-[40vh] overflow-y-auto pr-1 grid grid-cols-2 gap-1">
         {def.defaultGoods.map(([nameKey, price, coin], i) => {
           const enabled = settings.list[i] === 1;
           const priceText =
@@ -177,9 +178,10 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({onClose}) => {
               onClick={() => toggleItem(i)}
             >
               <div>
-                <div className="font-medium">
+                {/* <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
                   {t(`ConfigTranslation.${nameKey}`)}
-                </div>
+                </div> */}
+                  <EllipsisWithTooltip text={t(`ConfigTranslation.${nameKey}`)} />
                 <div
                   className={`text-sm ${
                     enabled ? "text-slate-200" : "text-slate-500 dark:text-slate-400"

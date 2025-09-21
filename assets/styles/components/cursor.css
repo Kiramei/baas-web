@@ -16,3 +16,7 @@ textarea,
 .cursor-text {
     cursor: url('/assets/cursors/text_static_white.cur') 7 16, text;
 }
+
+.cursor-grab {
+    cursor: url('/assets/cursors/move.cur'), grab;
+}

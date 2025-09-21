@@ -10,6 +10,7 @@ import UpdatesPage from '@/pages/UpdatesPage';
 import type { Variants } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
+import { LoadingPage } from './pages/LoadingPage';
 
 const variants: Variants = {
   show: {
@@ -29,7 +30,9 @@ const variants: Variants = {
 const App: React.FC = () => (
   <ThemeProvider>
     <AppProvider>
-      <Main />
+      <LoadingPage>
+        <Main />
+      </LoadingPage>
     </AppProvider>
   </ThemeProvider>
 );

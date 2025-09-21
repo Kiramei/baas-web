@@ -4,6 +4,8 @@ import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {BadgeQuestionMark} from "lucide-react";
 import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip"
+import { FormSelect } from "@/components/ui/FormSelect";
+import { FormInput } from "@/components/ui/FormInput";
 
 // 假定后端提供这个函数：把字符串转成任务
 // 这里先写个 mock（你可以替换成实际 import）
@@ -151,11 +153,11 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
         </label>
 
         <div className="flex gap-2">
-          <input
+          <FormInput
             type="text"
             value={mainlineInput}
+            className="flex-1"
             onChange={(e) => setMainlineInput(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded"
             placeholder={t('placeholder.config.insert')}
           />
         </div>
@@ -168,7 +170,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
 
       {/* 困难关卡 */}
       <div>
-        <label className="text-sm font-medium mb-2 flex items-center">
+        <label className="text-sm font-medium flex items-center mb-2">
           <span>{t("stage.hardLabel")}</span>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -182,25 +184,21 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
           </Tooltip>
         </label>
         <div className="flex gap-2">
-          <input
+          <FormInput
+            label=""
             type="text"
             value={hardInput}
+            className="flex-1"
             onChange={(e) => setHardInput(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded"
             placeholder={t('placeholder.config.insert')}
           />
+
           {/* 学生选择 */}
-          <select
+          <FormSelect
             value={selectedStudent}
-            onChange={(e) => handleStudentSelect(e.target.value)}
-            className="px-2 py-1 border rounded"
-          >
-            {Object.keys(studentTaskDict).map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            onChange={handleStudentSelect}
+            options={Object.keys(studentTaskDict).map((s) => ({ value: s, label: s }))}
+          />
         </div>
 
         {errorEmit2 && (<p className="text-sm font-medium text-red-600 dark:text-red-300 mt-1">

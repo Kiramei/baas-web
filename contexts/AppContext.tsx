@@ -11,6 +11,11 @@ import {
   type ProfileDTO,
 } from '@/services/profileService';
 
+// type
+import {StaticConfig, StaticConvert} from '@/lib/type.static.ts';
+import {DynamicConfig, DynamicConvert} from '@/lib/type.dynamic.ts';
+import {EventConfig, EventConvert} from '@/lib/type.event.ts';
+import { stat } from 'fs';
 
 interface AppContextType {
   profiles: ConfigProfile[];
@@ -34,6 +39,7 @@ interface AppContextType {
   logs: LogEntry[];
   assets: Asset | null;
   uiSettings: UISettings;
+  staticConfig: StaticConfig | null;
 
   refreshProfiles: () => Promise<void>;
 }
@@ -52,6 +58,14 @@ const toConfigProfile = (dto: ProfileDTO): ConfigProfile => ({
   },
 });
 
+const fetchStatic = async (): Promise<any> => {
+  // 这里假定静态文件放在 public/static.json
+  const res = await fetch('/assets/_mock/static.json');
+  if (!res.ok) throw new Error('Failed to fetch static config');
+  return res.json();
+};
+
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [profiles, setProfiles] = useState<ConfigProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<ConfigProfile | null>(null);
@@ -63,6 +77,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [assets, setAssets] = useState<Asset | null>(null);
 
   const [uiSettings, setUiSettings] = useState<UISettings | null>(null);
+
+  const [staticConfig, setStaticConfig] = useState<StaticConfig | null>(null);
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -156,12 +172,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const mount = async () => {
       const newUISettings = await api.getUISettings();
       setUiSettings(newUISettings);
+      fetchStatic().then(data => {
+        try {
+          const config = StaticConvert.toStaticConfig(JSON.stringify(data));
+          setStaticConfig(config);
+        } catch (e) {
+          console.error("Failed to parse static config:", e);
+          return null;
+        }
+      });
     }
     mount().then(r => {
 
     })
   }, []);
-
 
   const saveProfile = async (profile: ConfigProfile) => {
     await api.saveProfile(profile);
@@ -314,6 +338,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     assets,
 
     uiSettings,
+    staticConfig,
 
     refreshProfiles,
   };
