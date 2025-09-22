@@ -4,6 +4,7 @@ import {useApp} from '../contexts/AppContext';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
 import {CheckCircle2, Hourglass} from 'lucide-react';
 import {ProfileProps} from "@/lib/types.ts";
+import { AnimatedList } from "@/components/ui/animated-list";
 
 
 const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
@@ -51,13 +52,22 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           </CardHeader>
           <CardContent>
             {schedulerStatus.taskQueue.length > 0 ? (
-              <ul className="space-y-2 h-35 max-h-35 overflow-auto pe-2">
+              // <ul className="space-y-2 h-35 max-h-35 overflow-auto pe-2">
+              //   {schedulerStatus.taskQueue.map((task, index) => (
+              //     <li key={index} className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+              //       <span className="text-slate-700 dark:text-slate-300">{task}</span>
+              //     </li>
+              //   ))}
+              // </ul>
+
+              <AnimatedList className="space-y-0 h-35 overflow-auto pr-2 gap-2"  delay={50}>
                 {schedulerStatus.taskQueue.map((task, index) => (
                   <li key={index} className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md">
                     <span className="text-slate-700 dark:text-slate-300">{task}</span>
                   </li>
                 ))}
-              </ul>
+              </AnimatedList>
+
             ) : (
               <p className="h-35 max-h-35 text-slate-500 dark:text-slate-400">{t('noTasksQueued')}</p>
             )}

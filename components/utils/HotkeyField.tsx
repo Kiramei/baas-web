@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Keyboard as KeyboardIcon, Circle as RecIcon, X as XIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface HotkeyFieldProps {
   label?: string;
   value: string;                       // 当前值（如：Ctrl+Shift+K）
   onChange: (next: string) => void;    // 录制完成回调
-  placeholder?: string;
   error?: string;
   className?: string;
 }
@@ -47,12 +47,13 @@ export default function HotkeyField({
                                       label,
                                       value,
                                       onChange,
-                                      placeholder = "Ctrl+Shift+K",
                                       error,
                                       className = "",
                                     }: HotkeyFieldProps) {
   const [recording, setRecording] = useState(false);
   const [hint, setHint] = useState("");
+  const {t} = useTranslation();
+  const placeholder = t("placeholder.nobinding");
 
   useEffect(() => {
     if (!recording) return;

@@ -154,5 +154,7 @@
   "stage.normalLabel": "普通图每日扫荡",
   "stage.hardLabel": "困难图每日扫荡",
   "dailySweep": "日常",
-  "dailySweepDesc": "自动日常任务"
+  "dailySweepDesc": "自动日常任务",
+
+  "placeholder.nobinding": "无绑定"
 }
