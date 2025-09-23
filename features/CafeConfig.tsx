@@ -4,9 +4,10 @@ import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {X} from "lucide-react";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
-import { FormSelect } from "@/components/ui/FormSelect";
-import { FormInput } from "@/components/ui/FormInput";
-import { stat } from "fs";
+import {FormSelect} from "@/components/ui/FormSelect";
+import {FormInput} from "@/components/ui/FormInput";
+import {stat} from "fs";
+import SwitchButton from "@/components/ui/SwitchButton.tsx";
 
 // 学生结构
 type Student = {
@@ -55,7 +56,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
                                                  settings,
                                                  onChange
                                                }) => {
-  const { staticConfig } = useApp();
+  const {staticConfig} = useApp();
   const studentNames = staticConfig.student_names
   const {t} = useTranslation();
   const {activeProfile, updateProfile} = useApp();
@@ -94,8 +95,8 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
   // 通用布尔
   const onBoolChange = (key: keyof Draft) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setDraft((d) => ({...d, [key]: e.target.checked}));
+    (value: boolean) =>
+      setDraft((d) => ({...d, [key]: value}));
 
   // 数字输入
   const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,13 +108,8 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
     }
   };
 
-  // 下拉
-  // const onSelectChange = (key: keyof Draft) =>
-  //   (e: React.ChangeEvent<HTMLSelectElement>) =>
-  //     setDraft((d) => ({...d, [key]: e.target.value}));
-
   const onSelectChange = (key: string) => (value: string) => {
-    setDraft((d) => ({ ...d, [key]: value }));
+    setDraft((d) => ({...d, [key]: value}));
   }
 
   // 保存
@@ -143,25 +139,22 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
   return (
     <div className="space-y-6">
       {/* 基础开关 */}
-      {[
-        ["cafe_collect_reward", "cafe.collectReward"],
-        ["cafe_use_invitation", "cafe.useInvitation"],
-        ["cafe_exchange_student", "cafe.exchangeStudent"],
-        ["cafe_duplicate_invite", "cafe.duplicateInvite"],
-        ["cafe_has_no2_cafe", "cafe.hasNo2Cafe"],
-      ].map(([key, label]) => (
-        <div
-          key={key}
-          className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
-        >
-          <label className="font-medium">{t(label)}</label>
-          <input
-            type="checkbox"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          ["cafe_collect_reward", "cafe.collectReward"],
+          ["cafe_use_invitation", "cafe.useInvitation"],
+          ["cafe_exchange_student", "cafe.exchangeStudent"],
+          ["cafe_duplicate_invite", "cafe.duplicateInvite"],
+          ["cafe_has_no2_cafe", "cafe.hasNo2Cafe"],
+        ].map(([key, label]) => (
+          <SwitchButton
+            label={t(label)}
             checked={draft[key as keyof Draft] as boolean}
             onChange={onBoolChange(key as keyof Draft)}
+            key={label}
           />
-        </div>
-      ))}
+        ))}
+      </div>
 
       {/* 摸头轮数 */}
       <FormInput
@@ -174,14 +167,13 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       />
 
 
-
       <FormSelect
         label={t("cafe.patStyle")}
         value={draft.pat_style}
         onChange={onSelectChange("pat_style")}
         options={[
-          { value: "普通", label: t("cafe.patStyleNormal") },
-          { value: "拖动礼物", label: t("cafe.patStyleDragGift") },
+          {value: "普通", label: t("cafe.patStyleNormal")},
+          {value: "拖动礼物", label: t("cafe.patStyleDragGift")},
         ]}
       />
 
@@ -193,10 +185,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         value={draft.cafe_invite1_criterion}
         onChange={onSelectChange("cafe_invite1_criterion")}
         options={[
-          { value: "lowest_affection", label: t("cafe.lowestAffection") },
-          { value: "highest_affection", label: t("cafe.highestAffection") },
-          { value: "starred", label: t("cafe.starred") },
-          { value: "name", label: t("cafe.byName") },
+          {value: "lowest_affection", label: t("cafe.lowestAffection")},
+          {value: "highest_affection", label: t("cafe.highestAffection")},
+          {value: "starred", label: t("cafe.starred")},
+          {value: "name", label: t("cafe.byName")},
         ]}
       />
 
@@ -205,7 +197,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
           label={t("cafe.starredPosition")}
           value={draft.cafe_invite1_starred_position}
           onChange={onSelectChange("cafe_invite1_starred_position")}
-          options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+          options={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: String(n)}))}
         />
       )}
 
@@ -249,10 +241,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
           value={draft.cafe_invite2_criterion}
           onChange={onSelectChange("cafe_invite2_criterion")}
           options={[
-            { value: "lowest_affection", label: t("cafe.lowestAffection") },
-            { value: "highest_affection", label: t("cafe.highestAffection") },
-            { value: "starred", label: t("cafe.starred") },
-            { value: "name", label: t("cafe.byName") },
+            {value: "lowest_affection", label: t("cafe.lowestAffection")},
+            {value: "highest_affection", label: t("cafe.highestAffection")},
+            {value: "starred", label: t("cafe.starred")},
+            {value: "name", label: t("cafe.byName")},
           ]}
         />
       )}
@@ -262,7 +254,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
           label={t("cafe.starredPosition")}
           value={draft.cafe_invite2_starred_position}
           onChange={onSelectChange("cafe_invite2_starred_position")}
-          options={[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: String(n) }))}
+          options={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: String(n)}))}
         />
       )}
 

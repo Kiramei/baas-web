@@ -4,18 +4,19 @@ import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '../comp
 import {useTheme} from '../hooks/useTheme';
 import type {Theme} from '../lib/types.ts';
 import {useApp} from "@/contexts/AppContext.tsx";
+import {FormSelect} from "@/components/ui/FormSelect.tsx";
 
 const SettingsPage: React.FC = () => {
   const {t, i18n} = useTranslation();
   const {theme, setTheme} = useTheme();
-  const { uiSettings } = useApp();
+  const {uiSettings} = useApp();
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    i18n.changeLanguage(e.target.value);
+  const handleLanguageChange = (value: string) => {
+    i18n.changeLanguage(value);
   };
 
   const [localZoom, setLocalZoom] = useState(uiSettings?.zoomScale ?? 100);
@@ -62,21 +63,17 @@ const SettingsPage: React.FC = () => {
           </div>
 
           {/* Language Settings */}
-          <div>
-            <label htmlFor="language-select"
-                   className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">{t('language')}</label>
-            <select
-              id="language-select"
-              value={i18n.language}
-              onChange={handleLanguageChange}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="en">{t('english')}</option>
-              <option value="zh">{t('chinese')}</option>
-            </select>
-          </div>
+          <FormSelect
+            value={i18n.language}
+            label={t('language')}
+            onChange={handleLanguageChange}
+            options={[
+              {value: "en", label: t('english')},
+              {value: "zh", label: t('chinese')}
+            ]}
+          />
 
-          {/* Language Settings */}
+          {/* Zoom Settings */}
           <div>
             <label htmlFor="zoom-select"
                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">{t('ui.zoom')}</label>
@@ -89,7 +86,7 @@ const SettingsPage: React.FC = () => {
               {
                 Object.entries([
                   50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150
-                ]).map(([_ ,value]) => (
+                ]).map(([_, value]) => (
                   <option key={value} value={value}>{value}%</option>
                 ))
               }

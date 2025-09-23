@@ -1,11 +1,11 @@
-import React, {useState, useEffect, useMemo} from "react";
+import React, {useState, useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {BadgeQuestionMark} from "lucide-react";
 import {Tooltip, TooltipTrigger, TooltipContent} from "@/components/ui/tooltip"
-import { FormSelect } from "@/components/ui/FormSelect";
-import { FormInput } from "@/components/ui/FormInput";
+import {FormSelect} from "@/components/ui/FormSelect";
+import {FormInput} from "@/components/ui/FormInput";
 
 // 假定后端提供这个函数：把字符串转成任务
 // 这里先写个 mock（你可以替换成实际 import）
@@ -197,7 +197,7 @@ const DailySweep: React.FC<StageConfigProps> = ({onClose, lessonConfig}) => {
           <FormSelect
             value={selectedStudent}
             onChange={handleStudentSelect}
-            options={Object.keys(studentTaskDict).map((s) => ({ value: s, label: s }))}
+            options={Object.keys(studentTaskDict).map((s) => ({value: s, label: s}))}
           />
         </div>
 
