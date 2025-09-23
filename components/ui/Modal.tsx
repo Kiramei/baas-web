@@ -41,18 +41,16 @@ export const Modal: React.FC<ModalProps> = ({isOpen, onClose, title, children, w
         style={{width: `${width}%`}}
       >
         <div className='overflow-auto px-2' style={{maxHeight: 'calc(100vh - 80px)'}}>
-<div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
-            <X className="w-5 h-5 text-slate-500"/>
-          </button>
+          <div className="flex items-center justify-between p-0 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
+              <X className="w-5 h-5 text-slate-500"/>
+            </button>
+          </div>
+          <div className="py-2 overflow-y-auto px-1">
+            {children}
+          </div>
         </div>
-        <div className="py-2 overflow-y-auto px-1">
-          {children}
-        </div>
-
-        </div>
-        
       </motion.div>
     </div>
   );

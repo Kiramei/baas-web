@@ -22,7 +22,6 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('scheduler')}</h2>
         <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
       </div>
-      {/*<h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('scheduler')}</h2>*/}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card>
@@ -54,9 +53,9 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
             {schedulerStatus.taskQueue.length > 0 ? (
               <AnimatedList className="space-y-0 h-35 overflow-auto pr-2 gap-2"  delay={50}>
                 {schedulerStatus.taskQueue.map((task, index) => (
-                  <li key={index} className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+                  <div key={index} className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md">
                     <span className="text-slate-700 dark:text-slate-300">{task}</span>
-                  </li>
+                  </div>
                 ))}
               </AnimatedList>
 

@@ -28,10 +28,10 @@ const SettingsPage: React.FC = () => {
     }
   }, [uiSettings?.zoomScale]);
 
-  const handleZoomChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newZoom = Number(e.target.value);
-    setLocalZoom(newZoom);                // 立即更新UI
-    uiSettings.zoomScale = parseInt(e.target.value);
+  const handleZoomChange = (value: string) => {
+    const newZoom = Number(value);
+    setLocalZoom(newZoom);
+    uiSettings.zoomScale = parseInt(value);
   };
 
 
@@ -74,24 +74,14 @@ const SettingsPage: React.FC = () => {
           />
 
           {/* Zoom Settings */}
-          <div>
-            <label htmlFor="zoom-select"
-                   className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">{t('ui.zoom')}</label>
-            <select
-              id="zoom-select"
-              value={uiSettings?.zoomScale}
-              onChange={handleZoomChange}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            >
-              {
-                Object.entries([
-                  50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150
-                ]).map(([_, value]) => (
-                  <option key={value} value={value}>{value}%</option>
-                ))
-              }
-            </select>
-          </div>
+          <FormSelect
+            value={uiSettings?.zoomScale.toString()}
+            label={t('ui.zoom')}
+            onChange={handleZoomChange}
+            options={[
+              50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150
+            ].map((v) => ({value: v.toString(), label: `${v}%`}))}
+          />
 
         </CardContent>
       </Card>

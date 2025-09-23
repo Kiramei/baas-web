@@ -1,18 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useApp } from "@/contexts/AppContext";
-import type { AppSettings } from "@/lib/types.ts";
-import { X } from "lucide-react";
+import React, {useEffect, useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
+import {useApp} from "@/contexts/AppContext";
+import type {AppSettings} from "@/lib/types.ts";
+import {X} from "lucide-react";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
-import { FormSelect } from "@/components/ui/FormSelect";
-import { FormInput } from "@/components/ui/FormInput";
+import {FormSelect} from "@/components/ui/FormSelect";
+import {FormInput} from "@/components/ui/FormInput";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent,
-} from "@/components/ui/tabs"; // ✅ shadcn tabs
+} from "@/components/ui/tabs";
+import {Separator} from "@/components/ui/separator.tsx"; // ✅ shadcn tabs
 
 // 学生结构
 type Student = {
@@ -30,7 +31,6 @@ type CafeConfigProps = {
   profileId?: string;
   settings?: Partial<AppSettings>;
   onChange?: (patch: Partial<AppSettings>) => Promise<void>;
-  studentNames?: Student[];
 };
 
 // 草稿定义
@@ -55,15 +55,15 @@ const clamp = (n: number, min: number, max: number) =>
 
 /* ---------- 主组件 ---------- */
 const CafeConfig: React.FC<CafeConfigProps> = ({
-  onClose,
-  profileId,
-  settings,
-  onChange,
-}) => {
-  const { staticConfig } = useApp();
+                                                 onClose,
+                                                 profileId,
+                                                 settings,
+                                                 onChange,
+                                               }) => {
+  const {staticConfig} = useApp();
   const studentNames = staticConfig.student_names;
-  const { t } = useTranslation();
-  const { activeProfile, updateProfile } = useApp();
+  const {t} = useTranslation();
+  const {activeProfile, updateProfile} = useApp();
 
   // 外部设置
   const ext = useMemo(() => {
@@ -99,12 +99,12 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
   // 通用布尔
   const onBoolChange = (key: keyof Draft) => (value: boolean) =>
-    setDraft((d) => ({ ...d, [key]: value }));
+    setDraft((d) => ({...d, [key]: value}));
 
   // 数字输入
   const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    if (raw === "") return setDraft((d) => ({ ...d, cafe_pat_rounds: "" }));
+    if (raw === "") return setDraft((d) => ({...d, cafe_pat_rounds: ""}));
     const n = Number(raw);
     if (Number.isFinite(n)) {
       setDraft((d) => ({
@@ -115,7 +115,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
   };
 
   const onSelectChange = (key: string) => (value: string) => {
-    setDraft((d) => ({ ...d, [key]: value }));
+    setDraft((d) => ({...d, [key]: value}));
   };
 
   // 保存
@@ -136,14 +136,14 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       await onChange(patch);
     } else if (activeProfile) {
       await updateProfile(activeProfile.id, {
-        settings: { ...activeProfile.settings, ...patch },
+        settings: {...activeProfile.settings, ...patch},
       });
     }
     onClose();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="basic">{t("cafe.basicSettings")}</TabsTrigger>
@@ -154,7 +154,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         </TabsList>
 
         {/* 基础设置 */}
-        <TabsContent value="basic" className="space-y-6 pt-4">
+        <TabsContent value="basic" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {[
               ["cafe_collect_reward", "cafe.collectReward"],
@@ -171,10 +171,14 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               />
             ))}
           </div>
+
+          <Separator/>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
             <FormInput
               label={t("cafe.patRounds")}
+              tooltip={t("cafe.patRoundsDesc")}
               type="number"
               value={draft.cafe_pat_rounds}
               onChange={onNumberChange}
@@ -187,8 +191,8 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               value={draft.pat_style}
               onChange={onSelectChange("pat_style")}
               options={[
-                { value: "普通", label: t("cafe.patStyleNormal") },
-                { value: "拖动礼物", label: t("cafe.patStyleDragGift") },
+                {value: "普通", label: t("cafe.patStyleNormal")},
+                {value: "拖动礼物", label: t("cafe.patStyleDragGift")},
               ]}
             />
 
@@ -202,10 +206,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
             value={draft.cafe_invite1_criterion}
             onChange={onSelectChange("cafe_invite1_criterion")}
             options={[
-              { value: "lowest_affection", label: t("cafe.lowestAffection") },
-              { value: "highest_affection", label: t("cafe.highestAffection") },
-              { value: "starred", label: t("cafe.starred") },
-              { value: "name", label: t("cafe.byName") },
+              {value: "lowest_affection", label: t("cafe.lowestAffection")},
+              {value: "highest_affection", label: t("cafe.highestAffection")},
+              {value: "starred", label: t("cafe.starred")},
+              {value: "name", label: t("cafe.byName")},
             ]}
           />
 
@@ -243,7 +247,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
                         }))
                       }
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3 h-3"/>
                     </button>
                   </span>
                 ))}
@@ -266,10 +270,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               value={draft.cafe_invite2_criterion}
               onChange={onSelectChange("cafe_invite2_criterion")}
               options={[
-                { value: "lowest_affection", label: t("cafe.lowestAffection") },
-                { value: "highest_affection", label: t("cafe.highestAffection") },
-                { value: "starred", label: t("cafe.starred") },
-                { value: "name", label: t("cafe.byName") },
+                {value: "lowest_affection", label: t("cafe.lowestAffection")},
+                {value: "highest_affection", label: t("cafe.highestAffection")},
+                {value: "starred", label: t("cafe.starred")},
+                {value: "name", label: t("cafe.byName")},
               ]}
             />
 
@@ -307,7 +311,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
                           }))
                         }
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3 h-3"/>
                       </button>
                     </span>
                   ))}
@@ -324,13 +328,12 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         )}
       </Tabs>
 
-      {/* Modal 集成 */}
       <StudentSelectorModal
         isOpen={showSelector1}
         onClose={() => setShowSelector1(false)}
         allStudents={studentNames}
         selected={draft.favorStudent1}
-        onChange={(list) => setDraft((d) => ({ ...d, favorStudent1: list }))}
+        onChange={(list) => setDraft((d) => ({...d, favorStudent1: list}))}
         lang="JP"
         mode="multiple"
       />
@@ -340,13 +343,15 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         onClose={() => setShowSelector2(false)}
         allStudents={studentNames}
         selected={draft.favorStudent2}
-        onChange={(list) => setDraft((d) => ({ ...d, favorStudent2: list }))}
+        onChange={(list) => setDraft((d) => ({...d, favorStudent2: list}))}
         lang="JP"
         mode="multiple"
       />
 
+      <Separator/>
+
       {/* 保存按钮 */}
-      <div className="flex justify-end pt-4 border-t">
+      <div className="flex justify-end pt-4">
         <button
           onClick={handleSave}
           disabled={!dirty || draft.cafe_pat_rounds === ""}

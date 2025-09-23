@@ -11,6 +11,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
+import {FormInput} from "@/components/ui/FormInput.tsx";
 
 type TabKey = "common" | "tactical";
 
@@ -123,13 +124,13 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     {t("commonShop.refreshDesc")}
                   </p>
                 </div>
-                <input
+                <FormInput
                   type="number"
                   min={0}
                   max={5}
                   value={settings.refresh}
                   onChange={handleRefreshChange}
-                  className="w-20 px-2 py-1 border rounded bg-white dark:bg-slate-800"
+                  className="w-20"
                 />
               </div>
 

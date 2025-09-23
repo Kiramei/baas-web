@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {LabelWithTooltip} from "@/components/ui/LabelWithTooltip.tsx";
 
 interface Option {
   value: string
@@ -16,6 +17,7 @@ interface Option {
 
 interface FormSelectProps {
   label?: string
+  tooltip?: string
   value: string
   onChange: (value: string) => void
   options: Option[]
@@ -25,6 +27,7 @@ interface FormSelectProps {
 
 export const FormSelect: React.FC<FormSelectProps> = ({
   label,
+  tooltip,
   value,
   onChange,
   options,
@@ -33,7 +36,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
 }) => {
   return (
     <div className={`space-y-2 ${className ?? ""}`}>
-      {label && <label className="block text-sm font-medium">{label}</label>}
+      {label && (tooltip ? <LabelWithTooltip className="block text-sm font-medium" label={label} tooltip={tooltip}/>
+        : <label className="block text-sm font-medium">{label}</label>)}
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder={placeholder ?? "请选择"} />

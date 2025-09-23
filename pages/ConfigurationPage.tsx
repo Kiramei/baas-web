@@ -1,23 +1,35 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Card, CardDescription, CardHeader, CardTitle} from '../components/ui/Card';
-import {Modal} from '../components/ui/Modal';
-import CafeConfig from '../features/CafeConfig';
-import ServerConfig from '../features/ServerConfig';
-import ScheduleConfig from '../features/ScheduleConfig';
-import ShopConfig from '../features/ShopConfig';
-import ArenaConfig from '../features/ArenaConfig';
-import EmulatorConfig from '../features/EmulatorConfig';
-import PushConfig from '../features/PushConfig';
+import {Modal} from '@/components/ui/Modal';
+import CafeConfig from '@/features/CafeConfig';
+import ServerConfig from '@/features/ServerConfig';
+import ScheduleConfig from '@/features/ScheduleConfig';
+import ShopConfig from '@/features/ShopConfig';
+import ArenaConfig from '@/features/ArenaConfig';
+import DailySweep from "@/features/DailySweep"; // 取 activeProfile / updateProfile
+import TacticalConfig from "@/features/TacticalConfig.tsx";
+import EmulatorConfig from '@/features/EmulatorConfig';
+import PushConfig from '@/features/PushConfig';
 import OtherConfig from '@/features/OtherConfig';
-import {BrushCleaning, LucideProps} from 'lucide-react';
-import {Coffee, Dices, Settings2, ShoppingCart, Swords} from 'lucide-react';
+import {ArrowUpFromLine, BrushCleaning, Database, LucideProps} from 'lucide-react';
+import {Coffee, Dices, Settings2, ShoppingCart, Swords, Server} from 'lucide-react';
 import {motion, Variants} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext';
 import {ProfileProps} from "@/lib/types.ts";
-import DailySweep from "@/features/DailySweep.tsx"; // 取 activeProfile / updateProfile
 
-type Feature = 'cafe' | 'schedule' | 'shop' | 'arena' | 'dailySweep' | 'server' | 'emulator' | 'push' | 'other';
+type Feature =
+  'cafe'
+  | 'schedule'
+  | 'shop'
+  | 'arena'
+  | 'dailySweep'
+  | 'tactical'
+  | 'server'
+  | 'emulator'
+  | 'push'
+  | 'other';
+
 const FeatureWidthDict = {
   'cafe': 50,
   'schedule': 50,
@@ -49,9 +61,11 @@ const featureMap: Record<Feature, {
   shop: {icon: ShoppingCart, descKey: 'shopDesc', component: ShopConfig},
   arena: {icon: Swords, descKey: 'arenaDesc', component: ArenaConfig},
   dailySweep: {icon: BrushCleaning, descKey: 'dailySweepDesc', component: DailySweep},
-  server: {icon: Settings2, descKey: 'serverDesc', component: ServerConfig},
-  emulator: {icon: Settings2, descKey: 'emulatorDesc', component: EmulatorConfig},
-  push: {icon: Settings2, descKey: 'pushDesc', component: PushConfig},
+  tactical: {icon: Dices, descKey: 'tacticalDesc', component: TacticalConfig},
+
+  server: {icon: Server, descKey: 'serverDesc', component: ServerConfig},
+  emulator: {icon: Database, descKey: 'emulatorDesc', component: EmulatorConfig},
+  push: {icon: ArrowUpFromLine, descKey: 'pushDesc', component: PushConfig},
   other: {icon: Settings2, descKey: 'otherDesc', component: OtherConfig},
 };
 
@@ -105,7 +119,7 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
   }
 
   const featureGroups: Record<string, Feature[]> = {
-    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'arena', 'dailySweep'],
+    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'arena', 'dailySweep', 'tactical'],
     [t('generalSettings')]: ['server', 'emulator', 'push', 'other'],
   };
 
