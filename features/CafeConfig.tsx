@@ -1,13 +1,18 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {useTranslation} from "react-i18next";
-import {useApp} from "@/contexts/AppContext";
-import type {AppSettings} from "@/lib/types.ts";
-import {X} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useApp } from "@/contexts/AppContext";
+import type { AppSettings } from "@/lib/types.ts";
+import { X } from "lucide-react";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
-import {FormSelect} from "@/components/ui/FormSelect";
-import {FormInput} from "@/components/ui/FormInput";
-import {stat} from "fs";
+import { FormSelect } from "@/components/ui/FormSelect";
+import { FormInput } from "@/components/ui/FormInput";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs"; // ✅ shadcn tabs
 
 // 学生结构
 type Student = {
@@ -25,7 +30,7 @@ type CafeConfigProps = {
   profileId?: string;
   settings?: Partial<AppSettings>;
   onChange?: (patch: Partial<AppSettings>) => Promise<void>;
-  studentNames?: Student[]; // 外部传入学生列表
+  studentNames?: Student[];
 };
 
 // 草稿定义
@@ -48,18 +53,17 @@ type Draft = {
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-
 /* ---------- 主组件 ---------- */
 const CafeConfig: React.FC<CafeConfigProps> = ({
-                                                 onClose,
-                                                 profileId,
-                                                 settings,
-                                                 onChange
-                                               }) => {
-  const {staticConfig} = useApp();
-  const studentNames = staticConfig.student_names
-  const {t} = useTranslation();
-  const {activeProfile, updateProfile} = useApp();
+  onClose,
+  profileId,
+  settings,
+  onChange,
+}) => {
+  const { staticConfig } = useApp();
+  const studentNames = staticConfig.student_names;
+  const { t } = useTranslation();
+  const { activeProfile, updateProfile } = useApp();
 
   // 外部设置
   const ext = useMemo(() => {
@@ -94,23 +98,25 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   // 通用布尔
-  const onBoolChange = (key: keyof Draft) =>
-    (value: boolean) =>
-      setDraft((d) => ({...d, [key]: value}));
+  const onBoolChange = (key: keyof Draft) => (value: boolean) =>
+    setDraft((d) => ({ ...d, [key]: value }));
 
   // 数字输入
   const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    if (raw === "") return setDraft((d) => ({...d, cafe_pat_rounds: ""}));
+    if (raw === "") return setDraft((d) => ({ ...d, cafe_pat_rounds: "" }));
     const n = Number(raw);
     if (Number.isFinite(n)) {
-      setDraft((d) => ({...d, cafe_pat_rounds: clamp(Math.trunc(n), 4, 15)}));
+      setDraft((d) => ({
+        ...d,
+        cafe_pat_rounds: clamp(Math.trunc(n), 4, 15),
+      }));
     }
   };
 
   const onSelectChange = (key: string) => (value: string) => {
-    setDraft((d) => ({...d, [key]: value}));
-  }
+    setDraft((d) => ({ ...d, [key]: value }));
+  };
 
   // 保存
   const handleSave = async () => {
@@ -130,7 +136,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       await onChange(patch);
     } else if (activeProfile) {
       await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
+        settings: { ...activeProfile.settings, ...patch },
       });
     }
     onClose();
@@ -138,158 +144,185 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 基础开关 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          ["cafe_collect_reward", "cafe.collectReward"],
-          ["cafe_use_invitation", "cafe.useInvitation"],
-          ["cafe_exchange_student", "cafe.exchangeStudent"],
-          ["cafe_duplicate_invite", "cafe.duplicateInvite"],
-          ["cafe_has_no2_cafe", "cafe.hasNo2Cafe"],
-        ].map(([key, label]) => (
-          <SwitchButton
-            label={t(label)}
-            checked={draft[key as keyof Draft] as boolean}
-            onChange={onBoolChange(key as keyof Draft)}
-            key={label}
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full">
+          <TabsTrigger value="basic">{t("cafe.basicSettings")}</TabsTrigger>
+          <TabsTrigger value="cafe1">{t("cafe.cafe1Settings")}</TabsTrigger>
+          {draft.cafe_has_no2_cafe && (
+            <TabsTrigger value="cafe2">{t("cafe.cafe2Settings")}</TabsTrigger>
+          )}
+        </TabsList>
+
+        {/* 基础设置 */}
+        <TabsContent value="basic" className="space-y-6 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {[
+              ["cafe_collect_reward", "cafe.collectReward"],
+              ["cafe_use_invitation", "cafe.useInvitation"],
+              ["cafe_exchange_student", "cafe.exchangeStudent"],
+              ["cafe_duplicate_invite", "cafe.duplicateInvite"],
+              ["cafe_has_no2_cafe", "cafe.hasNo2Cafe"],
+            ].map(([key, label]) => (
+              <SwitchButton
+                label={t(label)}
+                checked={draft[key as keyof Draft] as boolean}
+                onChange={onBoolChange(key as keyof Draft)}
+                key={label}
+              />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+
+            <FormInput
+              label={t("cafe.patRounds")}
+              type="number"
+              value={draft.cafe_pat_rounds}
+              onChange={onNumberChange}
+              min={4}
+              max={15}
+            />
+
+            <FormSelect
+              label={t("cafe.patStyle")}
+              value={draft.pat_style}
+              onChange={onSelectChange("pat_style")}
+              options={[
+                { value: "普通", label: t("cafe.patStyleNormal") },
+                { value: "拖动礼物", label: t("cafe.patStyleDragGift") },
+              ]}
+            />
+
+          </div>
+        </TabsContent>
+
+        {/* 咖啡馆1 */}
+        <TabsContent value="cafe1" className="space-y-6 pt-4">
+          <FormSelect
+            label={t("cafe.invite1Mode")}
+            value={draft.cafe_invite1_criterion}
+            onChange={onSelectChange("cafe_invite1_criterion")}
+            options={[
+              { value: "lowest_affection", label: t("cafe.lowestAffection") },
+              { value: "highest_affection", label: t("cafe.highestAffection") },
+              { value: "starred", label: t("cafe.starred") },
+              { value: "name", label: t("cafe.byName") },
+            ]}
           />
-        ))}
-      </div>
 
-      {/* 摸头轮数 */}
-      <FormInput
-        label={t("cafe.patRounds")}
-        type="number"
-        value={draft.cafe_pat_rounds}
-        onChange={onNumberChange}
-        min={4}
-        max={15}
-      />
+          {draft.cafe_invite1_criterion === "starred" && (
+            <FormSelect
+              label={t("cafe.starredPosition")}
+              value={draft.cafe_invite1_starred_position}
+              onChange={onSelectChange("cafe_invite1_starred_position")}
+              options={[1, 2, 3, 4, 5].map((n) => ({
+                value: String(n),
+                label: String(n),
+              }))}
+            />
+          )}
 
-
-      <FormSelect
-        label={t("cafe.patStyle")}
-        value={draft.pat_style}
-        onChange={onSelectChange("pat_style")}
-        options={[
-          {value: "普通", label: t("cafe.patStyleNormal")},
-          {value: "拖动礼物", label: t("cafe.patStyleDragGift")},
-        ]}
-      />
-
-
-      {/* 咖啡厅1 邀请模式 */}
-
-      <FormSelect
-        label={t("cafe.invite1Mode")}
-        value={draft.cafe_invite1_criterion}
-        onChange={onSelectChange("cafe_invite1_criterion")}
-        options={[
-          {value: "lowest_affection", label: t("cafe.lowestAffection")},
-          {value: "highest_affection", label: t("cafe.highestAffection")},
-          {value: "starred", label: t("cafe.starred")},
-          {value: "name", label: t("cafe.byName")},
-        ]}
-      />
-
-      {draft.cafe_invite1_criterion === "starred" && (
-        <FormSelect
-          label={t("cafe.starredPosition")}
-          value={draft.cafe_invite1_starred_position}
-          onChange={onSelectChange("cafe_invite1_starred_position")}
-          options={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: String(n)}))}
-        />
-      )}
-
-      {/* 指定学生 (咖啡厅1) */}
-      {draft.cafe_invite1_criterion === "name" && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">咖啡厅1 指定学生</label>
-          <div className="flex flex-wrap gap-2">
-            {draft.favorStudent1.map((name) => (
-              <span
-                key={name}
-                className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm dark:bg-slate-700"
-              >
-                {name}
+          {draft.cafe_invite1_criterion === "name" && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                {t("cafe.cafe1Students")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {draft.favorStudent1.map((name) => (
+                  <span
+                    key={name}
+                    className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm dark:bg-slate-700"
+                  >
+                    {name}
+                    <button
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          favorStudent1: d.favorStudent1.filter(
+                            (n) => n !== name
+                          ),
+                        }))
+                      }
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
                 <button
-                  onClick={() =>
-                    setDraft((d) => ({
-                      ...d,
-                      favorStudent1: d.favorStudent1.filter((n) => n !== name),
-                    }))
-                  }
+                  onClick={() => setShowSelector1(true)}
+                  className="px-3 py-1 text-sm border rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
-                  <X className="w-3 h-3"/>
+                  {t("Add Student")}
                 </button>
-              </span>
-            ))}
-            <button
-              onClick={() => setShowSelector1(true)}
-              className="px-3 py-1 text-sm border rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition"
-            >
-              {t('Add Student')}
-            </button>
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
+        </TabsContent>
 
-      {/* 咖啡厅2 邀请模式 */}
-      {draft.cafe_has_no2_cafe && (
-        <FormSelect
-          label={t("cafe.invite2Mode")}
-          value={draft.cafe_invite2_criterion}
-          onChange={onSelectChange("cafe_invite2_criterion")}
-          options={[
-            {value: "lowest_affection", label: t("cafe.lowestAffection")},
-            {value: "highest_affection", label: t("cafe.highestAffection")},
-            {value: "starred", label: t("cafe.starred")},
-            {value: "name", label: t("cafe.byName")},
-          ]}
-        />
-      )}
+        {/* 咖啡馆2 */}
+        {draft.cafe_has_no2_cafe && (
+          <TabsContent value="cafe2" className="space-y-6 pt-4">
+            <FormSelect
+              label={t("cafe.invite2Mode")}
+              value={draft.cafe_invite2_criterion}
+              onChange={onSelectChange("cafe_invite2_criterion")}
+              options={[
+                { value: "lowest_affection", label: t("cafe.lowestAffection") },
+                { value: "highest_affection", label: t("cafe.highestAffection") },
+                { value: "starred", label: t("cafe.starred") },
+                { value: "name", label: t("cafe.byName") },
+              ]}
+            />
 
-      {draft.cafe_invite2_criterion === "starred" && (
-        <FormSelect
-          label={t("cafe.starredPosition")}
-          value={draft.cafe_invite2_starred_position}
-          onChange={onSelectChange("cafe_invite2_starred_position")}
-          options={[1, 2, 3, 4, 5].map((n) => ({value: String(n), label: String(n)}))}
-        />
-      )}
+            {draft.cafe_invite2_criterion === "starred" && (
+              <FormSelect
+                label={t("cafe.starredPosition")}
+                value={draft.cafe_invite2_starred_position}
+                onChange={onSelectChange("cafe_invite2_starred_position")}
+                options={[1, 2, 3, 4, 5].map((n) => ({
+                  value: String(n),
+                  label: String(n),
+                }))}
+              />
+            )}
 
-      {/* 指定学生 (咖啡厅2) */}
-      {draft.cafe_has_no2_cafe && draft.cafe_invite2_criterion === "name" && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">咖啡厅2 指定学生</label>
-          <div className="flex flex-wrap gap-2">
-            {draft.favorStudent2.map((name) => (
-              <span
-                key={name}
-                className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm"
-              >
-                {name}
-                <button
-                  onClick={() =>
-                    setDraft((d) => ({
-                      ...d,
-                      favorStudent2: d.favorStudent2.filter((n) => n !== name),
-                    }))
-                  }
-                >
-                  <X className="w-3 h-3"/>
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={() => setShowSelector2(true)}
-              className="px-3 py-1 text-sm border rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition"
-            >
-              {t('Add Student')}
-            </button>
-          </div>
-        </div>
-      )}
+            {draft.cafe_invite2_criterion === "name" && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  {t("cafe.cafe2Students")}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {draft.favorStudent2.map((name) => (
+                    <span
+                      key={name}
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm"
+                    >
+                      {name}
+                      <button
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            favorStudent2: d.favorStudent2.filter(
+                              (n) => n !== name
+                            ),
+                          }))
+                        }
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <button
+                    onClick={() => setShowSelector2(true)}
+                    className="px-3 py-1 text-sm border rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                  >
+                    {t("Add Student")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
 
       {/* Modal 集成 */}
       <StudentSelectorModal
@@ -297,7 +330,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         onClose={() => setShowSelector1(false)}
         allStudents={studentNames}
         selected={draft.favorStudent1}
-        onChange={(list) => setDraft((d) => ({...d, favorStudent1: list}))}
+        onChange={(list) => setDraft((d) => ({ ...d, favorStudent1: list }))}
         lang="JP"
         mode="multiple"
       />
@@ -307,7 +340,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         onClose={() => setShowSelector2(false)}
         allStudents={studentNames}
         selected={draft.favorStudent2}
-        onChange={(list) => setDraft((d) => ({...d, favorStudent2: list}))}
+        onChange={(list) => setDraft((d) => ({ ...d, favorStudent2: list }))}
         lang="JP"
         mode="multiple"
       />
