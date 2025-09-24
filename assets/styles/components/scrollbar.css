@@ -29,3 +29,11 @@
     @apply scrollbar-track-slate-700 hover:scrollbar-thumb-cyan-500;
   } */
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE, Edge */
+    scrollbar-width: none;     /* Firefox */
+}

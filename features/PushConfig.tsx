@@ -1,81 +1,100 @@
+import React from "react";
+import type { AppSettings } from "@/lib/types";
+import { useApp } from "@/contexts/AppContext";
+import SwitchButton from "@/components/ui/SwitchButton";
+import { FormInput } from "@/components/ui/FormInput";
+import { useTranslation } from "react-i18next";
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useApp } from '../contexts/AppContext';
-import type { AppSettings } from '../lib/types.ts';
-
-interface PushConfigProps {
+type PushConfigProps = {
   onClose: () => void;
+  profileId?: string;
+  settings?: Partial<AppSettings>;
+  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
+};
+
+interface PushState {
+  push_after_error: boolean;
+  push_after_completion: boolean;
+  push_json: string;
+  push_serverchan: string;
 }
 
-const PushConfig: React.FC<PushConfigProps> = ({ onClose }) => {
+const PushConfig: React.FC<PushConfigProps> = ({
+                                                 onClose,
+                                                 profileId,
+                                                 settings,
+                                                 onChange,
+                                               }) => {
   const { t } = useTranslation();
-  const { activeProfile, saveProfile } = useApp();
+  const { activeProfile, updateProfile } = useApp();
 
-  const [settings, setSettings] = useState<Partial<AppSettings>>(activeProfile?.settings || {});
+  const [draft, setDraft] = React.useState<PushState>({
+    push_after_error: settings?.push_after_error ?? false,
+    push_after_completion: settings?.push_after_completion ?? false,
+    push_json: settings?.push_json ?? "",
+    push_serverchan: settings?.push_serverchan ?? "",
+  });
 
-  useEffect(() => {
-    setSettings(activeProfile?.settings || {});
-  }, [activeProfile]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-    setSettings(prev => ({ ...prev, [name]: val }));
-  };
+  const handleChange =
+    <K extends keyof PushState>(key: K) =>
+      (value: PushState[K]) => {
+        setDraft((prev) => ({ ...prev, [key]: value }));
+        if (onChange) {
+          onChange({ ...settings, [key]: value });
+        }
+      };
 
   const handleSave = async () => {
-    if (activeProfile) {
-      const updatedProfile = {
-        ...activeProfile,
-        settings: { ...activeProfile.settings, ...settings } as AppSettings,
-      };
-      await saveProfile(updatedProfile);
-      onClose();
+    const patch: Partial<AppSettings> = { ...draft };
+    if (onChange) {
+      await onChange(patch);
+    } else if (activeProfile) {
+      await updateProfile(activeProfile.id, {
+        settings: { ...activeProfile.settings, ...patch },
+      });
     }
+    onClose();
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">{t('push.title')}</h3>
+      <div className="w-full flex gap-2 lg:flex-row max-lg:flex-col">
+        <SwitchButton
+          label={t("push.afterError")}
+          checked={draft.push_after_error}
+          onChange={handleChange("push_after_error")}
+          className="flex-1"
+        />
+
+        <SwitchButton
+          label={t("push.afterCompletion")}
+          checked={draft.push_after_completion}
+          onChange={handleChange("push_after_completion")}
+          className="flex-1"
+        />
       </div>
 
-      <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-        <div>
-          <label htmlFor="push_enabled" className="text-slate-700 dark:text-slate-200 font-medium">
-            {t('push.enable')}
-          </label>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('push.enableDesc')}</p>
-        </div>
-        <input 
-          id="push_enabled"
-          name="push_enabled"
-          type="checkbox" 
-          className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-          checked={settings.push_enabled ?? false}
-          onChange={handleChange}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="push_webhook_url" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          {t('push.webhookUrl')}
-        </label>
-        <input 
-          id="push_webhook_url"
-          name="push_webhook_url"
-          type="text" 
-          className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
-          value={settings.push_webhook_url ?? ''}
-          onChange={handleChange}
-          placeholder={t('push.webhookUrlPlaceholder')}
-          disabled={!settings.push_enabled}
-        />
-      </div>
+      <FormInput
+        label={t("push.json")}
+        value={draft.push_json}
+        onChange={(e) => handleChange("push_json")(e.target.value)}
+        placeholder={t("placeholder.config.insert")}
+      />
+
+      <FormInput
+        label={t("push.serverchan")}
+        value={draft.push_serverchan}
+        onChange={(e) => handleChange("push_serverchan")(e.target.value)}
+        placeholder={t("placeholder.config.insert")}
+      />
 
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
-        <button onClick={handleSave} className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200">{t('save')}</button>
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+        >
+          {t("save")}
+        </button>
       </div>
     </div>
   );

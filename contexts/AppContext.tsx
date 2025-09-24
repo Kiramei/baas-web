@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef} from 'react';
 import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings, UISettings} from '@/lib/types.ts';
+
 import api from '@/services/api';
 import {
   listProfiles,
@@ -10,12 +11,13 @@ import {
   type ServerCode,
   type ProfileDTO,
 } from '@/services/profileService';
+import {GlobalSelectProvider} from "@/components/ui/select-global"
 
 // type
 import {StaticConfig, StaticConvert} from '@/lib/type.static.ts';
 import {DynamicConfig, DynamicConvert} from '@/lib/type.dynamic.ts';
 import {EventConfig, EventConvert} from '@/lib/type.event.ts';
-import { stat } from 'fs';
+import {stat} from 'fs';
 
 interface AppContextType {
   profiles: ConfigProfile[];
@@ -79,6 +81,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [uiSettings, setUiSettings] = useState<UISettings | null>(null);
 
   const [staticConfig, setStaticConfig] = useState<StaticConfig | null>(null);
+
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -343,7 +346,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     refreshProfiles,
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      <GlobalSelectProvider>
+        {children}
+      </GlobalSelectProvider>
+    </AppContext.Provider>
+  );
 };
 
 export const useApp = (): AppContextType => {

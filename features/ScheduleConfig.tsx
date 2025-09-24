@@ -241,17 +241,17 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                       checked={draft.lesson_each_region_object_priority[i].includes(lvl)}
                       onChange={() => toggleLevel(i, lvl)}
                       className="
-                    peer w-6 h-6 cursor-pointer
-                    appearance-none
-                    rounded-full border
-                    border-slate-500 dark:border-slate-400
-                    bg-slate-100 dark:bg-slate-700
-                    checked:bg-primary-400 checked:border-slate-500
-                    dark:checked:bg-primary-600 dark:checked:border-slate-400
-                    checked:text-primary-foreground
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-                    disabled:cursor-not-allowed disabled:opacity-50
-                  "
+                        peer w-6 h-6 cursor-pointer
+                        appearance-none
+                        rounded-full border
+                        border-slate-500 dark:border-slate-400
+                        bg-slate-100 dark:bg-slate-700
+                        checked:bg-primary-400 checked:border-slate-500
+                        dark:checked:bg-primary-600 dark:checked:border-slate-400
+                        checked:text-primary-foreground
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+                        disabled:cursor-not-allowed disabled:opacity-50
+                      "
                     />
                     <Check
                       className="

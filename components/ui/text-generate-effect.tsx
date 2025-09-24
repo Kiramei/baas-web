@@ -8,7 +8,7 @@ export const TextGenerateEffect = ({
   className,
   filter = true,
   duration = 0.5,
-  mode = "word", // "word"（逐个单词）| "all"（整体一起动）
+  mode = "word",
 }: {
   words: string;
   className?: string;

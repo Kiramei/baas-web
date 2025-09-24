@@ -1,64 +1,45 @@
+import React from "react";
+import type {AppSettings} from "@/lib/types";
+import {useApp} from "@/contexts/AppContext";
+import {useTranslation} from "react-i18next";
+import {FormInput} from "@/components/ui/FormInput.tsx";
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useApp } from '../contexts/AppContext';
-import type { AppSettings } from '../lib/types.ts';
-
-interface OtherConfigProps {
+type OtherConfigProps = {
   onClose: () => void;
-}
+  profileId?: string;
+  settings?: Partial<AppSettings>;
+  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
+};
 
-const OtherConfig: React.FC<OtherConfigProps> = ({ onClose }) => {
-  const { t } = useTranslation();
-  const { activeProfile, saveProfile } = useApp();
+const OtherConfig: React.FC<OtherConfigProps> = ({
+                                                   profileId,
+                                                 }) => {
+  const {t} = useTranslation();
+  const {activeProfile} = useApp();
 
-  const [settings, setSettings] = useState<Partial<AppSettings>>(activeProfile?.settings || {});
-
-  useEffect(() => {
-    setSettings(activeProfile?.settings || {});
-  }, [activeProfile]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, type, checked } = e.target;
-    setSettings(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : e.target.value }));
-  };
-
-  const handleSave = async () => {
-    if (activeProfile) {
-      const updatedProfile = {
-        ...activeProfile,
-        settings: { ...activeProfile.settings, ...settings } as AppSettings,
-      };
-      await saveProfile(updatedProfile);
-      onClose();
-    }
+  const handleFhx = async () => {
+    // ⚠️ 接口留空，需要你在这里实现与后端或主线程交互
+    // 例如 window.electron.ipcRenderer.invoke("fhx")
+    console.log("一键反和谐 triggered");
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">{t('other.title')}</h3>
-      </div>
-      
+    <div className="space-y-2">
       <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
         <div>
-          <label htmlFor="screenshot_on_error" className="text-slate-700 dark:text-slate-200 font-medium">
-            {t('other.screenshotOnError')}
+          <label className="text-slate-700 dark:text-slate-200 font-medium">
+            {t("other.fhx")}
           </label>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('other.screenshotOnErrorDesc')}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {t("other.fhxDesc")}
+          </p>
         </div>
-        <input 
-          id="screenshot_on_error"
-          name="screenshot_on_error"
-          type="checkbox" 
-          className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-          checked={settings.screenshot_on_error ?? true}
-          onChange={handleChange}
-        />
-      </div>
-      
-      <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
-        <button onClick={handleSave} className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200">{t('save')}</button>
+        <button
+          onClick={handleFhx}
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
+        >
+          {t("execute")}
+        </button>
       </div>
     </div>
   );

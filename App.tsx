@@ -11,6 +11,7 @@ import type { Variants } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { useApp } from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
 import { LoadingPage } from './pages/LoadingPage';
+import {Toaster} from "sonner";
 
 const variants: Variants = {
   show: {
@@ -32,6 +33,7 @@ const App: React.FC = () => (
     <AppProvider>
       <LoadingPage>
         <Main />
+        <Toaster />
       </LoadingPage>
     </AppProvider>
   </ThemeProvider>
@@ -103,7 +105,7 @@ const Main: React.FC = () => {
           return (
             <motion.div
               key={instKey} // ⬅️ 关键：实例键作为 key，区分不同配置的同一页面
-              className="absolute inset-0 overflow-y-auto scroll-embedded pr-2"
+              className="absolute inset-0 overflow-y-auto scroll-embedded pr-2 "
               variants={variants}
               initial={isActive ? 'show' : 'hide'}
               animate={isActive ? 'show' : 'hide'}

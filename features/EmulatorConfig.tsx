@@ -1,81 +1,173 @@
+import React, {useEffect, useState} from "react";
+import type {AppSettings} from "@/lib/types";
+import {useApp} from "@/contexts/AppContext";
+import {useTranslation} from "react-i18next";
+import {Switch} from "@/components/ui/switch";
+import {FormInput} from "@/components/ui/FormInput";
+import {FormSelect} from "@/components/ui/FormSelect";
+import SwitchButton from "@/components/ui/SwitchButton.tsx";
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useApp } from '../contexts/AppContext';
-import type { AppSettings } from '../lib/types.ts';
-
-interface EmulatorConfigProps {
+type EmulatorConfigProps = {
   onClose: () => void;
+  profileId?: string;
+  settings?: Partial<AppSettings>;
+  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
+};
+
+interface EmulatorState {
+  open_emulator_stat: boolean;
+  emulator_wait_time: string;
+  emulatorIsMultiInstance: boolean;
+  program_address: string;
+  emulatorMultiInstanceNumber: string;
+  multiEmulatorName: string;
 }
 
-const EmulatorConfig: React.FC<EmulatorConfigProps> = ({ onClose }) => {
-  const { t } = useTranslation();
-  const { activeProfile, saveProfile } = useApp();
+const multiMap: Record<string, string> = {
+  mumu: "MuMu模拟器",
+  mumu_global: "MuMu模拟器全球版",
+  bluestacks_nxt_cn: "蓝叠模拟器",
+  bluestacks_nxt: "蓝叠国际版",
+};
 
-  const [settings, setSettings] = useState<Partial<AppSettings>>(activeProfile?.settings || {});
+const EmulatorConfig: React.FC<EmulatorConfigProps> = ({
+                                                         onClose,
+                                                         settings,
+                                                         onChange,
+                                                       }) => {
+  const {t} = useTranslation();
+  const {activeProfile, updateProfile} = useApp();
+
+  const [draft, setDraft] = useState<EmulatorState>({
+    open_emulator_stat: settings?.open_emulator_stat ?? false,
+    emulator_wait_time: settings?.emulator_wait_time ?? "5",
+    emulatorIsMultiInstance: settings?.emulatorIsMultiInstance ?? false,
+    program_address: settings?.program_address ?? "",
+    emulatorMultiInstanceNumber: settings?.emulatorMultiInstanceNumber ?? "1",
+    multiEmulatorName: settings?.multiEmulatorName ?? Object.keys(multiMap)[0],
+  });
 
   useEffect(() => {
-    setSettings(activeProfile?.settings || {});
-  }, [activeProfile]);
+    setDraft({
+      open_emulator_stat: settings?.open_emulator_stat ?? false,
+      emulator_wait_time: settings?.emulator_wait_time ?? "5",
+      emulatorIsMultiInstance: settings?.emulatorIsMultiInstance ?? false,
+      program_address: settings?.program_address ?? "",
+      emulatorMultiInstanceNumber: settings?.emulatorMultiInstanceNumber ?? "1",
+      multiEmulatorName: settings?.multiEmulatorName ?? Object.keys(multiMap)[0],
+    });
+  }, [settings]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-    setSettings(prev => ({ ...prev, [name]: val }));
-  };
+  const handleChange =
+    (key: keyof EmulatorState) =>
+      (value: string | boolean) => {
+        setDraft((prev) => ({...prev, [key]: value as any}));
+      };
 
   const handleSave = async () => {
-    if (activeProfile) {
-      const updatedProfile = {
-        ...activeProfile,
-        settings: { ...activeProfile.settings, ...settings } as AppSettings,
-      };
-      await saveProfile(updatedProfile);
-      onClose();
+    const patch: Partial<AppSettings> = {...draft};
+    if (onChange) {
+      await onChange(patch);
+    } else if (activeProfile) {
+      await updateProfile(activeProfile.id, {
+        settings: {...activeProfile.settings, ...patch},
+      });
     }
+    onClose();
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-slate-800 dark:text-slate-100">{t('emulator.title')}</h3>
+    <div className="@container space-y-2">
+
+      <div className="flex @lg:flex-row @max-lg:flex-col gap-2">
+        {/* 是否启动时打开模拟器 */}
+        <SwitchButton
+          label={t("emulator.openOnLaunch")}
+          checked={draft.open_emulator_stat}
+          onChange={(v) => handleChange("open_emulator_stat")(v)}
+          className="w-full"
+        />
+
+        {/* 是否多开 */}
+        <SwitchButton
+          label={t("emulator.multiInstance")}
+          checked={draft.emulatorIsMultiInstance}
+          onChange={(v) => handleChange("emulatorIsMultiInstance")(v)}
+          className="w-full"
+        />
       </div>
 
-      <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-        <div>
-            <label htmlFor="open_emulator_stat" className="text-slate-700 dark:text-slate-200 font-medium">
-            {t('emulator.autoStart')}
-            </label>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t('emulator.autoStartDesc')}</p>
+
+      {/* 启动等待时间 */}
+      <FormInput
+        type="number"
+        label={t("emulator.waitTime")}
+        value={draft.emulator_wait_time}
+        onChange={(e) => handleChange("emulator_wait_time")(e.target.value)}
+        placeholder="5"
+      />
+
+
+      {/* 单开模式 */}
+      {!draft.emulatorIsMultiInstance && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {t("emulator.address")}
+          </label>
+          <div className="flex gap-2">
+            <FormInput
+              type="text"
+              value={draft.program_address}
+              onChange={(e) => handleChange("program_address")(e.target.value)}
+              placeholder="C:\\Path\\to\\MuMuPlayer.exe"
+              className="flex-1"
+            />
+            <button
+              type="button"
+              className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md"
+              onClick={() => {
+                // TODO: 接入文件选择器
+                alert("选择文件逻辑待实现");
+              }}
+            >
+              {t("choose")}
+            </button>
+          </div>
         </div>
-        <input 
-          id="open_emulator_stat"
-          name="open_emulator_stat"
-          type="checkbox" 
-          className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-          checked={settings.open_emulator_stat ?? true}
-          onChange={handleChange}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="emulator_path" className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          {t('emulator.path')}
-        </label>
-        <input 
-          id="emulator_path"
-          name="emulator_path"
-          type="text" 
-          className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          value={settings.emulator_path ?? ''}
-          onChange={handleChange}
-          placeholder="e.g., C:\\Program Files\\Nox\\bin\\Nox.exe"
-        />
-        <p className="text-sm text-slate-500">{t('emulator.pathDesc')}</p>
-      </div>
+      )}
 
+      {/* 多开模式 */}
+      {draft.emulatorIsMultiInstance && (
+        <div className="space-y-4">
+          <FormSelect
+            label={t("emulator.multiType")}
+            value={draft.multiEmulatorName}
+            onChange={handleChange("multiEmulatorName")}
+            options={Object.entries(multiMap).map(([k, v]) => ({
+              value: k,
+              label: v,
+            }))}
+          />
+
+          <FormInput
+            type="number"
+            label={t("emulator.instanceCount")}
+            value={draft.emulatorMultiInstanceNumber}
+            onChange={(e) =>
+              handleChange("emulatorMultiInstanceNumber")(e.target.value)
+            }
+          />
+        </div>
+      )}
+
+      {/* 保存按钮 */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
-        <button onClick={handleSave} className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200">{t('save')}</button>
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          {t("save")}
+        </button>
       </div>
     </div>
   );

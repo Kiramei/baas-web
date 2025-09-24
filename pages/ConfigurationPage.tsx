@@ -7,26 +7,49 @@ import ServerConfig from '@/features/ServerConfig';
 import ScheduleConfig from '@/features/ScheduleConfig';
 import ShopConfig from '@/features/ShopConfig';
 import ArenaConfig from '@/features/ArenaConfig';
-import DailySweep from "@/features/DailySweep"; // 取 activeProfile / updateProfile
+import DailySweep from "@/features/DailySweep";
 import TacticalConfig from "@/features/TacticalConfig.tsx";
+import DrillConfig from "@/features/DrillConfig.tsx";
 import EmulatorConfig from '@/features/EmulatorConfig';
 import PushConfig from '@/features/PushConfig';
 import OtherConfig from '@/features/OtherConfig';
-import {ArrowUpFromLine, BrushCleaning, Database, LucideProps} from 'lucide-react';
-import {Coffee, Dices, Settings2, ShoppingCart, Swords, Server} from 'lucide-react';
+import {
+  Amphora,
+  ArrowUpFromLine,
+  BrushCleaning,
+  Database,
+  FileCode2,
+  LucideProps,
+  Map,
+  ScrollText,
+  Users2Icon
+} from 'lucide-react';
+import {Coffee, Dices, Settings2, ShoppingCart, Swords, Server, Sword, Shield} from 'lucide-react';
 import {motion, Variants} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext';
 import {ProfileProps} from "@/lib/types.ts";
+import WhiteListConfig from "@/features/WhiteListConfig.tsx";
+import ArtifactConfig from "@/features/ArtifactConfig.tsx";
+import ScriptConfig from "@/features/ScriptConfig.tsx";
+import StageConfig from "@/features/StageConfig.tsx";
+import TeamConfig from "@/features/TeamConfig.tsx";
 
 type Feature =
   'cafe'
   | 'schedule'
   | 'shop'
+  | 'artifact'
   | 'arena'
   | 'dailySweep'
   | 'tactical'
+  | 'drill'
+  | 'whitelist'
+
   | 'server'
+  | 'script'
   | 'emulator'
+  | 'stage'
+  | 'team'
   | 'push'
   | 'other';
 
@@ -34,11 +57,13 @@ const FeatureWidthDict = {
   'cafe': 50,
   'schedule': 50,
   'shop': 50,
+  'artifact': 80,
   'arena': 30,
   'dailySweep': 70,
   'server': 30,
-  'emulator': 30,
-  'push': 30,
+  'emulator': 50,
+  'push': 50,
+  'stage': 80,
   'other': 30,
 }
 
@@ -61,10 +86,16 @@ const featureMap: Record<Feature, {
   shop: {icon: ShoppingCart, descKey: 'shopDesc', component: ShopConfig},
   arena: {icon: Swords, descKey: 'arenaDesc', component: ArenaConfig},
   dailySweep: {icon: BrushCleaning, descKey: 'dailySweepDesc', component: DailySweep},
-  tactical: {icon: Dices, descKey: 'tacticalDesc', component: TacticalConfig},
+  tactical: {icon: Shield, descKey: 'tacticalDesc', component: TacticalConfig},
+  drill: {icon: Sword, descKey: 'drillDesc', component: DrillConfig},
+  whitelist: {icon: ScrollText, descKey: 'whitelistDesc', component: WhiteListConfig},
+  artifact: {icon: Amphora, descKey: 'artifactDesc', component: ArtifactConfig},
 
   server: {icon: Server, descKey: 'serverDesc', component: ServerConfig},
+  script: {icon: FileCode2, descKey: 'scriptDesc', component: ScriptConfig},
   emulator: {icon: Database, descKey: 'emulatorDesc', component: EmulatorConfig},
+  stage: {icon: Map, descKey: 'stageDesc', component: StageConfig},
+  team: {icon: Users2Icon, descKey: 'teamDesc', component: TeamConfig},
   push: {icon: ArrowUpFromLine, descKey: 'pushDesc', component: PushConfig},
   other: {icon: Settings2, descKey: 'otherDesc', component: OtherConfig},
 };
@@ -119,8 +150,8 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
   }
 
   const featureGroups: Record<string, Feature[]> = {
-    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'arena', 'dailySweep', 'tactical'],
-    [t('generalSettings')]: ['server', 'emulator', 'push', 'other'],
+    [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'artifact', 'arena', 'dailySweep', 'tactical', 'drill', 'whitelist'],
+    [t('generalSettings')]: ['server', 'script', 'emulator', 'stage', 'team', 'push', 'other'],
   };
 
   const renderFeatureCard = (feature: Feature) => {

@@ -159,5 +159,23 @@
   "placeholder.nobinding": "无绑定",
 
   "tactical": "总力战",
-  "tacticalDesc": "总力战设置"
+  "tacticalDesc": "总力战设置",
+
+  "drill": "战术综合测试",
+  "drillDesc": "战术综合测试设置",
+
+  "artifact": "制造",
+  "artifactDesc": "制造设置",
+
+  "whitelist": "好友白名单",
+  "whitelistDesc": "自动删好友时白名单",
+
+  "script": "脚本设置",
+  "scriptDesc": "脚本运行相关设置",
+
+  "stage": "推图",
+  "stageDesc": "帮你自动推图",
+
+  "team": "编队",
+  "teamDesc": "设置您的编队"
 }
