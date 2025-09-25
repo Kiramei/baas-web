@@ -89,9 +89,10 @@ const TeamConfig: React.FC<TeamConfigProps> = ({
 
   const renderTable = (key: string) => {
     const rows = teamData[key];
+    const cols = key == 'preset_team_attribute' ? 4 : 1;
     return (
       <div
-        className={`grid grid-cols-${key == 'preset_team_attribute' ? 4 : 1} gap-2 border rounded-lg p-2 bg-slate-50 dark:bg-slate-800`}>
+        className={`grid grid-cols-${cols} gap-2 border rounded-lg p-2 bg-slate-50 dark:bg-slate-800`}>
         {rows.map((row, ri) =>
           row.map((val, ci) => (
             <FormSelect

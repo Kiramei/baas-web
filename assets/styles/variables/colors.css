@@ -84,3 +84,8 @@
   --color-gray-900: #3e464e;
 
 }
+
+::selection {
+    background: #0891b2;  /* 你喜欢的背景色 */
+    color: #ffffff;       /* 选中文字的颜色 */
+}

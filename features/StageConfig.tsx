@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {FormInput} from "@/components/ui/FormInput";
 import SwitchButton from "@/components/ui/SwitchButton";
-import Button from "@/components/ui/Button";
+import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {useTranslation} from "react-i18next";
 import type {AppSettings} from "@/lib/types";
@@ -93,12 +93,12 @@ const StageConfig: React.FC<StageConfigProps> = ({
               placeholder={t("placeholder.config.insert")}
               className="flex-1"
             />
-            <Button
+            <CButton
               onClick={() => console.log("开始普通关任务", normalTask)}
               className="h-9"
             >
               {t("execute")}
-            </Button>
+            </CButton>
           </div>
 
           <div className="w-full flex flex-row gap-2 items-end">
@@ -110,12 +110,12 @@ const StageConfig: React.FC<StageConfigProps> = ({
               className="flex-1"
             />
 
-            <Button
+            <CButton
               onClick={() => console.log("开始困难关任务", hardTask)}
               className="h-9"
             >
               {t("execute")}
-            </Button>
+            </CButton>
           </div>
 
         </TabsContent>
@@ -128,10 +128,10 @@ const StageConfig: React.FC<StageConfigProps> = ({
             </p>
           </Card>
 
-          <div className="flex gap-2">
-            <Button onClick={() => console.log("推故事")}>{t("stage.story")}</Button>
-            <Button onClick={() => console.log("推任务")}>{t("stage.mission")}</Button>
-            <Button onClick={() => console.log("推挑战")}>{t("stage.challenge")}</Button>
+          <div className="flex gap-2 w-full">
+            <CButton className="flex-1" onClick={() => console.log("推故事")}>{t("stage.story")}</CButton>
+            <CButton className="flex-1" onClick={() => console.log("推任务")}>{t("stage.mission")}</CButton>
+            <CButton className="flex-1" onClick={() => console.log("推挑战")}>{t("stage.challenge")}</CButton>
           </div>
 
           <div>

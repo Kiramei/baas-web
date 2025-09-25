@@ -1,7 +1,7 @@
 import {useTranslation} from "react-i18next";
 import React, {useEffect, useMemo, useState} from "react";
 import {Modal} from "@/components/ui/Modal.tsx";
-import Button from "@/components/ui/Button.tsx";
+import CButton from "@/components/ui/CButton.tsx";
 import HotkeyField from "@/components/utils/HotkeyField.tsx";
 
 type HotkeyConfig = { id: string; label: string; value: string };
@@ -155,8 +155,8 @@ const HotkeySettingsModal: React.FC<{
         )}
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="secondary" onClick={onClose}>{t('cancel')}</Button>
-          <Button variant="primary" onClick={handleSave}>{t('save')}</Button>
+          <CButton variant="secondary" onClick={onClose}>{t('cancel')}</CButton>
+          <CButton variant="primary" onClick={handleSave}>{t('save')}</CButton>
         </div>
       </div>
     </Modal>

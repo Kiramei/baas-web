@@ -42,6 +42,8 @@ interface AppContextType {
   assets: Asset | null;
   uiSettings: UISettings;
   staticConfig: StaticConfig | null;
+  eventConfigs: EventConfig[] | null;
+  setEventConfigs:  React.Dispatch<React.SetStateAction<EventConfig[]>>;
 
   refreshProfiles: () => Promise<void>;
 }
@@ -67,6 +69,13 @@ const fetchStatic = async (): Promise<any> => {
   return res.json();
 };
 
+const fetchEvent = async (): Promise<any> => {
+  // 这里假定静态文件放在 public/static.json
+  const res = await fetch('/assets/_mock/event.json');
+  if (!res.ok) throw new Error('Failed to fetch event config');
+  return res.json();
+};
+
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [profiles, setProfiles] = useState<ConfigProfile[]>([]);
@@ -81,6 +90,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [uiSettings, setUiSettings] = useState<UISettings | null>(null);
 
   const [staticConfig, setStaticConfig] = useState<StaticConfig | null>(null);
+  const [eventConfigs, setEventConfigs] = useState<EventConfig[] | null>(null);
 
 
   const fetchProfiles = useCallback(async () => {
@@ -179,6 +189,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         try {
           const config = StaticConvert.toStaticConfig(JSON.stringify(data));
           setStaticConfig(config);
+        } catch (e) {
+          console.error("Failed to parse static config:", e);
+          return null;
+        }
+      });
+
+      fetchEvent().then(data => {
+        try {
+          const config = EventConvert.toEventConfig(JSON.stringify(data));
+          setEventConfigs(config);
         } catch (e) {
           console.error("Failed to parse static config:", e);
           return null;
@@ -342,6 +362,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 
     uiSettings,
     staticConfig,
+    eventConfigs,
+    setEventConfigs,
 
     refreshProfiles,
   };

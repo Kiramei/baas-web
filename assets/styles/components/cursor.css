@@ -4,13 +4,20 @@ html, body, label {
 }
 
 /* 链接/按钮（手指） */
-a, button, [role="button"], .cursor-link, .cursor-pointer, select {
+a,
+button,
+select,
+.cursor-link,
+[role="button"],
+.cursor-pointer,
+input[type="button"] {
     cursor: url('/assets/cursors/link.cur'), pointer;
 }
 
 input[type="text"],
 input[type="password"],
 input[type="number"],
+input[type="time"],
 textarea,
 [contenteditable="true"],
 .cursor-text {

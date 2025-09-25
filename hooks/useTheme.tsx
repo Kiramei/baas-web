@@ -1,6 +1,5 @@
-
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import type { Theme } from '../lib/types.ts';
+import React, {createContext, useContext, useEffect, useState, ReactNode} from 'react';
+import type {Theme} from '../lib/types.ts';
 
 interface ThemeContextType {
   theme: Theme;
@@ -9,7 +8,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     return savedTheme || 'system';
@@ -42,8 +41,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
+    <ThemeContext.Provider value={{theme, setTheme}}>
+        {children}
     </ThemeContext.Provider>
   );
 };

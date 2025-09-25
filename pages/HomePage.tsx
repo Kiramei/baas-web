@@ -2,7 +2,7 @@
 import React, {useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useApp} from '../contexts/AppContext';
-import Button from '../components/ui/Button';
+import CButton from '../components/ui/CButton.tsx';
 import Logger from '../components/ui/Logger';
 import AssetsDisplay from '../components/AssetsDisplay';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
@@ -13,7 +13,6 @@ import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
-import {attachCtrlWheelZoom} from "@/lib/zoom.ts";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
@@ -70,23 +69,23 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
           <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <Button
+          <CButton
             variant="secondary"
             onClick={() => setHotkeyModalOpen(true)}
             className="flex items-center"
           >
             <KeyboardIcon className="w-4 h-4 mr-2"/>
             {t('hotkeys')}
-          </Button>
+          </CButton>
 
-          <Button
+          <CButton
             onClick={scriptRunning ? stopScript : startScript}
             variant={scriptRunning ? 'danger' : 'primary'}
             className="w-32 flex items-center justify-center"
           >
             {scriptRunning ? <Square className="w-4 h-4 mr-2"/> : <Play className="w-4 h-4 mr-2"/>}
             {scriptRunning ? t('stop') : t('start')}
-          </Button>
+          </CButton>
         </div>
       </div>
 
@@ -94,12 +93,10 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
       {/* 状态 */}
       <TaskStatus schedulerStatus={schedulerStatus}/>
 
-
       {/* 资产区 */}
       <div className="shrink-0">
         <AssetsDisplay assets={assets}/>
       </div>
-
 
       {/* 日志卡片 */}
       <Card className="flex-1 min-h-100 flex flex-col">
@@ -116,13 +113,13 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
               onChange={setScrollToEnd}
               label={t('log.scroll')}
             />
-            <Button onClick={exportLog} className='ml-2'>
+            <CButton onClick={exportLog} className='ml-2'>
               <div className='flex'>
                 <FileUp size={20} className={'mr-2'}/>
                 {t('log.export')}
               </div>
 
-            </Button>
+            </CButton>
           </div>
 
         </CardHeader>

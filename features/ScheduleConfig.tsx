@@ -157,7 +157,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
           </label>
 
           {/* 外层容器：单行 + 滚动条 */}
-          <div className="overflow-x-auto pb-1">
+          <div className="overflow-x-auto pb-1 scroll-embedded">
             <Reorder.Group
               axis="x"
               values={draft.lesson_favorStudent}

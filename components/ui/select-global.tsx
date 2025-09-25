@@ -6,7 +6,7 @@ type GlobalCtx = {
   setOpenId: (id: string | null) => void
 }
 
-const GlobalSelectContext = React.createContext<GlobalCtx | null>(null)
+export const GlobalSelectContext = React.createContext<GlobalCtx | null>(null)
 
 export function GlobalSelectProvider({ children }: { children: React.ReactNode }) {
   const [openId, setOpenId] = React.useState<string | null>(null)

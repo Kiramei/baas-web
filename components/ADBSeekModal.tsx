@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {useTranslation} from "react-i18next";
-import Button from "@/components/ui/Button";
+import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {Modal} from "@/components/ui/Modal";
 import {SearchCode} from "lucide-react"; // 用你给的 Modal
@@ -49,7 +49,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
   return (
     <>
       {/* 外部按钮 */}
-      <Button variant="primary" onClick={() => setOpen(true)} style={
+      <CButton variant="primary" onClick={() => setOpen(true)} style={
         {
           borderRadius: "50%",
           padding: "8px",
@@ -58,7 +58,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
         }
       }>
         <SearchCode size="small"/>
-      </Button>
+      </CButton>
 
       {/* Modal */}
       <Modal
@@ -68,7 +68,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
         width={40}
       >
         <div className="space-y-2">
-          <Button
+          <CButton
             onClick={handleDetect}
             disabled={loading}
             className="w-full"
@@ -84,7 +84,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
                 {t("adb.detectBtn")}
               </div>
             )}
-          </Button>
+          </CButton>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 

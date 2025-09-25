@@ -47,13 +47,13 @@ const SettingsPage: React.FC = () => {
           {/* Theme Settings */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">{t('theme')}</label>
-            <div className="flex space-x-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+            <div className="flex space-x-2 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
               {(['light', 'dark', 'system'] as Theme[]).map((value) => (
                 <button
                   key={value}
                   onClick={() => handleThemeChange(value)}
                   className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                    theme === value ? 'bg-white dark:bg-slate-700 shadow' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'
+                    theme === value ? 'bg-white dark:bg-slate-600 shadow' : 'hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}
                 >
                   {t(value)}
