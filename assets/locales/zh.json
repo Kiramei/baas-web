@@ -1,4 +1,3 @@
-
 {
   "appTitle": "蔚蓝档案自动脚本",
   "home": "主页",
@@ -14,7 +13,6 @@
   "noTasksQueued": "队列中暂无任务",
   "logs": "日志",
   "assets": "资产",
-
   "lastUpdated": "上次更新",
   "secondsAgo": "{{count}}秒前",
   "minutesAgo": "{{count}}分钟前",
@@ -94,7 +92,6 @@
   "other.title": "其他设置",
   "other.screenshotOnError": "出错时截图",
   "other.screenshotOnErrorDesc": "脚本遇到错误时自动进行截图。",
-
   "property.ap": "体力",
   "property.credits": "信用点",
   "property.pyroxene": "青辉石",
@@ -103,18 +100,13 @@
   "property.keystone": "拱心石",
   "property.keystone.piece": "碎片",
   "property.pass": "通行证",
-
-
   "log.scroll": "滑动到底部",
-
-
   "hotkeys": "快捷键",
   "Invalid hotkey format": "快捷键格式无效",
   "Duplicated hotkey": "快捷键重复",
   "Use combinations like": "请使用类似的组合键，例如",
   "Leave empty to unbind": "留空表示不绑定",
   "Please fix invalid or duplicated hotkeys.": "请修复无效或重复的快捷键。",
-
   "hotkey.switch.start": "开始/停止",
   "hotkey.toggle.scroll": "切换滚动到底部",
   "hotkey.open.settings": "打开设置",
@@ -123,59 +115,69 @@
   "hotkey.help.about": "帮助 / 关于",
   "Search hotkeys": "搜索快捷键",
   "log.export": "导出日志",
-
   "nextTask": "下一个任务",
-
   "rename": "重命名",
   "delete": "删除",
-
   "editProfile": "编辑配置",
   "profileName": "配置名",
   "createProfile": "新增配置",
-
   "creditpoints": "信用点",
   "pyroxene": "青辉石",
-
   "confirmDeleteTitle": "删除确认",
   "confirmDeleteMessage": "确认删除该配置？该操作不可撤销。",
-
-
   "ui.zoom": "UI 缩放设置",
-
   "commonShop.title": "普通商店",
   "tacticalShop.title": "竞技场商店",
   "commonShop.refreshTimes": "商店刷新次数",
   "commonShop.refreshDesc": "自动刷新商店",
   "add": "添加",
   "Add Student": "添加学生",
-
   "placeholder.config.insert": "请于此键入您的配置",
   "placeholder.stage": "选择学生",
   "stage.normalLabel": "普通图每日扫荡",
   "stage.hardLabel": "困难图每日扫荡",
   "dailySweep": "日常",
   "dailySweepDesc": "日常推图及扫荡设置",
-
   "placeholder.nobinding": "无绑定",
-
   "tactical": "总力战",
   "tacticalDesc": "总力战设置",
-
   "drill": "战术综合测试",
   "drillDesc": "战术综合测试设置",
-
   "artifact": "制造",
   "artifactDesc": "制造设置",
-
   "whitelist": "好友白名单",
   "whitelistDesc": "自动删好友时白名单",
-
   "script": "脚本设置",
   "scriptDesc": "脚本运行相关设置",
-
   "stage": "推图",
   "stageDesc": "帮你自动推图",
-
   "team": "编队",
-  "teamDesc": "设置您的编队"
+
+  "teamDesc": "设置您的编队",
+  "eventName.restart": "凌晨四点重启",
+  "eventName.arena": "竞技场",
+  "eventName.cafe_reward": "咖啡厅",
+  "eventName.no1_cafe_invite": "1号咖啡厅邀请",
+  "eventName.no2_cafe_invite": "2号咖啡厅邀请",
+  "eventName.lesson": "日程",
+  "eventName.group": "收集小组体力",
+  "eventName.collect_daily_free_power": "收集免费购买体力",
+  "eventName.mail": "查收邮箱",
+  "eventName.collect_daily_power": "收集每日体力",
+  "eventName.common_shop": "商店购买",
+  "eventName.tactical_challenge_shop": "竞技场商店购买",
+  "eventName.rewarded_task": "悬赏通缉",
+  "eventName.normal_task": "普通关清体力",
+  "eventName.hard_task": "困难关清体力",
+  "eventName.scrimmage": "学院交流会",
+  "eventName.clear_special_task_power": "每日特别委托",
+  "eventName.create": "自动制造",
+  "eventName.total_assault": "总力战",
+  "eventName.activity_sweep": "活动扫荡",
+  "eventName.collect_reward": "收集奖励",
+  "eventName.momo_talk": "自动MomoTalk",
+  "eventName.dailyGameActivity": "日常小游戏",
+  "eventName.friend": "清理好友",
+  "eventName.joint_firing_drill": "综合战术测试",
+  "eventName.pass": "领取pass奖励"
 }

@@ -1,55 +1,98 @@
 "use client"
 
 import * as React from "react"
-import {ChevronDownIcon} from "lucide-react"
-
 import {Calendar} from "@/components/ui/calendar"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {FormInput} from "@/components/ui/FormInput"
 import {cn} from "@/lib/utils"
+import {toast} from "sonner"
+import {useTranslation} from "react-i18next";
+import {startTransition} from "react";  // 假设你用 shadcn/ui 的 toast
 
 interface DateTimePickerProps {
   value: number | null
   onChange: (ts: number | null) => void
   className?: string
+  delay?: number // 延迟提交的时间，默认 500ms
 }
 
-export const DateTimePicker: React.FC<DateTimePickerProps> = ({
-                                                                value,
-                                                                onChange,
-                                                                className,
-                                                              }) => {
+const DateTimePickerBase: React.FC<DateTimePickerProps> = ({
+                                                             value,
+                                                             onChange,
+                                                             className,
+                                                             delay = 500,
+                                                           }) => {
   const [open, setOpen] = React.useState(false)
+  const dateObj = value != null ? new Date(value) : null
+  const {t} = useTranslation()
 
-  const dateObj = value != null || value != undefined ? new Date(value) : null
+  // 日期字符串
   const dateStr = dateObj
-    ? `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`
+    ? `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(
+      dateObj.getDate()
+    ).padStart(2, "0")}`
     : "0000-00-00"
+
+  // 时间字符串
   const timeStr = dateObj
-    ? `${String(dateObj.getHours()).padStart(2, "0")}:${String(
-      dateObj.getMinutes()
-    ).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
+    ? `${String(dateObj.getHours()).padStart(2, "0")}:${String(dateObj.getMinutes()).padStart(
+      2,
+      "0"
+    )}:${String(dateObj.getSeconds()).padStart(2, "0")}`
     : "00:00:00"
 
+  // 本地状态缓存输入
+  const [localTime, setLocalTime] = React.useState(timeStr)
+
+  React.useEffect(() => {
+    // 外部值变化时同步到本地
+    if (dateObj) {
+      const newStr = `${String(dateObj.getHours()).padStart(2, "0")}:${String(
+        dateObj.getMinutes()
+      ).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
+      setLocalTime(newStr)
+    }
+  }, [value])
+
+  // ⏳ debounce 定时器
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
   // 更新日期
-  const handleDateSelect = (d?: Date) => {
+  const handleDateSelect = React.useCallback((d?: Date) => {
     if (!d) {
       onChange(null)
       return
     }
     const newDate = dateObj ?? new Date()
     newDate.setFullYear(d.getFullYear(), d.getMonth(), d.getDate())
-    onChange(newDate.getTime())
-    setOpen(false)
-  }
+    startTransition(() => {
+      onChange(newDate.getTime())
+      setOpen(false)
+    })
+    toast(t("toast.dateUpdated"), {
+      description: newDate.toLocaleString(),
+    })
+  }, [dateObj, onChange])
 
-  // 更新时间
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const [h, m, s] = e.target.value.split(":").map((x) => parseInt(x, 10))
-    const newDate = dateObj ?? new Date()
-    newDate.setHours(h || 0, m || 0, s || 0)
-    onChange(newDate.getTime())
-  }
+  // 更新时间（延迟触发）
+  const handleTimeInput = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setLocalTime(val)
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      const [h, m, s] = val.split(":").map((x) => parseInt(x, 10))
+      const newDate = dateObj ?? new Date()
+      newDate.setHours(h || 0, m || 0, s || 0)
+      // onChange(newDate.getTime())
+      startTransition(() => {
+        onChange(newDate.getTime())
+      })
+      toast.success(t("toast.timeUpdated"), {
+        description: newDate.toLocaleString(),
+      })
+    }, delay)
+  }, [dateObj, onChange])
 
   return (
     <div
@@ -81,10 +124,10 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
       <FormInput
         type="time"
         step="1"
-        value={timeStr}
-        onChange={handleTimeChange}
+        value={localTime}
+        onChange={handleTimeInput}
         className="font-mono h-8"
-        childClassName=" h-8
+        childClassName="h-8
           border-none !p-0 !bg-transparent shadow-none
           focus:outline-none focus-visible:outline-none
           focus-visible:!ring-0 focus-visible:!ring-offset-0
@@ -97,3 +140,5 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
     </div>
   )
 }
+
+export const DateTimePicker = React.memo(DateTimePickerBase)
