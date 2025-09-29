@@ -1,43 +1,76 @@
-import React, {useEffect, useRef} from 'react';
-import { AppProvider } from '@/contexts/AppContext';
-import { ThemeProvider } from '@/hooks/useTheme';
+import React, {Suspense, useEffect, useRef, useState} from 'react';
+import {AppProvider} from '@/contexts/AppContext';
+import {ThemeProvider} from '@/hooks/useTheme';
 import MainLayout from '@/components/layout/MainLayout';
 import HomePage from '@/pages/HomePage';
 import SchedulerPage from '@/pages/SchedulerPage';
 import ConfigurationPage from '@/pages/ConfigurationPage';
 import SettingsPage from '@/pages/SettingsPage';
 import UpdatesPage from '@/pages/UpdatesPage';
-import type { Variants } from 'framer-motion';
-import { motion } from 'framer-motion';
-import { useApp } from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
-import { LoadingPage } from './pages/LoadingPage';
+import type {Variants} from 'framer-motion';
+import {motion} from 'framer-motion';
+import {useApp} from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
+import {LoadingPage} from './pages/LoadingPage';
 import {Toaster} from "sonner";
+import {AnimatePresence} from "motion/react";
+import {assertType} from "date-fns/_lib/test";
+import {assert} from "@/lib/utils.ts";
 
 const variants: Variants = {
   show: {
     opacity: 1,
     x: 0,
     display: 'block' as const,
-    transition: { type: 'tween' as const, duration: 0.2, ease: 'easeOut' as const }
+    transition: {type: 'tween' as const, duration: 0.2, ease: 'easeOut' as const}
   },
   hide: {
     opacity: 0,
     x: -24,
-    transition: { type: 'tween' as const, duration: 0.2, ease: 'easeOut' as const },
-    transitionEnd: { display: 'none' }
+    transition: {type: 'tween' as const, duration: 0.2, ease: 'easeOut' as const},
+    transitionEnd: {display: 'none'}
   },
 };
 
-const App: React.FC = () => (
-  <ThemeProvider>
-    <AppProvider>
-      <LoadingPage>
-        <Main />
-        <Toaster />
-      </LoadingPage>
-    </AppProvider>
-  </ThemeProvider>
-);
+const App: React.FC = () => {
+  const [ready, setReady] = useState(false);
+  const [hideLoading, setHideLoading] = useState(false);
+
+  return (
+    <>
+      <ThemeProvider>
+
+        {!hideLoading && (
+          <motion.div
+            initial={false}
+            animate={{opacity: ready ? 0 : 1}}
+            transition={{duration: 0.2}}
+            onAnimationComplete={(definition) => {
+              // definition 就是本次动画的属性，例如 { opacity: 0 }
+              if (ready && (definition as any).opacity === 0) {
+                setHideLoading(true); // 动画到 0 后卸载
+              }
+            }}
+            className="fixed inset-0 z-[100]"
+          >
+            <LoadingPage/>
+          </motion.div>
+        )}
+
+        <Suspense fallback={null}>
+          <AppProvider setReady={setReady}>
+            {ready && (
+              <>
+                <Main/>
+                <Toaster/>
+              </>
+            )}
+          </AppProvider>
+        </Suspense>
+      </ThemeProvider>
+    </>
+  );
+};
+
 
 type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'updates';
 
@@ -60,9 +93,9 @@ const Main: React.FC = () => {
   const [activePage, setActivePage] = React.useState<PageKey>('home');
 
   // ⬇️ 新增：拿当前激活配置 id
-  const { activeProfile } = useApp();
-  const activePid = activeProfile?.id;
+  const {activeProfile} = useApp();
 
+  const activePid = activeProfile.id;
   // ✅ 初始化保活集合用“实例键”，而非仅页面名
   const seenKeysRef = React.useRef<Set<string>>(
     new Set([instanceKeyOf('home', activePid)]) // 初始保活 Home:当前配置
@@ -74,7 +107,7 @@ const Main: React.FC = () => {
   }, [activePage, activePid]);
 
   // 用函数映射生成页面（便于按 pid 渲染实例；需要的话可把 pid 作为 prop 传进页面）
-  const renderPage = React.useCallback((page: PageKey, pid?: string) => {
+  const renderPage = React.useCallback((page: PageKey, pid: string) => {
     switch (page) {
       case 'home':
         return <HomePage profileId={pid}/>; // 如需按配置取数，可给三页加 profileId prop
@@ -83,11 +116,11 @@ const Main: React.FC = () => {
       case 'configuration':
         return <ConfigurationPage profileId={pid}/>;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage/>;
       case 'updates':
-        return <UpdatesPage />;
+        return <UpdatesPage/>;
       default:
-        return <HomePage />;
+        return <></>;
     }
   }, []);
 
@@ -109,7 +142,7 @@ const Main: React.FC = () => {
               variants={variants}
               initial={isActive ? 'show' : 'hide'}
               animate={isActive ? 'show' : 'hide'}
-              style={{ pointerEvents: isActive ? 'auto' : 'none' }}
+              style={{pointerEvents: isActive ? 'auto' : 'none'}}
               aria-hidden={!isActive}
             >
               {renderPage(page, pid)}

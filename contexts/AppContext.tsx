@@ -3,12 +3,10 @@ import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings, UISet
 
 import api from '@/services/api';
 import {
-  listProfiles,
   createProfile as apiCreateProfile,
   updateProfile as apiUpdateProfile,
   deleteProfile as apiDeleteProfile,
   reorderProfiles as apiReorderProfiles,
-  type ServerCode,
   type ProfileDTO,
 } from '@/services/profileService';
 import {GlobalSelectProvider} from "@/components/ui/select-global"
@@ -17,7 +15,7 @@ import {GlobalSelectProvider} from "@/components/ui/select-global"
 import {StaticConfig, StaticConvert} from '@/lib/type.static.ts';
 import {DynamicConfig, DynamicConvert} from '@/lib/type.dynamic.ts';
 import {EventConfig, EventConvert} from '@/lib/type.event.ts';
-import {stat} from 'fs';
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 interface AppContextType {
   profiles: ConfigProfile[];
@@ -28,9 +26,9 @@ interface AppContextType {
   addProfile: (name: string) => Promise<void>;
   deleteProfile: (profileId: string) => Promise<void>;
 
-  createProfile: (payload: { name: string; server: ServerCode }) => Promise<ConfigProfile>;
+  createProfile: (payload: { name: string; server: string }) => Promise<ConfigProfile>;
   reorderProfiles: (idsInOrder: string[]) => Promise<void>;
-  updateProfile: (id: string, patch: { name?: string; server?: ServerCode; settings?: any }) => Promise<void>;
+  updateProfile: (id: string, patch: { name?: string; server?: string; settings?: any }) => Promise<void>;
 
 
   isLoading: boolean;
@@ -43,9 +41,7 @@ interface AppContextType {
   uiSettings: UISettings;
   staticConfig: StaticConfig | null;
   eventConfigs: EventConfig[] | null;
-  setEventConfigs:  React.Dispatch<React.SetStateAction<EventConfig[]>>;
-
-  refreshProfiles: () => Promise<void>;
+  setEventConfigs: React.Dispatch<React.SetStateAction<EventConfig[]>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -53,13 +49,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const toConfigProfile = (dto: ProfileDTO): ConfigProfile => ({
   id: dto.id,
   name: dto.name,
-  settings: {
-    server: dto.server as ServerCode,
-    // 其余字段兜底，避免页面读取时报 undefined
-    adbIP: '127.0.0.1',
-    adbPort: '16384',
-    open_emulator_stat: true,
-  },
+  settings: dto.settings
 });
 
 const fetchStatic = async (): Promise<any> => {
@@ -77,7 +67,38 @@ const fetchEvent = async (): Promise<any> => {
 };
 
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+function createResource<T>(promise: Promise<T>) {
+  let status = "pending";
+  let result: T;
+  let suspender = promise.then(
+    (r) => {
+      status = "success";
+      result = r;
+    },
+    (e) => {
+      status = "error";
+      result = e;
+    }
+  );
+  return {
+    read(): T {
+      if (status === "pending") throw suspender;
+      if (status === "error") throw result;
+      return result!;
+    },
+  };
+}
+
+const init = useWebSocketStore.getState().init;
+const configRes = createResource(init())
+
+
+export const AppProvider: React.FC<{ children: ReactNode, setReady: (value: boolean) => void }> = (
+  {
+    children,
+    setReady
+  }
+) => {
   const [profiles, setProfiles] = useState<ConfigProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<ConfigProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,6 +113,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   const [staticConfig, setStaticConfig] = useState<StaticConfig | null>(null);
   const [eventConfigs, setEventConfigs] = useState<EventConfig[] | null>(null);
 
+  configRes.read()
+
+  const configStore = useWebSocketStore((s) => s.configStore);
+
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -102,11 +127,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     }
     setIsLoading(false);
   }, [activeProfile]);
-
-  // useEffect(() => {
-  //   fetchProfiles();
-  //   api.getInitialLogs().then(setLogs);
-  // }, [fetchProfiles]);
 
   const pollMs = 1
   // 保存上次值以做浅比较，避免无变化 setState
@@ -130,7 +150,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   useEffect(() => {
     let cancelled = false;
     let timer: any = null;
-
 
     const arrayShallowEqual = (a: any[], b: any[]) => {
       if (a === b) return true;
@@ -181,7 +200,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     };
   }, [pollMs]);
 
+  const enterMount = useRef(false)
+
   useEffect(() => {
+
+    if (enterMount.current) return
+    enterMount.current = true;
+
     const mount = async () => {
       const newUISettings = await api.getUISettings();
       setUiSettings(newUISettings);
@@ -205,10 +230,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         }
       });
     }
-    mount().then(r => {
-
+    mount().then(async () => {
+      const list = Object.keys(configStore).map((key) => ({
+        id: key,
+        name: configStore[key].name,
+        settings: configStore[key]
+      }));
+      setActiveProfile(list[0]);
     })
   }, []);
+
 
   const saveProfile = async (profile: ConfigProfile) => {
     await api.saveProfile(profile);
@@ -216,7 +247,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   };
 
   /** —— 配置：创建 —— */
-  const createProfile = useCallback(async (payload: { name: string; server: ServerCode, settings: AppSettings }) => {
+  const createProfile = useCallback(async (payload: { name: string; server: string, settings: DynamicConfig }) => {
     // 重名校验（本地先卡一次，后端也应兜底）
     if (profiles.some(p => p.name.trim() === payload.name.trim())) {
       throw new Error('Name already exists');
@@ -231,7 +262,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
   /** —— 配置：更新（改名/改服务器/或扩展 settings） —— */
   const updateProfile = useCallback(async (id: string, patch: {
     name?: string;
-    server?: ServerCode;
+    server?: string;
     settings?: any
   }) => {
     // 先打后端（只传 name/server；settings 若也要落库，可扩展你的 API）
@@ -294,41 +325,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 
 
   const addProfile = async (name: string) => {
-    const newProfile: ConfigProfile = {
-      id: `config_${Date.now()}`,
-      name,
-      settings: profiles[0]?.settings || {server: 'CN', adbIP: '127.0.0.1', adbPort: '16384', open_emulator_stat: true},
-    };
-    await api.saveProfile(newProfile);
-    await fetchProfiles();
-    setActiveProfile(newProfile);
+    // const newProfile: ConfigProfile = {
+    //   id: `config_${Date.now()}`,
+    //   name,
+    //   settings: profiles[0]?.settings || {server: 'CN', adbIP: '127.0.0.1', adbPort: '16384', open_emulator_stat: true},
+    // };
+    // await api.saveProfile(newProfile);
+    // await fetchProfiles();
+    // setActiveProfile(newProfile);
   };
 
-  const refreshProfiles = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const list = await listProfiles();                           // 后端顺序即标签顺序
-      const cfgs = list.map(toConfigProfile);
-      setProfiles(cfgs);
-      // 若当前无激活或已不存在，则切到第一项
-      if (cfgs.length > 0 && !activeProfile) {
-        setActiveProfile(cfgs[0]);
-      } else if (activeProfile && !cfgs.find(p => p.id === activeProfile.id)) {
-        setActiveProfile(cfgs[0] ?? null);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeProfile]);
-
-  // const deleteProfile = async (profileId: string) => {
-  //   await api.deleteProfile(profileId);
-  //   const remainingProfiles = profiles.filter(p => p.id !== profileId);
-  //   setProfiles(remainingProfiles);
-  //   if(activeProfile?.id === profileId) {
-  //       setActiveProfile(remainingProfiles.length > 0 ? remainingProfiles[0] : null);
-  //   }
-  // };
 
   const startScript = () => {
     api.startScript();
@@ -364,9 +370,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     staticConfig,
     eventConfigs,
     setEventConfigs,
-
-    refreshProfiles,
   };
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   return (
     <AppContext.Provider value={value}>

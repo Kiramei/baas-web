@@ -8,10 +8,11 @@ import {
 
 interface EllipsisWithTooltipProps {
   text: string
+  tooltip?: string
   className?: string
 }
 
-export const EllipsisWithTooltip: React.FC<EllipsisWithTooltipProps> = ({ text, className }) => {
+export const EllipsisWithTooltip: React.FC<EllipsisWithTooltipProps> = ({text, tooltip, className}) => {
   return (
     <TooltipProvider>
       <Tooltip>
@@ -23,7 +24,7 @@ export const EllipsisWithTooltip: React.FC<EllipsisWithTooltipProps> = ({ text, 
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{text}</p>
+          <p>{tooltip ? tooltip : text}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -32,17 +32,19 @@
     "react-day-picker": "^9.11.0",
     "react-dom": "^19.1.1",
     "react-i18next": "^15.7.3",
-    "react-window": "^1.8.10",
+    "react-window": "^2.1.2",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@types/fernet": "^0.4.3",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "tw-animate-css": "^1.3.8",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "7.1.5"
   }
 }

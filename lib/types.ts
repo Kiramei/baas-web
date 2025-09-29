@@ -1,13 +1,13 @@
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
 
 export interface ConfigProfile {
   id: string;
   name: string;
-  settings: AppSettings;
-  // Add other profile-specific data here
+  settings: DynamicConfig;
 }
 
 export interface AppSettings {
-  server: 'CN' | 'Global' | 'JP';
+  server: string;
   adbIP: string;
   adbPort: string;
   open_emulator_stat: boolean;

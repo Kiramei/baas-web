@@ -13,6 +13,7 @@ import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
@@ -59,6 +60,9 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+
+  const logStore = useWebSocketStore((state)=> state.logStore)
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-2">
@@ -125,7 +129,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 p-0 flex">
-          <Logger logs={logs} scrollToEnd={scrollToEnd}/>
+          <Logger logs={logStore[`config:${profileId}`]} scrollToEnd={scrollToEnd}/>
         </CardContent>
       </Card>
 

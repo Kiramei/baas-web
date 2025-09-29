@@ -4,22 +4,13 @@ import {FormSelect} from "@/components/ui/FormSelect";
 import {FormInput} from "@/components/ui/FormInput";
 import {Separator} from "@/components/ui/separator";
 import {
-  RefreshCw,
-  Download,
-  GitBranch,
-  Key,
-  Loader2,
-  SearchCode,
-  TestTube,
-  UserSearch,
-  Info,
-  Cloud, HardDrive, RefreshCcw, CheckCircle2, XCircle, Hourglass, MinusCircle
+  GitBranch, Key, Loader2, TestTube, UserSearch, Info,
+  Cloud, HardDrive, RefreshCcw, CheckCircle2, XCircle, MinusCircle
 } from "lucide-react";
 import {useTranslation} from "react-i18next";
 import CButton from "@/components/ui/CButton.tsx";
 import {toast} from "sonner";
-import {motion} from "framer-motion";
-import {version} from "node:os";
+import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 
 type RepoConfig = {
   url: string;
@@ -264,20 +255,24 @@ const UpdatePage: React.FC = () => {
 
           <Separator/>
 
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 shadow-md">
+          <div className="overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-md">
             <table className="w-full text-sm border-collapse">
-              <thead className="bg-gradient-to-r">
+              <thead className="bg-gradient-to-r from-cyan-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
+                <th
+                  className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                   {t("method") ?? "方法"}
                 </th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
+                <th
+                  className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                   {t("status") ?? "状态"}
                 </th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
+                <th
+                  className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                   {t("time") ?? "耗时"}
                 </th>
-                <th className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
+                <th
+                  className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
                   {t("sha") ?? "SHA值"}
                 </th>
               </tr>
@@ -289,37 +284,43 @@ const UpdatePage: React.FC = () => {
                   key={idx}
                   className="odd:bg-white even:bg-slate-50 dark:odd:bg-slate-900 dark:even:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
+                  {/* 方法列自适应 */}
                   <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                    {r.method}
+                    <EllipsisWithTooltip text={r.method}/>
                   </td>
 
-                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700">
+                  {/* 状态列：固定宽度 */}
+                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700 w-20">
                     {r.status === "success" && (
-                      <CheckCircle2 className="w-5 h-5 mx-auto text-green-500" />
+                      <CheckCircle2 className="w-5 h-5 mx-auto text-green-500"/>
                     )}
                     {r.status === "error" && (
-                      <XCircle className="w-5 h-5 mx-auto text-red-500" />
+                      <XCircle className="w-5 h-5 mx-auto text-red-500"/>
                     )}
                     {r.status === "testing" && (
                       <Loader2 className="text-yellow-500 mx-auto animate-spin h-5 w-5"/>
-
                     )}
                     {!["success", "error", "testing"].includes(r.status) && (
-                      <MinusCircle className="w-5 h-5 mx-auto text-slate-400" />
+                      <MinusCircle className="w-5 h-5 mx-auto text-slate-400"/>
                     )}
                   </td>
 
-                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700">
+                  {/* 耗时列：固定宽度 */}
+                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700 w-24">
                     {r.time ?? "-"}
                   </td>
-                  <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 break-all font-mono">
-                    {r.sha ?? "-"}
+
+                  {/* SHA列：固定宽度，单行截断或换行 */}
+                  <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-mono w-20">
+                    {r.sha ?
+                      <EllipsisWithTooltip text={r.sha.substring(0, 6)} tooltip={r.sha}></EllipsisWithTooltip> : "-"}
                   </td>
                 </tr>
               ))}
               </tbody>
             </table>
           </div>
+
 
         </CardContent>
       </Card>

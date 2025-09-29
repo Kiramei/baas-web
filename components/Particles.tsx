@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
+import React, {useEffect, useRef} from 'react';
+import {Renderer, Camera, Geometry, Program, Mesh} from 'ogl';
 
 interface ParticlesProps {
   particleCount?: number;
@@ -77,62 +77,85 @@ const vertex = /* glsl */ `
 
 const fragment = /* glsl */ `
   precision highp float;
-  
+
   uniform float uTime;
-  uniform float uAlphaParticles;
+  uniform float uMinPulseRatio; // [!code ++]
   varying vec4 vRandom;
   varying vec3 vColor;
-  
+
+  const float BASE_CORE_RADIUS = 0.2;
+  const float BASE_HALO_RADIUS = 0.5;
+
   void main() {
-    vec2 uv = gl_PointCoord.xy;
-    float d = length(uv - vec2(0.5));
-    
-    if(uAlphaParticles < 0.5) {
-      if(d > 0.5) {
-        discard;
-      }
-      gl_FragColor = vec4(vColor + 0.2 * sin(uv.yxx + uTime + vRandom.y * 6.28), 1.0);
-    } else {
-      float circle = smoothstep(0.5, 0.4, d) * 0.8;
-      gl_FragColor = vec4(vColor + 0.2 * sin(uv.yxx + uTime + vRandom.y * 6.28), circle);
-    }
+    vec2 uv = gl_PointCoord - 0.5;
+    float d = length(uv);
+
+    // 1. Map the range of the sin function from [-1, 1] to [0, 1]
+    float sin01 = (sin(uTime * 3.0 + vRandom.x * 6.28) + 1.0) * 0.5;
+
+    // 2. Based on uMinPulseRatio, map [0, 1] to the desired [min, max] range
+    //    Here max is 1.0, min is uMinPulseRatio, Here fixed to 0.5
+    float pulse = 0.5 + sin01 * (1.0 - 0.5);
+
+    // --- Subsequent logic remains unchanged, but is now driven by 'pulse' ---
+
+    // 3. Dynamically calculate the core and halo radius for the current frame
+    float dynamicCoreRadius = BASE_CORE_RADIUS * pulse;
+    float dynamicHaloRadius = BASE_HALO_RADIUS * pulse;
+
+    // 4. Update discard condition
+    if (d > dynamicHaloRadius) discard;
+
+    // 5. Use dynamic radii to calculate core and halo shapes
+    float core = smoothstep(dynamicCoreRadius, dynamicCoreRadius - 0.02, d);
+    float halo = smoothstep(dynamicHaloRadius, dynamicCoreRadius, d);
+
+    // 6. Intensity and color calculation logic
+    float intensity = (core * 1.5 + halo * 0.8);
+    float finalAlpha = intensity * pulse;
+
+    // 7. Output premultiplied Alpha color
+    gl_FragColor = vec4(vColor * finalAlpha, finalAlpha);
   }
 `;
 
-const Particles: React.FC<ParticlesProps> = ({
-  particleCount = 200,
-  particleSpread = 10,
-  speed = 0.1,
-  particleColors,
-  moveParticlesOnHover = false,
-  particleHoverFactor = 1,
-  alphaParticles = false,
-  particleBaseSize = 100,
-  sizeRandomness = 1,
-  cameraDistance = 20,
-  disableRotation = false,
-  className
-}) => {
+
+const Particles: React.FC<ParticlesProps> = (
+  {
+    particleCount = 200,
+    particleSpread = 10,
+    speed = 0.1,
+    particleColors,
+    moveParticlesOnHover = false,
+    particleHoverFactor = 1,
+    alphaParticles = false,
+    particleBaseSize = 100,
+    sizeRandomness = 1,
+    cameraDistance = 20,
+    disableRotation = false,
+    className
+  }
+) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const mouseRef = useRef<{ x: number; y: number }>({x: 0, y: 0});
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({ depth: false, alpha: true });
+    const renderer = new Renderer({depth: false, alpha: true, premultipliedAlpha: true});
     const gl = renderer.gl;
     container.appendChild(gl.canvas);
     gl.clearColor(0, 0, 0, 0);
 
-    const camera = new Camera(gl, { fov: 15 });
+    const camera = new Camera(gl, {fov: 15});
     camera.position.set(0, 0, cameraDistance);
 
     const resize = () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width, height);
-      camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
+      camera.perspective({aspect: gl.canvas.width / gl.canvas.height});
     };
     window.addEventListener('resize', resize, false);
     resize();
@@ -141,7 +164,7 @@ const Particles: React.FC<ParticlesProps> = ({
       const rect = container.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-      mouseRef.current = { x, y };
+      mouseRef.current = {x, y};
     };
 
     if (moveParticlesOnHover) {
@@ -169,27 +192,33 @@ const Particles: React.FC<ParticlesProps> = ({
       colors.set(col, i * 3);
     }
 
+
     const geometry = new Geometry(gl, {
-      position: { size: 3, data: positions },
-      random: { size: 4, data: randoms },
-      color: { size: 3, data: colors }
+      position: {size: 3, data: positions},
+      random: {size: 4, data: randoms},
+      color: {size: 3, data: colors}
     });
 
     const program = new Program(gl, {
       vertex,
       fragment,
       uniforms: {
-        uTime: { value: 0 },
-        uSpread: { value: particleSpread },
-        uBaseSize: { value: particleBaseSize },
-        uSizeRandomness: { value: sizeRandomness },
-        uAlphaParticles: { value: alphaParticles ? 1 : 0 }
+        uTime: {value: 0},
+        uSpread: {value: particleSpread},
+        uBaseSize: {value: particleBaseSize},
+        uSizeRandomness: {value: sizeRandomness},
+        uAlphaParticles: {value: alphaParticles ? 1 : 0}
       },
       transparent: true,
       depthTest: false
     });
 
-    const particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
+    const particles = new Mesh(gl, {mode: gl.POINTS, geometry, program});
+
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false)
 
     let animationFrameId: number;
     let lastTime = performance.now();
@@ -217,7 +246,7 @@ const Particles: React.FC<ParticlesProps> = ({
         particles.rotation.z += 0.01 * speed;
       }
 
-      renderer.render({ scene: particles, camera });
+      renderer.render({scene: particles, camera});
     };
 
     animationFrameId = requestAnimationFrame(update);
@@ -245,7 +274,7 @@ const Particles: React.FC<ParticlesProps> = ({
     disableRotation
   ]);
 
-  return <div ref={containerRef} className={`relative w-full h-full ${className}`} />;
+  return <div ref={containerRef} className={`relative w-full h-full ${className}`}/>;
 };
 
 export default Particles;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useApp} from '@/contexts/AppContext';
 import {ChevronLeft, ChevronRight, FilePlus2, Loader2, Pencil, Trash2, X} from 'lucide-react';
@@ -6,13 +6,13 @@ import {AnimatePresence, motion, Reorder} from 'framer-motion';
 import {
   createProfile, DEFAULT_CONFIG,
   deleteProfile as apiDelete,
-  listProfiles,
   type ProfileDTO,
   reorderProfiles,
-  type ServerCode,
   updateProfile
 } from '@/services/profileService';
-import {AppSettings} from "@/lib/types.ts";
+import {FormSelect} from "@/components/ui/FormSelect.tsx";
+import {FormInput} from "@/components/ui/FormInput.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 // 小工具：去抖，避免拖拽过程中频繁打后端
 const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
@@ -23,7 +23,6 @@ const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
   }, [fn, ms]);
 };
 
-// 用于隐藏滚动条的辅助 class（如果你没有 scrollbar 插件）
 const noScrollbarStyle = '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
 type Tab = ProfileDTO;
@@ -32,11 +31,12 @@ const Header: React.FC = () => {
   const {t} = useTranslation();
   const {activeProfile, setActiveProfile} = useApp();
 
-  // Tabs（配置）本地状态；从后端拉取为准
   const [tabs, setTabs] = React.useState<Tab[]>([]);
-  const [_, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  // 溢出滚动控制
+  const configStore = useWebSocketStore((s) => s.configStore);
+  const { modify } = useWebSocketStore();
+
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = React.useState({left: false, right: false});
   const updateScrollButtons = React.useCallback(() => {
@@ -47,6 +47,7 @@ const Header: React.FC = () => {
       right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1
     });
   }, []);
+
   React.useEffect(() => {
     updateScrollButtons();
     const el = stripRef.current;
@@ -65,57 +66,38 @@ const Header: React.FC = () => {
     stripRef.current?.scrollBy({left: dx, behavior: 'smooth'});
   };
 
-  // 右键菜单
   const [ctxMenu, setCtxMenu] = React.useState<{ x: number; y: number; tab?: Tab } | null>(null);
 
-  // 对话框：新建 / 编辑
   const [editor, setEditor] = React.useState<null | { mode: 'create' | 'edit'; tab?: Tab }>(null);
-  // 对话框：删除确认
+
   const [confirmDelete, setConfirmDelete] = React.useState<null | Tab>(null);
 
   const hideCtxMenu = () => setCtxMenu(null);
 
-  // 打开时列出配置（第 5 点：列出配置）
-  React.useEffect(() => {
-
+  useEffect(() => {
+    const list = Object.keys(configStore).map((key) => ({
+      id: key,
+      name: configStore[key].name,
+      server: configStore[key].server,
+      settings: configStore[key]
+    }));
+    setTabs(list);
+    const exists = list.find(p => p.id === activeProfile?.id);
+    setActiveProfile(exists ?? list[0]);
     (async () => {
-      setLoading(true);
-      try {
-        const list = await listProfiles();
-        if (list.length) {
-          setTabs(list);
-          // activeProfile 不存在或不在列表里，就切到第一个
-          const exists = list.find(p => p.id === activeProfile?.id);
-          setActiveProfile(exists ?? list[0]);
-          setTimeout(() => {
-            // 滚动使激活 tab 可见
-            const el = document.getElementById(`tab-${(exists ?? list[0]).id}`);
-            el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-          }, 0);
-        } else {
-          // 后端为空时，给个兜底（创建一个默认配置，但不立刻打后端）
-          const fallback: Tab = {
-            id: crypto.randomUUID(),
-            name: t('defaultProfile') || 'Default',
-            server: 'CN' as ServerCode,
-            settings: {
-              server: 'CN',
-              adbIP: '127.0.0.1',
-              adbPort: '16384',
-              open_emulator_stat: true
-            } as AppSettings
-          };
-          setTabs([fallback]);
-          setActiveProfile(fallback);
-        }
-      } finally {
-        setLoading(false);
-      }
+      setTimeout(() => {
+        if (!(exists ?? list[0])) return
+        const el = document.getElementById(`tab-${exists ?? list[0].id}`);
+        el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+      }, 0);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  // 拖拽排序（第 7 点）
+  }, [configStore]);
+
+  useEffect(() => {
+    console.log(configStore)
+  }, [configStore]);
+
   const debouncedPersistOrder = useDebounce((tabsNow: Tab[]) => {
     reorderProfiles(tabsNow.map(t => t.id)).catch(() => {
     });
@@ -133,8 +115,7 @@ const Header: React.FC = () => {
     el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
   };
 
-  // 新建配置（第 5/6 点）
-  const handleCreate = async (name: string, server: ServerCode) => {
+  const handleCreate = async (name: string, server: string) => {
     // 重名校验
     if (tabs.some(t => t.name.trim() === name.trim())) throw new Error(t('nameExists') || 'Name already exists');
     const created = await createProfile({name: name.trim(), server, settings: DEFAULT_CONFIG});
@@ -147,16 +128,16 @@ const Header: React.FC = () => {
     }, 0);
   };
 
-  // 编辑配置（第 5 点：修改配置）
-  const handleEdit = async (id: string, name: string, server: ServerCode) => {
+  const handleEdit = async (tab: Tab, name: string, server: string) => {
     const trimmed = name.trim();
-    if (tabs.some(t => t.id !== id && t.name.trim() === trimmed)) throw new Error(t('nameExists') || 'Name already exists');
-    await updateProfile(id, {name: trimmed, server});
-    setTabs(prev => prev.map(t => t.id === id ? {...t, name: trimmed, server} : t));
-    if (activeProfile?.id === id) setActiveProfile({...activeProfile, name: trimmed});
+    if (tabs.some(t => t.id !== tab.id && t.name.trim() === trimmed)) throw new Error(t('nameExists') || 'Name already exists');
+
+    // await updateProfile(tab.settings, {name: trimmed, server: server});
+    modify(`${tab.id}::config`, {name: trimmed, server: server})
+    setTabs(prev => prev.map(t => t.id === tab.id ? {...t, name: trimmed, server} : t));
+    if (activeProfile?.id === tab.id) setActiveProfile({...activeProfile, name: trimmed});
   };
 
-  // 删除配置（第 2/5 点）
   const handleDelete = async (tab: Tab) => {
     if (tabs.length <= 1) {
       alert(t('cannotDeleteLast') || 'Cannot delete the last profile.');
@@ -176,8 +157,6 @@ const Header: React.FC = () => {
   };
   // 关闭右键菜单
   React.useEffect(() => {
-
-
     window.addEventListener('click', hideCtxMenu);
     // window.addEventListener('contextmenu', hide);
     return () => {
@@ -207,76 +186,60 @@ const Header: React.FC = () => {
         </button>
       </div>
 
-      {/* 中间：标签条 */}
       <div ref={stripRef} className={`flex-1 overflow-x-auto ${noScrollbarStyle}`}>
-        <Reorder.Group
-          axis="x"
-          values={tabs}
-          onReorder={onReorder}
-          className="flex items-stretch h-10 gap-1"
-        >
-          <AnimatePresence initial={false}>
-            {tabs.map((tab) => {
-              const active = activeProfile?.id === tab.id;
-              return (
-                <Reorder.Item
-                  id={`tab-${tab.id}`}
-                  key={tab.id}
-                  value={tab}
-                  layout
-                  whileDrag={{scale: 1.1}}
-                  className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
-                              border transition-colors cursor-pointer
-                              ${active
-                    ? 'bg-slate-50 dark:bg-slate-500/60 border-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 hover:bg-slate-200'
-                    : 'bg-primary-900/15 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 dark:hover:bg-slate-700 '}
-                            `}
-                  onPointerDown={(e) => {
-                    // 中键关闭（浏览器行为）
-                    if ((e as any).button === 1) {
+        {
+          loading ?
+            (<Loader2 className="animate-spin ml-2 h-4 w-4"/>)
+            :
+            (<Reorder.Group
+              axis="x"
+              values={tabs}
+              onReorder={onReorder}
+              className="flex items-stretch h-10 gap-1"
+            >
+              {tabs.map((tab) => {
+                const active = activeProfile?.id === tab.id;
+                return (
+                  <Reorder.Item
+                    id={`tab-${tab.id}`}
+                    key={tab.id}
+                    value={tab}
+                    className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
+                    border cursor-pointer transition-colors
+                    ${active
+                      ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 dark:border-slate-500'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}
+                  `}
+                    onClick={() => onSelect(tab)}
+                    onPointerDown={(e) => {
+                      if ((e as any).button === 1) {
+                        e.preventDefault();
+                        setConfirmDelete(tab);
+                      }
+                    }}
+                    onContextMenu={(e) => {
                       e.preventDefault();
-                      setConfirmDelete(tab);
-                    }
-                  }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setCtxMenu({x: e.clientX, y: e.clientY, tab});
-                  }}
-                  onClick={() => onSelect(tab)}
-                >
-
-                  {/* 左侧运行中图标 */}
-                  {(
-                    false &&
-                    <Loader2 className="w-4 h-4 mr-2 text-primary-500 animate-spin"/>
-                  )}
-
-                  {/* 标题（配置名） */}
-                  <motion.span
-                    className="truncate pr-5"
-                    layout
-                    initial={{opacity: 0}}
-                    animate={{opacity: 1}}
-                  >
-                    {tab.name}
-                  </motion.span>
-
-                  {/* 关闭按钮 */}
-                  <button
-                    title={t('delete') || 'Delete'}
-                    className="absolute right-1 p-1 rounded opacity-60 hover:opacity-100 hover:bg-slate-200/70 dark:hover:bg-slate-700/70"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmDelete(tab);
+                      setCtxMenu({x: e.clientX, y: e.clientY, tab});
                     }}
                   >
-                    <X className="w-3.5 h-3.5"/>
-                  </button>
-                </Reorder.Item>
-              );
-            })}
-          </AnimatePresence>
-        </Reorder.Group>
+                    {/* 配置名 */}
+                    <span className="truncate pr-5">{tab.name}</span>
+
+                    {/* 关闭按钮：hover 时显示 */}
+                    <button
+                      title={t('delete') || 'Delete'}
+                      className="absolute right-1 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmDelete(tab);
+                      }}
+                    >
+                      <X className="w-3.5 h-3.5"/>
+                    </button>
+                  </Reorder.Item>
+                );
+              })}
+            </Reorder.Group>)}
       </div>
 
       {/* 右侧：新建按钮 */}
@@ -308,7 +271,7 @@ const Header: React.FC = () => {
                 setCtxMenu(null);
               }}
             >
-              <Pencil className="w-4 h-4"/> {t('rename') || 'Edit'}
+              <Pencil className="w-4 h-4"/> {t('edit') || 'Edit'}
             </button>
             <button
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
@@ -333,7 +296,7 @@ const Header: React.FC = () => {
           if (editor?.mode === 'create') {
             await handleCreate(vals.name, vals.server);
           } else if (editor?.mode === 'edit' && editor?.tab) {
-            await handleEdit(editor.tab.id, vals.name, vals.server);
+            await handleEdit(editor.tab, vals.name, vals.server);
           }
           setEditor(null);
         }}
@@ -358,7 +321,6 @@ const Header: React.FC = () => {
 
 export default Header;
 
-/** ---------------- 辅助组件（Modal） ---------------- */
 
 const overlayCls = "fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50";
 
@@ -367,12 +329,12 @@ function ProfileEditorModal(props: {
   mode: 'create' | 'edit';
   initial: ProfileDTO | null;
   onClose: () => void;
-  onSubmit: (vals: { name: string; server: ServerCode }) => Promise<void>;
+  onSubmit: (vals: { name: string; server: string }) => Promise<void>;
   checkName: (name: string, selfId?: string) => boolean;
 }) {
   const {t} = useTranslation();
   const [name, setName] = React.useState(props.initial?.name ?? '');
-  const [server, setServer] = React.useState<ServerCode>(props.initial?.server ?? 'CN');
+  const [server, setServer] = React.useState('CN');
   const [err, setErr] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -416,36 +378,27 @@ function ProfileEditorModal(props: {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
-              {t('profileName') || 'Profile Name'}
-            </label>
-            <input
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-              placeholder={t('profileName') || 'Profile Name'}
-            />
-          </div>
+          <FormInput
+            label={t('profileName')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-          {/* 你的服务器下拉（原样整合） */}
-          <div>
-            <label htmlFor="server" className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
-              {t('server.server')}
-            </label>
-            <select
-              id="server"
-              name="server"
-              value={server}
-              onChange={(e) => setServer(e.target.value as ServerCode)}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="CN">{t('server.cn')}</option>
-              <option value="Global">{t('server.global')}</option>
-              <option value="JP">{t('server.jp')}</option>
-            </select>
-          </div>
+          <FormSelect
+            label={t('server.server')}
+            value={server}
+            onChange={
+              (e) => setServer(e)
+            }
+            options={[
+              {label: t('server.cn.official'), value: "官服"},
+              {label: t('server.cn.bilibili'), value: "B服"},
+              {label: t('server.global'), value: "国际服"},
+              {label: t('server.global.teen'), value: "国际服青少年"},
+              {label: t('server.kr.one'), value: "韩国ONE"},
+              {label: t('server.jp'), value: "日服"},
+            ]}
+          />
 
           {err && <div className="text-red-600 text-sm">{err}</div>}
         </div>
