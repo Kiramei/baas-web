@@ -17,7 +17,7 @@ import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const {scriptRunning, startScript, stopScript, logs, assets, schedulerStatus} = useApp();
+  const {startScript, stopScript, logs, assets, schedulerStatus} = useApp();
   const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
   const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
@@ -25,6 +25,11 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const pid = profileId ?? activeProfile?.id;
   const profile = useMemo(() => profiles.find(p => p.id === pid) ?? activeProfile ?? null, [profiles, pid, activeProfile]);
   const settings = profile?.settings ?? {};
+
+  const statusStore = useWebSocketStore((e) => e.statusStore);
+  const trigger = useWebSocketStore((e) => e.trigger);
+
+  const scriptRunning = statusStore[profileId].running;
 
   // 懒加载：仅在模态框打开时获取远端热键
   const {hotkeys, setHotkeys, loading, save} = useRemoteHotkeys(t, hotkeyModalOpen);
@@ -62,7 +67,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   }
 
 
-  const logStore = useWebSocketStore((state)=> state.logStore)
+  const logStore = useWebSocketStore((state) => state.logStore)
 
   return (
     <div className="h-full flex flex-col min-h-0 gap-2">

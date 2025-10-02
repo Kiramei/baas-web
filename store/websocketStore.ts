@@ -7,7 +7,7 @@ import {useGlobalLogStore} from "@/store/globalLogStore.ts";
 const SECRET = "FOSL";
 const BASE = "ws://localhost:8190";
 
-type WsName = "provider" | "sync" | "receiver";
+type WsName = "provider" | "sync" | "trigger";
 
 export interface LogItem {
   time: string;
@@ -25,6 +25,13 @@ interface StatusItem {
   current_task: string | null;
   waiting_tasks: string[];
   timestamp: number;
+}
+
+interface CommandPayload {
+  command: string;
+  config_id: string | null;
+  timestamp: number;
+  payload: { [id: string]: any };
 }
 
 interface InitState {
@@ -63,12 +70,14 @@ interface WebSocketState {
   staticStore: any;
   eventStore: any;
   guiStore: any;
+  statusStore: { [id: string]: StatusItem };
   connect: (name: WsName) => Promise<void>;
   disconnect: (name: WsName) => void;
   send: (name: WsName, data: any) => void;
   init: () => Promise<void>;
   modify: (path: string, value: any) => void;
   _all_data_initialized: boolean;
+  trigger: (payload: CommandPayload, callback?: (e) => void) => void;
 }
 
 const {appendGlobalLog} = useGlobalLogStore.getState()
@@ -132,6 +141,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     staticStore: {},
     eventStore: {},
     guiStore: {},
+    statusStore: {},
 
     _all_data_initialized: false,
 
@@ -141,7 +151,7 @@ export const useWebSocketStore = create<WebSocketState>()(
       let url = "";
       if (name === "provider") url = `${BASE}/ws/provider`;
       if (name === "sync") url = `${BASE}/ws/sync`;
-      if (name === "receiver") url = `${BASE}/ws/receiver`;
+      if (name === "trigger") url = `${BASE}/ws/trigger`;
 
       const resourceCallBack = {
         "config": (message: WsMessageItem) => {
@@ -176,6 +186,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         "config_list": (message: WsMessageItem) => {
           set((state) => {
             const config_added = Object.fromEntries(message.data.map((id) => [id, {}]));
+            const statusStore = Object.fromEntries(message.data.map((id) => [id, {}]));
             const event_added = Object.fromEntries(message.data.map((id) => [id, []]));
             const log_added = Object.fromEntries(
               message.data.map((id) => {
@@ -187,6 +198,7 @@ export const useWebSocketStore = create<WebSocketState>()(
               configStore: {...state.configStore, ...config_added},
               eventStore: {...state.eventStore, ...event_added},
               logStore: {...state.logStore, ...log_added},
+              statusStore: {...state.statusStore, ...statusStore},
             };
           });
         },
@@ -235,6 +247,13 @@ export const useWebSocketStore = create<WebSocketState>()(
           if (typeof data === "string") return
           if ("all_data_initialized" in data) {
             set(state => ({...state, _all_data_initialized: true}));
+          } else {
+            set(state => ({
+              statusStore: {
+                ...state.statusStore,
+                [data.config_id]: data
+              }
+            }));
           }
         }
       };
@@ -316,7 +335,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         get().send("sync", {type: "pull", resource: "event", resource_id: key});
       });
 
-      await connectWithRetry("receiver");
+      await connectWithRetry("trigger");
 
       await waitFor(
         get,
@@ -365,8 +384,11 @@ export const useWebSocketStore = create<WebSocketState>()(
           },
         };
       });
+    },
+    trigger: (payload, callback) => {
+      get().send("trigger", {type: "command", ...payload});
+      callback(payload);
     }
-
   }))
 );
 
