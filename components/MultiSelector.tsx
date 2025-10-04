@@ -84,7 +84,7 @@ const SelectorModal: React.FC<SelectorModalProps> = (
         <DialogPanel className="w-full max-w-3xl rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <DialogTitle className="text-lg font-semibold">
-              {t("title.selector")}
+              {t("scheduler.selector")}
             </DialogTitle>
             <button onClick={onClose}>
               <X className="w-5 h-5 text-slate-500"/>
@@ -93,7 +93,7 @@ const SelectorModal: React.FC<SelectorModalProps> = (
 
           <input
             type="text"
-            placeholder={t("placeholder.search")}
+            placeholder={t("scheduler.search")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full mb-4 px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"

@@ -1,10 +1,8 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
 import type {Asset} from '@/lib/types.ts';
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
-interface AssetsDisplayProps {
-  assets: Asset | null;
-}
 
 const useTimeAgo = () => {
   const {t} = useTranslation();
@@ -27,61 +25,63 @@ const useTimeAgo = () => {
   };
 }
 
-const AssetsDisplay: React.FC<AssetsDisplayProps> = ({assets}) => {
+const AssetsDisplay: React.FC<{ profileId: string }> = ({profileId}) => {
   const {t} = useTranslation();
   const timeAgo = useTimeAgo();
+  const config = useWebSocketStore(e => e.configStore[profileId]);
 
-  if (!assets) {
+
+  if (!config) {
     return <div className="text-slate-500">{t('assets')}...</div>;
   }
 
   const assetItems = [
     {
       name: t('property.ap'),
-      value: `${assets.ap.count}/${assets.ap.max}`,
-      time: assets.ap.time,
+      value: `${config.ap.count}/${config.ap.max}`,
+      time: config.ap.time,
       icon: '../assets/icons/property/currency_icon_ap.webp'
     },
     {
       name: t('property.credits'),
-      value: assets.creditpoints.count.toLocaleString(),
-      time: assets.creditpoints.time,
+      value: config.creditpoints.count.toLocaleString(),
+      time: config.creditpoints.time,
       icon: '../assets/icons/property/currency_icon_gold.webp'
     },
     {
       name: t('property.pyroxene'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: config.pyroxene.count.toLocaleString(),
+      time: config.pyroxene.time,
       icon: '../assets/icons/property/currency_icon_gem.webp'
     },
     {
       name: t('property.coin.arena'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: config.tactical_challenge_coin.count.toLocaleString(),
+      time: config.tactical_challenge_coin.time,
       icon: '../assets/icons/property/item_icon_chasecoin.webp'
     },
     {
       name: t('property.coin.commission'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: config.bounty_coin.count,
+      time: config.bounty_coin.time,
       icon: '../assets/icons/property/item_icon_arenacoin.webp'
     },
     {
       name: t('property.keystone'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: config.create_item_holding_quantity.Keystone.toLocaleString(),
+      time: config.pyroxene.time,
       icon: '../assets/icons/property/item_icon_craftitem_1.webp'
     },
     {
       name: t('property.keystone.piece'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: config.create_item_holding_quantity["Keystone-Piece"].toLocaleString(),
+      time: config.pyroxene.time,
       icon: '../assets/icons/property/item_icon_craftitem_0.webp'
     },
     {
       name: t('property.pass'),
-      value: assets.pyroxene.count.toLocaleString(),
-      time: assets.pyroxene.time,
+      value: `${config._pass.level}/${config._pass.max_level}`,
+      time: config._pass.time,
       icon: '../assets/icons/property/item_icon_pass.webp'
     },
   ]

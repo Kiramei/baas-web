@@ -12,9 +12,6 @@ import {motion} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
 import {LoadingPage} from './pages/LoadingPage';
 import {Toaster} from "sonner";
-import {AnimatePresence} from "motion/react";
-import {assertType} from "date-fns/_lib/test";
-import {assert} from "@/lib/utils.ts";
 
 const variants: Variants = {
   show: {

@@ -8,6 +8,9 @@ import {Separator} from "@/components/ui/separator"
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {serverMap} from "@/lib/utils.ts";
 
 type LessonConfigProps = {
   onClose: () => void;
@@ -30,30 +33,27 @@ const levelLabels = ["初级", "普通", "高级", "特级"];
 const LessonConfig: React.FC<LessonConfigProps> = ({
                                                      onClose,
                                                      profileId,
-                                                     settings,
-                                                     onChange
                                                    }) => {
   const {t} = useTranslation();
-  const {activeProfile, staticConfig, updateProfile} = useApp();
+  const staticConfig = useWebSocketStore(state => state.staticStore);
   const lessonNames = staticConfig.lesson_region_name.CN;
   const studentNames = staticConfig.student_names;
   const [showSelector, setShowSelector] = useState(false);
 
-
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
   // 外部设置 → 默认值
   const ext = useMemo(() => {
-    const s = settings ?? activeProfile?.settings ?? {};
     return {
-      lesson_enableFavorStudent: s.lesson_enableFavorStudent ?? false,
-      lesson_favorStudent: s.lesson_favorStudent ?? [],
-      lesson_relationship_first: s.lesson_relationship_first ?? false,
+      lesson_enableFavorStudent: settings.lesson_enableInviteFavorStudent ?? false,
+      lesson_favorStudent: settings.lesson_favorStudent ?? [],
+      lesson_relationship_first: settings.lesson_relationship_first ?? false,
       lesson_each_region_object_priority:
-        s.lesson_each_region_object_priority ??
+        settings.lesson_each_region_object_priority ??
         lessonNames.map(() => [...levels]),
       lesson_times:
-        s.lesson_times ?? lessonNames.map(() => 1),
+        settings.lesson_times ?? lessonNames.map(() => 1),
     };
-  }, [settings, activeProfile, lessonNames]);
+  }, [settings]);
 
   const [draft, setDraft] = useState<Draft>(ext);
 
@@ -83,13 +83,13 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
       onClose();
       return;
     }
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 
@@ -286,7 +286,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
         onChange={(names) =>
           setDraft((d) => ({...d, lesson_favorStudent: names}))
         }
-        lang="JP"
+        lang={serverMap[settings.server]}
         mode="multiple"
       />
 

@@ -27,6 +27,11 @@ interface StatusItem {
   timestamp: number;
 }
 
+interface WrappedStatusItem {
+  config_id: string | null;
+  status: StatusItem;
+}
+
 interface CommandPayload {
   command: string;
   config_id: string | null;
@@ -49,7 +54,7 @@ interface WsMessageItem {
   scopes?: string[];
   entry?: RawLogItem;
   entries?: RawLogItem[];
-  status?: InitState | StatusItem | string;
+  status?: InitState | StatusItem | WrappedStatusItem | string;
   timestamp?: number;
   data?: any;
   resource?: string;
@@ -186,7 +191,10 @@ export const useWebSocketStore = create<WebSocketState>()(
         "config_list": (message: WsMessageItem) => {
           set((state) => {
             const config_added = Object.fromEntries(message.data.map((id) => [id, {}]));
-            const statusStore = Object.fromEntries(message.data.map((id) => [id, {}]));
+            const statusStore = Object.fromEntries(message.data.map((id) => {
+              if (id in state.statusStore) return [id, state.statusStore[id]];
+              return [id, {}];
+            }));
             const event_added = Object.fromEntries(message.data.map((id) => [id, []]));
             const log_added = Object.fromEntries(
               message.data.map((id) => {
@@ -248,12 +256,27 @@ export const useWebSocketStore = create<WebSocketState>()(
           if ("all_data_initialized" in data) {
             set(state => ({...state, _all_data_initialized: true}));
           } else {
-            set(state => ({
-              statusStore: {
-                ...state.statusStore,
-                [data.config_id]: data
-              }
-            }));
+            let k0 = Object.keys(data)[0];
+            if (typeof data[k0] === "object" && "config_id" in data[k0]) {
+              Object.keys(data).forEach((key) => {
+                set(state => ({
+                  statusStore: {
+                    ...state.statusStore,
+                    [key]: {
+                      ...(state.statusStore[key] ?? {}),
+                      ...(data[key] as StatusItem)
+                    }
+                  }
+                }));
+              });
+            } else {
+              set(state => ({
+                statusStore: {
+                  ...state.statusStore,
+                  [data.config_id]: (data as WrappedStatusItem).status
+                }
+              }));
+            }
           }
         }
       };
@@ -387,7 +410,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     },
     trigger: (payload, callback) => {
       get().send("trigger", {type: "command", ...payload});
-      callback(payload);
+      callback?.(payload);
     }
   }))
 );

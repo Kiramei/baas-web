@@ -23,6 +23,7 @@ import FeatureSwitchModal from "@/components/FeatureSwitchModal";
 import {DateTimePicker} from "@/components/DateTimePicker.tsx";
 import {EventConfig} from "@/lib/type.event.ts";
 import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 // ✅ 单行任务组件，Memo 化
 const TaskRow = React.memo(function TaskRow(
@@ -51,7 +52,7 @@ const TaskRow = React.memo(function TaskRow(
             className="flex-grow min-w-0 overflow-hidden text-ellipsis text-left mr-2"
           />
           <DateTimePicker
-            value={task.next_tick}
+            value={task.next_tick * 1000}
             onChange={(ts) => onChangeTime(task, ts)}
           />
           <CButton onClick={() => onEdit(task)} className="rounded-[50%] w-8 h-8">
@@ -72,7 +73,7 @@ const TaskRow = React.memo(function TaskRow(
             <Settings className="w-4 h-4 translate-x-[-8px]"/>
           </CButton>
           <DateTimePicker
-            value={task.next_tick}
+            value={task.next_tick * 1000}
             onChange={(ts) => onChangeTime(task, ts)}
           />
           <EllipsisWithTooltip
@@ -87,7 +88,7 @@ const TaskRow = React.memo(function TaskRow(
 
 const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const {schedulerStatus, profiles, activeProfile, eventConfigs, setEventConfigs} = useApp();
+  const {profiles, activeProfile} = useApp();
 
   const pid = profileId ?? activeProfile?.id;
   const profile = useMemo(
@@ -98,6 +99,13 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<"default" | "time">("default");
   const [modalTask, setModalTask] = useState<EventConfig | null>(null);
+
+  const runningTask = useWebSocketStore((e) => e.statusStore[profileId]?.current_task);
+  const taskQueue = useWebSocketStore((e) => e.statusStore[profileId]?.waiting_tasks);
+  const eventConfigs = useWebSocketStore((e) => e.eventStore[profileId] ?? []);
+  const modify = useWebSocketStore((e) => e.modify);
+
+  // console.log(eventConfigs)
 
   const filtered = useMemo(() => {
     let base = eventConfigs.filter((t) => t.event_name.includes(search));
@@ -115,10 +123,11 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
   const left = filtered.filter((t) => !t.enabled);
   const right = filtered.filter((t) => t.enabled);
 
-  // ✅ 稳定的回调
   const onUpdate = useCallback(
-    (newConfigs: EventConfig[]) => setEventConfigs(newConfigs),
-    [setEventConfigs]
+    (newConfigs: EventConfig[]) => {
+      modify(`${profileId}::event`, newConfigs);
+    },
+    []
   );
 
   const handleMoveOne = useCallback(
@@ -138,7 +147,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
     (task: EventConfig, ts: number) => {
       onUpdate(
         eventConfigs.map((t) =>
-          t.func_name === task.func_name ? {...t, next_tick: ts} : t
+          t.func_name === task.func_name ? {...t, next_tick: Math.floor(ts / 1000)} : t
         )
       );
     },
@@ -158,7 +167,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
   const refreshAll = () => {
     const now = new Date().getTime();
     startTransition(() => {
-      onUpdate(eventConfigs.map((t) => ({...t, next_tick: now})));
+      onUpdate(eventConfigs.map((t) => ({...t, next_tick: Math.floor(now / 1000)})));
     });
   };
 
@@ -198,9 +207,9 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center items-center h-42">
-            {schedulerStatus.runningTask ? (
+            {runningTask ? (
               <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">
-                {schedulerStatus.runningTask}
+                {runningTask}
               </p>
             ) : (
               <p className="text-slate-500 dark:text-slate-400">
@@ -219,12 +228,12 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {schedulerStatus.taskQueue.length > 0 ? (
+            {taskQueue && taskQueue.length > 0 ? (
               <AnimatedList
                 className="space-y-0 h-35 overflow-auto pr-2 gap-2"
                 delay={50}
               >
-                {schedulerStatus.taskQueue.map((task, index) => (
+                {taskQueue.map((task, index) => (
                   <div
                     key={index}
                     className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md"

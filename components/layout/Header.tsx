@@ -165,6 +165,8 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  const statusStore = useWebSocketStore((e) => e.statusStore);
+
   return (
     <header
       className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center px-3">
@@ -222,6 +224,9 @@ const Header: React.FC = () => {
                       setCtxMenu({x: e.clientX, y: e.clientY, tab});
                     }}
                   >
+
+                    {statusStore[tab.id].running?<Loader2 className="animate-spin mr-2 h-4 w-4"/>:<></>}
+
                     {/* 配置名 */}
                     <span className="truncate pr-5">{tab.name}</span>
 

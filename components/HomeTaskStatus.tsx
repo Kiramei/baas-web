@@ -2,10 +2,13 @@ import {Hourglass, List} from "lucide-react";
 import React, {useState} from "react";
 import {useTranslation} from "react-i18next";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
-export const TaskStatus: React.FC<{ schedulerStatus: any }> = ({schedulerStatus}) => {
+export const TaskStatus: React.FC<{ profileId: string }> = ({profileId}) => {
   const {t} = useTranslation();
   const [open, setOpen] = useState(false);
+  const runningTask = useWebSocketStore((e) => e.statusStore[profileId]?.current_task);
+  const taskQueue = useWebSocketStore((e) => e.statusStore[profileId]?.waiting_tasks);
 
   return (
     <div className={'grid grid-cols-1 lg:grid-cols-2 gap-1'}>
@@ -17,9 +20,9 @@ export const TaskStatus: React.FC<{ schedulerStatus: any }> = ({schedulerStatus}
           {t('runningTask')}:
         </div>
         <div className={'flex flex-col items-center justify-center float-end'}>
-          {schedulerStatus.runningTask ? (
+          {runningTask ? (
             <span className="text-lg font-semibold text-primary-600 dark:text-primary-400">
-                {schedulerStatus.runningTask}
+                {runningTask}
               </span>
           ) : (
             <span className="text-slate-500 dark:text-slate-400">{t('noTaskRunning')}</span>
@@ -33,9 +36,9 @@ export const TaskStatus: React.FC<{ schedulerStatus: any }> = ({schedulerStatus}
         <div className="flex-grow">{t("nextTask")}:</div>
 
         <div className="flex flex-col items-center justify-center float-end mr-2">
-          {schedulerStatus.taskQueue.length > 0 ? (
+          {taskQueue && taskQueue.length > 0 ? (
             <span className="text-lg font-semibold text-primary-600 dark:text-primary-400">
-            {schedulerStatus.taskQueue[0]}
+            {taskQueue[0]}
           </span>
           ) : (
             <span className="text-slate-500 dark:text-slate-400">
@@ -63,9 +66,9 @@ export const TaskStatus: React.FC<{ schedulerStatus: any }> = ({schedulerStatus}
             // onMouseLeave={() => setOpen(false)}
             onFocusOutside={() => setOpen(false)}
           >
-            {schedulerStatus.taskQueue.length > 0 ? (
+            {taskQueue && taskQueue.length > 0 ? (
               <ul className="space-y-1">
-                {schedulerStatus.taskQueue.map((task: string, idx: number) => (
+                {taskQueue.map((task: string, idx: number) => (
                   <li
                     key={idx}
                     className="text-lg px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md"

@@ -13,39 +13,31 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@/components/ui/tabs";
-import {Separator} from "@/components/ui/separator.tsx"; // ✅ shadcn tabs
+import {Separator} from "@/components/ui/separator.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {serverMap} from "@/lib/utils.ts";
 
 // 学生结构
-type Student = {
-  CN_name: string;
-  Global_name: string;
-  JP_name: string;
-  CN_implementation: boolean;
-  Global_implementation: boolean;
-  JP_implementation: boolean;
-};
 
 // props 定义
 type CafeConfigProps = {
   onClose: () => void;
   profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 // 草稿定义
 type Draft = {
-  cafe_collect_reward: boolean;
-  cafe_use_invitation: boolean;
-  cafe_exchange_student: boolean;
-  cafe_duplicate_invite: boolean;
-  cafe_has_no2_cafe: boolean;
-  cafe_pat_rounds: number | "";
-  pat_style: string;
-  cafe_invite1_criterion: string;
-  cafe_invite2_criterion: string;
-  cafe_invite1_starred_position: string;
-  cafe_invite2_starred_position: string;
+  cafe_reward_collect_hour_reward: boolean;
+  cafe_reward_use_invitation_ticket: boolean;
+  cafe_reward_allow_exchange_student: boolean;
+  cafe_reward_allow_duplicate_invite: boolean;
+  cafe_reward_has_no2_cafe: boolean;
+  cafe_reward_affection_pat_round: number | "";
+  patStyle: string;
+  cafe_reward_invite1_criterion: string;
+  cafe_reward_invite2_criterion: string;
+  cafe_reward_invite1_starred_student_position: string;
+  cafe_reward_invite2_starred_student_position: string;
   favorStudent1: string[];
   favorStudent2: string[];
 };
@@ -57,37 +49,33 @@ const clamp = (n: number, min: number, max: number) =>
 const CafeConfig: React.FC<CafeConfigProps> = ({
                                                  onClose,
                                                  profileId,
-                                                 settings,
-                                                 onChange,
                                                }) => {
-  const {staticConfig} = useApp();
+  const staticConfig = useWebSocketStore(e => e.staticStore);
   const studentNames = staticConfig.student_names;
   const {t} = useTranslation();
-  const {activeProfile, updateProfile} = useApp();
+  const settings = useWebSocketStore(e => e.configStore[profileId]);
 
-  // 外部设置
   const ext = useMemo(() => {
-    const s = settings ?? activeProfile?.settings ?? {};
     return {
-      cafe_collect_reward: s.cafe_collect_reward ?? false,
-      cafe_use_invitation: s.cafe_use_invitation ?? true,
-      cafe_exchange_student: s.cafe_exchange_student ?? true,
-      cafe_duplicate_invite: s.cafe_duplicate_invite ?? false,
-      cafe_has_no2_cafe: s.cafe_has_no2_cafe ?? false,
-      cafe_pat_rounds: s.cafe_pat_rounds ?? 5,
-      pat_style: s.pat_style ?? "普通",
-      cafe_invite1_criterion: s.cafe_invite1_criterion ?? "lowest_affection",
-      cafe_invite2_criterion: s.cafe_invite2_criterion ?? "lowest_affection",
-      cafe_invite1_starred_position: String(
-        s.cafe_invite1_starred_position ?? "1"
+      cafe_reward_collect_hour_reward: settings.cafe_reward_collect_hour_reward ?? false,
+      cafe_reward_use_invitation_ticket: settings.cafe_reward_use_invitation_ticket ?? true,
+      cafe_reward_allow_exchange_student: settings.cafe_reward_allow_exchange_student ?? true,
+      cafe_reward_allow_duplicate_invite: settings.cafe_reward_allow_duplicate_invite ?? false,
+      cafe_reward_has_no2_cafe: settings.cafe_reward_has_no2_cafe ?? false,
+      cafe_reward_affection_pat_round: settings.cafe_reward_affection_pat_round ?? 5,
+      patStyle: settings.patStyle ?? "普通",
+      cafe_reward_invite1_criterion: settings.cafe_reward_invite1_criterion ?? "lowest_affection",
+      cafe_reward_invite2_criterion: settings.cafe_reward_invite2_criterion ?? "lowest_affection",
+      cafe_reward_invite1_starred_student_position: String(
+        settings.cafe_reward_invite1_starred_student_position ?? "1"
       ),
-      cafe_invite2_starred_position: String(
-        s.cafe_invite2_starred_position ?? "1"
+      cafe_reward_invite2_starred_student_position: String(
+        settings.cafe_reward_invite2_starred_student_position ?? "1"
       ),
-      favorStudent1: s.favorStudent1 ?? [],
-      favorStudent2: s.favorStudent2 ?? [],
+      favorStudent1: settings.favorStudent1 ?? [],
+      favorStudent2: settings.favorStudent2 ?? [],
     };
-  }, [settings, activeProfile]);
+  }, [settings]);
 
   const [draft, setDraft] = useState<Draft>(ext);
   const [showSelector1, setShowSelector1] = useState(false);
@@ -132,13 +120,13 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       return;
     }
 
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 
@@ -148,7 +136,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="basic">{t("cafe.basicSettings")}</TabsTrigger>
           <TabsTrigger value="cafe1">{t("cafe.cafe1Settings")}</TabsTrigger>
-          {draft.cafe_has_no2_cafe && (
+          {draft.cafe_reward_has_no2_cafe && (
             <TabsTrigger value="cafe2">{t("cafe.cafe2Settings")}</TabsTrigger>
           )}
         </TabsList>
@@ -157,11 +145,11 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         <TabsContent value="basic" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {[
-              ["cafe_collect_reward", "cafe.collectReward"],
-              ["cafe_use_invitation", "cafe.useInvitation"],
-              ["cafe_exchange_student", "cafe.exchangeStudent"],
-              ["cafe_duplicate_invite", "cafe.duplicateInvite"],
-              ["cafe_has_no2_cafe", "cafe.hasNo2Cafe"],
+              ["cafe_reward_collect_hour_reward", "cafe.collectReward"],
+              ["cafe_reward_use_invitation_ticket", "cafe.useInvitation"],
+              ["cafe_reward_allow_exchange_student", "cafe.exchangeStudent"],
+              ["cafe_reward_allow_duplicate_invite", "cafe.duplicateInvite"],
+              ["cafe_reward_has_no2_cafe", "cafe.hasNo2Cafe"],
             ].map(([key, label]) => (
               <SwitchButton
                 label={t(label)}
@@ -180,7 +168,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               label={t("cafe.patRounds")}
               tooltip={t("cafe.patRoundsDesc")}
               type="number"
-              value={draft.cafe_pat_rounds}
+              value={draft.cafe_reward_affection_pat_round}
               onChange={onNumberChange}
               min={4}
               max={15}
@@ -188,10 +176,9 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
             <FormSelect
               label={t("cafe.patStyle")}
-              value={draft.pat_style}
+              value={draft.patStyle}
               onChange={onSelectChange("pat_style")}
               options={[
-                {value: "普通", label: t("cafe.patStyleNormal")},
                 {value: "拖动礼物", label: t("cafe.patStyleDragGift")},
               ]}
             />
@@ -203,7 +190,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         <TabsContent value="cafe1" className="space-y-6 pt-4">
           <FormSelect
             label={t("cafe.invite1Mode")}
-            value={draft.cafe_invite1_criterion}
+            value={draft.cafe_reward_invite1_criterion}
             onChange={onSelectChange("cafe_invite1_criterion")}
             options={[
               {value: "lowest_affection", label: t("cafe.lowestAffection")},
@@ -213,10 +200,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
             ]}
           />
 
-          {draft.cafe_invite1_criterion === "starred" && (
+          {draft.cafe_reward_invite1_criterion === "starred" && (
             <FormSelect
               label={t("cafe.starredPosition")}
-              value={draft.cafe_invite1_starred_position}
+              value={draft.cafe_reward_invite1_starred_student_position}
               onChange={onSelectChange("cafe_invite1_starred_position")}
               options={[1, 2, 3, 4, 5].map((n) => ({
                 value: String(n),
@@ -225,7 +212,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
             />
           )}
 
-          {draft.cafe_invite1_criterion === "name" && (
+          {draft.cafe_reward_invite1_criterion === "name" && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">
                 {t("cafe.cafe1Students")}
@@ -263,11 +250,11 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         </TabsContent>
 
         {/* 咖啡馆2 */}
-        {draft.cafe_has_no2_cafe && (
+        {draft.cafe_reward_has_no2_cafe && (
           <TabsContent value="cafe2" className="space-y-6 pt-4">
             <FormSelect
               label={t("cafe.invite2Mode")}
-              value={draft.cafe_invite2_criterion}
+              value={draft.cafe_reward_invite2_criterion}
               onChange={onSelectChange("cafe_invite2_criterion")}
               options={[
                 {value: "lowest_affection", label: t("cafe.lowestAffection")},
@@ -277,10 +264,10 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               ]}
             />
 
-            {draft.cafe_invite2_criterion === "starred" && (
+            {draft.cafe_reward_invite2_criterion === "starred" && (
               <FormSelect
                 label={t("cafe.starredPosition")}
-                value={draft.cafe_invite2_starred_position}
+                value={draft.cafe_reward_invite2_starred_student_position}
                 onChange={onSelectChange("cafe_invite2_starred_position")}
                 options={[1, 2, 3, 4, 5].map((n) => ({
                   value: String(n),
@@ -289,7 +276,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
               />
             )}
 
-            {draft.cafe_invite2_criterion === "name" && (
+            {draft.cafe_reward_invite2_criterion === "name" && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
                   {t("cafe.cafe2Students")}
@@ -334,7 +321,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         allStudents={studentNames}
         selected={draft.favorStudent1}
         onChange={(list) => setDraft((d) => ({...d, favorStudent1: list}))}
-        lang="JP"
+        lang={serverMap[settings.server]}
         mode="multiple"
       />
 
@@ -344,7 +331,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         allStudents={studentNames}
         selected={draft.favorStudent2}
         onChange={(list) => setDraft((d) => ({...d, favorStudent2: list}))}
-        lang="JP"
+        lang={serverMap[settings.server]}
         mode="multiple"
       />
 
@@ -354,7 +341,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSave}
-          disabled={!dirty || draft.cafe_pat_rounds === ""}
+          disabled={!dirty || draft.cafe_reward_affection_pat_round === ""}
           className="px-6 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-60"
         >
           {t("save")}

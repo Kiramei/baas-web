@@ -68,3 +68,17 @@ export const assert = (condition: any, msg?: string) => {
     throw new Error(msg ?? "Assertion failed");
   }
 }
+
+export const getTimestamp = (): number => Math.floor(Date.now() / 1000);
+
+export const getTimestampMs = (): number => Date.now();
+
+export const serverMap = {
+  "日服": "JP",
+  "国际服": "Global",
+  "国际服青少年": "Global",
+  "韩国ONE": "Global",
+  "Steam国际服": "Global",
+  "B服": "CN",
+  "官服": "CN"
+}

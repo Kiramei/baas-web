@@ -80,10 +80,11 @@ export const LoadingPage: React.FC<LoadingPageProps> = (
                   mode="all"
                 />
               </div>
-              <div className="min-w-[70px] flex justify-end mr-2 font-bold"
-                   style={{
-                     color: colorRef[log.level]
-                   }}
+              <div
+                className="min-w-[70px] flex justify-end mr-2 font-bold"
+                style={{
+                  color: colorRef[log.level]
+                }}
               >
                 <TextGenerateEffect words={log.level} mode="all"/>
               </div>

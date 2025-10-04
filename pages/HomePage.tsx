@@ -14,10 +14,11 @@ import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {formatIsoToReadable, getTimestamp, getTimestampMs} from "@/lib/utils.ts";
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const {startScript, stopScript, logs, assets, schedulerStatus} = useApp();
+  const {logs, assets, schedulerStatus} = useApp();
   const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
   const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
@@ -30,6 +31,33 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const trigger = useWebSocketStore((e) => e.trigger);
 
   const scriptRunning = statusStore[profileId].running;
+
+  const startScript = () => {
+    if (!profile) return;
+    if (scriptRunning) return;
+    trigger({
+      timestamp: getTimestamp(),
+      command: "start_scheduler",
+      config_id: profileId,
+      payload: {}
+    }, (e) => {
+      console.log("start_scheduler", e);
+    });
+  }
+
+  const stopScript = () => {
+    if (!profile) return;
+    if (!scriptRunning) return;
+    trigger({
+      timestamp: getTimestamp(),
+      command: "stop_scheduler",
+      config_id: profileId,
+      payload: {}
+    }, (e) => {
+      console.log("stop_scheduler", e);
+    });
+  }
+
 
   // 懒加载：仅在模态框打开时获取远端热键
   const {hotkeys, setHotkeys, loading, save} = useRemoteHotkeys(t, hotkeyModalOpen);
@@ -53,8 +81,8 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   };
 
   const exportLog = () => {
-    const content = logs.map(
-      l => `[${l.timestamp}] ${l.level}: ${l.message}`
+    const content = logStore[`config:${profileId}`].map(
+      l => `[${formatIsoToReadable(l.time)}] ${l.level}: ${l.message}`
     ).join('\n');
 
     const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
@@ -100,11 +128,11 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
 
 
       {/* 状态 */}
-      <TaskStatus schedulerStatus={schedulerStatus}/>
+      <TaskStatus profileId={profileId}/>
 
       {/* 资产区 */}
       <div className="shrink-0">
-        <AssetsDisplay assets={assets}/>
+        <AssetsDisplay profileId={profileId}/>
       </div>
 
       {/* 日志卡片 */}

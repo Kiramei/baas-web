@@ -78,8 +78,8 @@ importers:
         specifier: ^15.7.3
         version: 15.7.3(i18next@25.5.2(typescript@5.8.3))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3)
       react-window:
-        specifier: ^2.1.2
-        version: 2.1.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: ^2.2.0
+        version: 2.2.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1387,8 +1387,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-window@2.1.2:
-    resolution: {integrity: sha512-3PnhB1bXauRVTR1vVwEmFjbaNDCIubOoNLTvvHrOI9cGOkPGb5XAzlprNN/FuUlnKsaaws31t3IJYbJJvhJcBQ==}
+  react-window@2.2.0:
+    resolution: {integrity: sha512-Y2L7yonHq6K1pQA2P98wT5QdIsEcjBTB7T8o6Mub12hH9eYppXoYu6vgClmcjlh3zfNcW2UrXiJJJqDxUY7GVw==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -2663,7 +2663,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.12
 
-  react-window@2.1.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+  react-window@2.2.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)

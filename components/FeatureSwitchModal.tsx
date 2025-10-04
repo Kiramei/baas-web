@@ -58,7 +58,6 @@ const FeatureSwitchModal: React.FC<FeatureSwitchModalProps> = ({task, onClose, o
           {/* 每日重置 */}
           <TimeSelectorModal
             label={t("scheduler.dailyReset")}
-            tooltip={t("tooltip.dailyReset")}
             values={form.daily_reset ?? []}
             onChange={(newTimes) => {
               handleChange("daily_reset", newTimes)
@@ -70,7 +69,6 @@ const FeatureSwitchModal: React.FC<FeatureSwitchModalProps> = ({task, onClose, o
           {/* 禁用时间段 */}
           <TimeSelectorModal
             label={t("scheduler.disabledRange")}
-            tooltip={t("tooltip.disabledRange")}
             values={form.disabled_time_range ?? []}
             onChange={(newRanges) => {
               handleChange("disabled_time_range", newRanges)
