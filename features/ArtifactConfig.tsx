@@ -1,50 +1,98 @@
-import React, {useState, useMemo} from "react";
+import React, {useState, useMemo, useEffect} from "react";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
-import {Switch} from "@/components/ui/switch.tsx";
-import {Input} from "@/components/ui/input";
 import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from "@/components/ui/select";
 import {Textarea} from "@/components/ui/textarea";
-import {toast} from "sonner"
+import {toast} from "sonner";
 import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types";
 import {useTranslation} from "react-i18next";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {StorageUtil} from "@/lib/storage.ts";
+import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
+import {serverMap} from "@/lib/utils.ts";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {Button} from "@/components/ui/button.tsx";
+import CButton from "@/components/ui/CButton.tsx";
 
 type ArtifactConfigProps = {
   onClose: () => void;
-  settings?: Partial<AppSettings>;
+  profileId: string;
 };
 
-const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, settings}) => {
+type Draft = {
+  use_acceleration_ticket: boolean;
+  createTime: string | number;
+  create_phase: number;
+  create_phase_1_select_item_rule: string;
+  create_phase_2_select_item_rule: string;
+  create_phase_3_select_item_rule: string;
+  createPriority_phase1: string[];
+  createPriority_phase2: string[];
+  createPriority_phase3: string[];
+  // 分阶段配置
+  phases: {
+    method: string;
+    priority: string;
+  }[];
+};
+
+const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => {
   const {t} = useTranslation();
   const {activeProfile, updateProfile} = useApp();
 
+  const settings = useWebSocketStore(state => state.configStore[profileId]);
+
+  /** 外部配置快照 */
   const ext = useMemo(() => {
-    const s = settings ?? activeProfile?.settings ?? {};
     return {
-      use_acceleration_ticket: (s as any).use_acceleration_ticket ?? false,
-      createTime: (s as any).createTime ?? "1",
-      create_phase: (s as any).create_phase ?? 1,
-    };
-  }, [settings, activeProfile]);
+      use_acceleration_ticket: settings.use_acceleration_ticket,
+      createTime: settings.createTime,
+      create_phase: settings.create_phase,
+      create_phase_1_select_item_rule: settings.create_phase_1_select_item_rule,
+      create_phase_2_select_item_rule: settings.create_phase_2_select_item_rule,
+      create_phase_3_select_item_rule: settings.create_phase_3_select_item_rule,
+      createPriority_phase1: settings.createPriority_phase1,
+      createPriority_phase2: settings.createPriority_phase2,
+      createPriority_phase3: settings.createPriority_phase3,
+    } as Draft;
+  }, [settings]);
 
-  const [useTicket, setUseTicket] = useState(ext.use_acceleration_ticket);
-  const [createTime, setCreateTime] = useState(ext.createTime);
-  const [phaseCount, setPhaseCount] = useState(ext.create_phase);
 
+  const [draft, setDraft] = useState<Draft>(ext);
+
+  /** 外部变动时同步 draft */
+  useEffect(() => {
+    setDraft(ext);
+  }, [ext]);
+
+  /** 脏检查 */
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
+
+  /** 保存 */
   const handleSave = async () => {
     if (!activeProfile) return;
-    await updateProfile(activeProfile.id, {
-      settings: {
-        ...activeProfile.settings,
-        use_acceleration_ticket: useTicket,
-        createTime,
-        create_phase: phaseCount,
-      },
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
     });
-    toast.success(t("artifact.saved"), {description: t("artifact.savedDesc")});
+
+    if (Object.keys(patch).length > 0) {
+      await updateProfile(activeProfile.id, {
+        settings: {
+          ...activeProfile.settings,
+          ...patch,
+        },
+      });
+      toast.success(t("artifact.saved"), {
+        description: t("artifact.savedDesc"),
+      });
+    }
+
     onClose();
   };
 
@@ -53,51 +101,62 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, settings}) => {
       <Tabs defaultValue="global" className="w-full">
         <TabsList className="w-full">
           <TabsTrigger value="global">{t("artifact.global")}</TabsTrigger>
-          {[...Array(phaseCount)].map((_, i) => (
+          {Array.from({length: draft.create_phase}).map((_, i) => (
             <TabsTrigger key={i} value={`phase${i + 1}`}>
-              {t("artifact.phase")}_{i + 1}
+              {t(`artifact.phase_${i + 1}`)}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* 全局配置 Tab */}
+        {/* 全局配置 */}
         <TabsContent value="global">
           <div className="flex flex-col justify-between gap-4 mt-4">
             <SwitchButton
               label={t("artifact.useTicketDesc")}
-              checked={useTicket}
-              onChange={setUseTicket}
-              className="w-full"
+              checked={draft.use_acceleration_ticket}
+              onChange={(v) =>
+                setDraft((d) => ({...d, use_acceleration_ticket: v}))
+              }
             />
-
 
             <FormInput
               id="createTime"
-              name="createTime"
               label={t("artifact.createTime")}
               type="number"
-              value={createTime}
-              onChange={(e) => setCreateTime(e.target.value)}
+              value={draft.createTime}
+              onChange={(e) =>
+                setDraft((d) => ({...d, createTime: e.target.value}))
+              }
               min="1"
               max="10"
             />
 
             <FormSelect
               label={t("artifact.phaseCount")}
-              value={phaseCount.toString()}
-              onChange={(v) => setPhaseCount(Number(v))}
-              options={[1, 2, 3].map((p) => ({value: p.toString(), label: p.toString()}))}
-              className="w-full"
-              placeholder={t("selectPlaceholder") || undefined}
+              value={draft.create_phase.toString()}
+              onChange={(v) =>
+                setDraft((d) => ({
+                  ...d,
+                  create_phase: Number(v)
+                }))
+              }
+              options={[1, 2, 3].map((p) => ({
+                value: p.toString(),
+                label: p.toString(),
+              }))}
             />
-
           </div>
         </TabsContent>
 
-        {/* 分阶段配置 Tab */}
-        {[...Array(phaseCount)].map((_, i) => (
+        {/* 分阶段配置 */}
+        {Array.from({length: draft.create_phase}, (_, i) => i).map((i) => (
           <TabsContent key={i} value={`phase${i + 1}`}>
-            <ArtifactPhaseConfig phase={i + 1} settings={settings}/>
+            <ArtifactPhaseConfig
+              phase={i + 1}
+              draft={draft}
+              settings={settings}
+              setDraft={setDraft}
+            />
           </TabsContent>
         ))}
       </Tabs>
@@ -106,7 +165,8 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, settings}) => {
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-60"
         >
           {t("save")}
         </button>
@@ -115,15 +175,23 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, settings}) => {
   );
 };
 
+/* ---------- Phase 子组件 ---------- */
 type ArtifactPhaseConfigProps = {
   phase: number;
-  settings?: Partial<AppSettings>;
+  draft: Draft;
+  settings: Partial<DynamicConfig>
+  setDraft: React.Dispatch<React.SetStateAction<Draft>>;
 };
 
-const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({phase, settings}) => {
+const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({
+                                                                   settings,
+                                                                   phase,
+                                                                   draft,
+                                                                   setDraft,
+                                                                 }) => {
   const {t} = useTranslation();
+  const [openStudentModal, setOpenStudentModal] = useState(false);
 
-  // 材料选择映射
   const phaseMethods: Record<number, Record<string, string>> = {
     1: {default: t("artifact.default")},
     2: {
@@ -142,13 +210,21 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({phase, setting
     },
   };
 
-  const [method, setMethod] = useState(Object.keys(phaseMethods[phase])[0]);
-  const [priority, setPriority] = useState<string>("");
+  const staticConfig = useWebSocketStore(state => state.staticStore);
 
-  const handleSavePriority = () => {
-    toast.success(t("artifact.prioritySaved"), {
-      description: `${t("artifact.phase")} ${phase} ${t("artifact.updated")}`,
+  const getPhase2RecommendedPriority = (
+    name: string
+  ): string[] => {
+    const indexes = staticConfig.create_phase2_recommended_priority[name];
+    const originPriority = staticConfig.create_default_priority[serverMap[settings.server]]["phase2"];
+    const resPriority = indexes.map((i) => originPriority[i]);
+
+    originPriority.forEach((_, i) => {
+      if (!indexes.includes(i)) {
+        resPriority.push(originPriority[i]);
+      }
     });
+    return resPriority;
   };
 
   return (
@@ -156,7 +232,14 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({phase, setting
       {/* 材料选择 */}
       <div>
         <label className="block mb-1">{t("artifact.materialSelect")}</label>
-        <Select value={method} onValueChange={setMethod}>
+        <Select
+          value={draft[`create_phase_${phase}_select_item_rule`]}
+          onValueChange={(val) =>
+            setDraft((d) => {
+              return {...d, [`create_phase_${phase}_select_item_rule`]: val};
+            })
+          }
+        >
           <SelectTrigger className="w-full">
             <SelectValue/>
           </SelectTrigger>
@@ -170,25 +253,13 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({phase, setting
         </Select>
       </div>
 
-      {/* Phase2 推荐优先级 */}
+      {/* 推荐优先级 (phase2 特有) */}
       {phase === 2 && (
         <div>
           <label className="block mb-1">{t("artifact.phase2.recommend")}</label>
-          <Select
-            onValueChange={(val) => {
-              // TODO: 替换成 config.static_config 数据
-              setPriority(val);
-              handleSavePriority();
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={t("artifact.selectStudent")}/>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Alice">{t("student.alice")}</SelectItem>
-              <SelectItem value="Bob">{t("student.bob")}</SelectItem>
-            </SelectContent>
-          </Select>
+          <CButton className="w-full" variant={"secondary"} onClick={() => setOpenStudentModal(true)}>
+            {t("artifact.selectStudent")}
+          </CButton>
         </div>
       )}
 
@@ -196,12 +267,29 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({phase, setting
       <div>
         <label className="block mb-1">{t("artifact.priority")}</label>
         <Textarea
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
+          value={(draft[`createPriority_phase${phase}`]).join(" > ") || ""}
+          onChange={(e) =>
+            setDraft((d) => {
+              return {...d, [`createPriority_phase${phase}`]: e.target.value.split(">").map(s => s.trim())};
+            })
+          }
           placeholder="A > B > C"
           className="min-h-[120px]"
         />
       </div>
+      <StudentSelectorModal
+        isOpen={openStudentModal}
+        onClose={function (): void {
+          setOpenStudentModal(false);
+        }}
+        allStudents={Object.keys(staticConfig.create_phase2_recommended_priority)}
+        selected={[]}
+        onChange={function (list: string[]): void {
+          const priority = getPhase2RecommendedPriority(list[0]);
+          setDraft((d) => ({...d, createPriority_phase2: priority}));
+          setOpenStudentModal(false)
+        }}
+      />
     </div>
   );
 };

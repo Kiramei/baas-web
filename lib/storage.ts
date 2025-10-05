@@ -2,10 +2,11 @@ let Store: any = null;
 
 try {
   if ("__TAURI_INTERNALS__" in window) {
-    // @ts-ignore
-    Store = (await import("@tauri-apps/plugin-store")).Store;
+    Store = (await import.meta.glob("./fakeStore.ts")["./fakeStore.ts"]()).Store
+    console.log("[debug]", Store)
   }
 } catch (e) {
+  console.error(e);
 }
 
 export class StorageUtil {

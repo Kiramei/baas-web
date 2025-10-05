@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
-import { useApp } from "../contexts/AppContext";
-import type { AppSettings } from "../lib/types.ts";
-import { EllipsisWithTooltip } from "@/components/ui/etooltip.tsx";
+import React, {useState, useMemo, useEffect} from "react";
+import {useTranslation} from "react-i18next";
+import {useApp} from "../contexts/AppContext";
+import type {AppSettings} from "../lib/types.ts";
+import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 
 // shadcn tabs
 import {
@@ -12,17 +12,38 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import {FormInput} from "@/components/ui/FormInput.tsx";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {serverMap} from "@/lib/utils.ts";
 
 type TabKey = "common" | "tactical";
 
-const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { t } = useTranslation();
-  const { activeProfile, staticConfig, saveProfile } = useApp();
+type Draft = {
+  CommonShopList: number[];
+  CommonShopRefreshTime: number | string;
+  TacticalChallengeShopList: number[];
+  TacticalChallengeShopRefreshTime: number | string;
+};
+
+const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
+                                                                            profileId,
+                                                                            onClose,
+                                                                          }) => {
+  const {t} = useTranslation();
+  const {activeProfile} = useApp();
+  const staticConfig = useWebSocketStore((state) => state.staticStore);
+  const settings: Partial<DynamicConfig> = useWebSocketStore(
+    (state) => state.configStore[profileId]
+  );
+
+  const serverType = serverMap[settings.server];
 
   const _default_goods_ =
-    staticConfig.common_shop_price_list.CN as Array<[string, number, string]>;
+    staticConfig.common_shop_price_list[serverType] as Array<
+      [string, number, string]
+    >;
   const _default_tactical_shop_goods_ =
-    staticConfig.tactical_challenge_shop_price_list.CN as Array<
+    staticConfig.tactical_challenge_shop_price_list[serverType] as Array<
       [string, number, string]
     >;
 
@@ -35,67 +56,91 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     },
     tactical: {
       title: t("tacticalShop.title"),
-      listKey: "TacticalShopList",
-      refreshKey: "TacticalShopRefreshTime",
+      listKey: "TacticalChallengeShopList",
+      refreshKey: "TacticalChallengeShopRefreshTime",
       defaultGoods: _default_tactical_shop_goods_,
     },
   } as const;
 
-  // 默认显示 common
   const [activeTab, setActiveTab] = useState<TabKey>("common");
 
-  const def = shopDefs[activeTab];
-
+  /** ext = 外部配置快照（带默认值） */
   const ext = useMemo(() => {
-    const s = activeProfile?.settings ?? {};
-    const list: number[] = Array.isArray((s as any)[def.listKey])
-      ? (s as any)[def.listKey]
-      : new Array(def.defaultGoods.length).fill(0);
-
     return {
-      list:
-        list.length === def.defaultGoods.length
-          ? list
-          : new Array(def.defaultGoods.length)
-              .fill(0)
-              .map((_, i) => list[i] ?? 0),
-      refresh: (s as any)[def.refreshKey] ?? 0,
+      CommonShopList:
+        settings.CommonShopList ||
+        Array(shopDefs.common.defaultGoods.length).fill(0),
+      CommonShopRefreshTime: settings.CommonShopRefreshTime ?? 0,
+      TacticalChallengeShopList:
+        settings.TacticalChallengeShopList ||
+        Array(shopDefs.tactical.defaultGoods.length).fill(0),
+      TacticalChallengeShopRefreshTime:
+        settings.TacticalChallengeShopRefreshTime ?? 0,
     };
-  }, [activeProfile, def]);
+  }, [settings]);
 
-  const [settings, setSettings] = useState(ext);
+  /** draft = 本地编辑状态 */
+  const [draft, setDraft] = useState<Draft>(ext);
 
-  const toggleItem = (i: number) => {
-    setSettings((prev) => {
-      const list = [...prev.list];
+  /** 保证外部更新时同步 draft */
+  useEffect(() => {
+    setDraft(ext);
+  }, [ext]);
+
+  /** 脏检查 */
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
+
+  /** 切换商品启用/禁用 */
+  const toggleItem = (tab: TabKey, i: number) => {
+    setDraft((d) => {
+      const list =
+        tab === "common" ? [...d.CommonShopList] : [...d.TacticalChallengeShopList];
       list[i] = list[i] === 1 ? 0 : 1;
-      return { ...prev, list };
+      return tab === "common"
+        ? {...d, CommonShopList: list}
+        : {...d, TacticalChallengeShopList: list};
     });
   };
 
-  const handleRefreshChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const n = Number(e.target.value);
+  /** 修改刷新次数 */
+  const handleRefreshChange = (tab: TabKey, e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      setDraft((d) =>
+        tab === "common"
+          ? {...d, CommonShopRefreshTime: ""}
+          : {...d, TacticalChallengeShopRefreshTime: ""}
+      );
+      return;
+    }
+    const n = Number(raw);
     if (Number.isFinite(n)) {
-      setSettings((prev) => ({
-        ...prev,
-        refresh: Math.max(0, Math.min(5, n)),
-      }));
+      setDraft((d) =>
+        tab === "common"
+          ? {...d, CommonShopRefreshTime: Math.max(0, Math.min(n, 5))}
+          : {...d, TacticalChallengeShopRefreshTime: Math.max(0, Math.min(n, 5))}
+      );
     }
   };
 
+  /** 保存 */
   const handleSave = async () => {
-    if (activeProfile) {
-      const updatedProfile = {
-        ...activeProfile,
-        settings: {
-          ...activeProfile.settings,
-          [def.listKey]: settings.list,
-          [def.refreshKey]: settings.refresh,
-        } as AppSettings,
-      };
-      await saveProfile(updatedProfile);
+    if (!dirty) {
       onClose();
+      return;
     }
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (draft[k] !== ext[k]) {
+        patch[k as keyof AppSettings] = draft[k] as any;
+      }
+    });
+
+    if (Object.keys(patch).length > 0 && activeProfile) {
+      // TODO: 发给服务端 / 更新 store
+      console.log("patch", patch);
+    }
+    onClose();
   };
 
   return (
@@ -128,8 +173,12 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                   type="number"
                   min={0}
                   max={5}
-                  value={settings.refresh}
-                  onChange={handleRefreshChange}
+                  value={
+                    tab === "common"
+                      ? draft.CommonShopRefreshTime
+                      : draft.TacticalChallengeShopRefreshTime
+                  }
+                  onChange={(e) => handleRefreshChange(tab, e)}
                   className="w-20"
                 />
               </div>
@@ -137,7 +186,10 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               {/* 商品列表 */}
               <div className="max-h-[40vh] overflow-y-auto pr-1 grid grid-cols-2 gap-1">
                 {def.defaultGoods.map(([nameKey, price, coin], i) => {
-                  const enabled = settings.list[i] === 1;
+                  const enabled =
+                    (tab === "common"
+                      ? draft.CommonShopList
+                      : draft.TacticalChallengeShopList)[i] === 1;
                   const priceText =
                     coin === "creditpoints"
                       ? `${price} ${t("creditpoints")}`
@@ -151,10 +203,10 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                           ? "bg-primary-600 text-white hover:bg-primary-700"
                           : "bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
                       } p-2 rounded-lg cursor-pointer`}
-                      onClick={() => toggleItem(i)}
+                      onClick={() => toggleItem(tab, i)}
                     >
                       <div>
-                        <EllipsisWithTooltip text={nameKey} />
+                        <EllipsisWithTooltip text={nameKey}/>
                         <div
                           className={`text-sm ${
                             enabled
@@ -178,7 +230,8 @@ const ShopConfig: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-60"
         >
           {t("save")}
         </button>

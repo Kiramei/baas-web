@@ -16,6 +16,7 @@ import {StaticConfig, StaticConvert} from '@/lib/type.static.ts';
 import {DynamicConfig, DynamicConvert} from '@/lib/type.dynamic.ts';
 import {EventConfig, EventConvert} from '@/lib/type.event.ts';
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {StorageUtil} from "@/lib/storage.ts";
 
 interface AppContextType {
   profiles: ConfigProfile[];
@@ -236,6 +237,17 @@ export const AppProvider: React.FC<{ children: ReactNode, setReady: (value: bool
         name: configStore[key].name,
         settings: configStore[key]
       }));
+      const tabOrder = await StorageUtil.get<string[]>("tabOrder");
+      if (tabOrder && tabOrder.length) {
+        list.sort((a, b) => {
+          const ia = tabOrder.indexOf(a.id);
+          const ib = tabOrder.indexOf(b.id);
+          if (ia === -1 && ib === -1) return 0;
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+      }
       setActiveProfile(list[0]);
     })
   }, []);

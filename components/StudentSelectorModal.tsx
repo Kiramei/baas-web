@@ -1,6 +1,7 @@
 import React, {useState, useMemo} from "react";
 import {Dialog, DialogPanel, DialogTitle} from "@headlessui/react"; // 推荐 headlessui 管理 modal
 import {X} from "lucide-react";
+import {useTranslation} from "react-i18next";
 
 type Student = {
   CN_name: string;
@@ -14,7 +15,7 @@ type Student = {
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  allStudents: Student[];
+  allStudents: Student[] | string[];
   selected: string[];
   onChange: (list: string[]) => void;
   lang?: "CN" | "JP" | "Global";
@@ -30,6 +31,8 @@ const StudentSelectorModal: React.FC<Props> = ({
                                                  lang = "JP",
                                                  mode = "single",
                                                }) => {
+
+  const {t} = useTranslation();
   const [query, setQuery] = useState("");
 
   const displayName = (s: Student) => {
@@ -40,8 +43,11 @@ const StudentSelectorModal: React.FC<Props> = ({
 
   // 搜索过滤
   const filtered = useMemo(() => {
-    return allStudents.filter((s) =>
-      displayName(s).toLowerCase().includes(query.toLowerCase())
+    return allStudents.filter((s) => {
+        if (typeof s === "string")
+          return s.toLowerCase().includes(query.toLowerCase());
+        return displayName(s).toLowerCase().includes(query.toLowerCase());
+      }
     );
   }, [query, allStudents, lang]);
 
@@ -60,7 +66,7 @@ const StudentSelectorModal: React.FC<Props> = ({
         <DialogPanel className="w-full max-w-3xl rounded-lg bg-white dark:bg-slate-800 p-6 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <DialogTitle className="text-lg font-semibold">
-              选择学生
+              {t("artifact.selectStudent")}
             </DialogTitle>
             <button onClick={onClose}>
               <X className="w-5 h-5 text-slate-500"/>
@@ -69,7 +75,7 @@ const StudentSelectorModal: React.FC<Props> = ({
 
           <input
             type="text"
-            placeholder="搜索学生..."
+            placeholder={t('student.search')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full mb-4 px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
@@ -78,7 +84,7 @@ const StudentSelectorModal: React.FC<Props> = ({
           {/* 学生列表 */}
           <div className="flex flex-wrap gap-2 max-h-96 overflow-y-auto">
             {filtered.map((s) => {
-              const name = displayName(s);
+              const name = typeof s === "string" ? s : displayName(s);
               const active = selected.includes(name);
               return (
                 <button

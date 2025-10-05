@@ -13,6 +13,7 @@ import {
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {StorageUtil} from "@/lib/storage.ts";
 
 // 小工具：去抖，避免拖拽过程中频繁打后端
 const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
@@ -35,7 +36,7 @@ const Header: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
 
   const configStore = useWebSocketStore((s) => s.configStore);
-  const { modify } = useWebSocketStore();
+  const {modify} = useWebSocketStore();
 
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = React.useState({left: false, right: false});
@@ -81,16 +82,29 @@ const Header: React.FC = () => {
       server: configStore[key].server,
       settings: configStore[key]
     }));
-    setTabs(list);
-    const exists = list.find(p => p.id === activeProfile?.id);
-    setActiveProfile(exists ?? list[0]);
-    (async () => {
-      setTimeout(() => {
-        if (!(exists ?? list[0])) return
-        const el = document.getElementById(`tab-${exists ?? list[0].id}`);
-        el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-      }, 0);
-    })();
+    StorageUtil.get<string[]>("tabOrder").then((order) => {
+      if (order && order.length) {
+        list.sort((a, b) => {
+          const ia = order.indexOf(a.id);
+          const ib = order.indexOf(b.id);
+          if (ia === -1 && ib === -1) return 0;
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
+      }
+      setTabs(list);
+      const exists = list.find(p => p.id === activeProfile?.id);
+      setActiveProfile(exists ?? list[0]);
+      (async () => {
+        setTimeout(() => {
+          if (!(exists ?? list[0])) return
+          const el = document.getElementById(`tab-${exists ?? list[0].id}`);
+          el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+        }, 0);
+      })();
+    })
+
 
   }, [configStore]);
 
@@ -103,9 +117,10 @@ const Header: React.FC = () => {
     });
   }, 500);
 
-  const onReorder = (next: Tab[]) => {
+  const onReorder = async (next: Tab[]) => {
     setTabs(next);
     debouncedPersistOrder(next);
+    await StorageUtil.set("tabOrder", next.map(t => t.id));
   };
 
   const onSelect = (tab: Tab) => {
@@ -155,6 +170,7 @@ const Header: React.FC = () => {
       return next;
     });
   };
+
   // 关闭右键菜单
   React.useEffect(() => {
     window.addEventListener('click', hideCtxMenu);
@@ -225,7 +241,7 @@ const Header: React.FC = () => {
                     }}
                   >
 
-                    {statusStore[tab.id].running?<Loader2 className="animate-spin mr-2 h-4 w-4"/>:<></>}
+                    {statusStore[tab.id].running ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : <></>}
 
                     {/* 配置名 */}
                     <span className="truncate pr-5">{tab.name}</span>

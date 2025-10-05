@@ -35,12 +35,12 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                                                      profileId,
                                                    }) => {
   const {t} = useTranslation();
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
   const staticConfig = useWebSocketStore(state => state.staticStore);
-  const lessonNames = staticConfig.lesson_region_name.CN;
+  const lessonNames = staticConfig.lesson_region_name[serverMap[settings.server]];
   const studentNames = staticConfig.student_names;
   const [showSelector, setShowSelector] = useState(false);
 
-  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
   // 外部设置 → 默认值
   const ext = useMemo(() => {
     return {

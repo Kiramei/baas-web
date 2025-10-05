@@ -1,61 +1,61 @@
-import React, {useState, useEffect} from 'react';
+import React, {useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
-import {useApp} from '../contexts/AppContext';
-import type {AppSettings} from '../lib/types.ts';
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
 
 interface ArenaConfigProps {
+  profileId: string;
   onClose: () => void;
 }
 
-interface ArenaConfigState {
-  higher_level: number;
-  max_refresh_times: number;
-  opponent_no: number;
+type Draft = {
+  ArenaLevelDiff: number;
+  ArenaComponentNumber: number;
+  maxArenaRefreshTimes: number;
 }
 
-const ArenaConfig: React.FC<ArenaConfigProps> = ({onClose}) => {
+const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
   const {t} = useTranslation();
-  const {activeProfile, saveProfile} = useApp();
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
 
-  const [settings, setSettings] = useState<ArenaConfigState>({
-    higher_level: 0,
-    max_refresh_times: 0,
-    opponent_no: 1,
-  });
-
-  // useEffect(() => {
-  //   setSettings(activeProfile?.settings || {});
-  // }, [activeProfile]);
+  const ext = useMemo(() => {
+    return {
+      ArenaLevelDiff: settings.ArenaLevelDiff,
+      ArenaComponentNumber: settings.ArenaComponentNumber,
+      maxArenaRefreshTimes: settings.maxArenaRefreshTimes,
+    } as Draft;
+  }, [settings]);
 
   const handleChange = (key: string) => (value: string) => {
-    const numValue = parseInt(value, 10);
-    if (!isNaN(numValue)) {
-      setSettings(prev => ({...prev, [key]: numValue}));
-    }
+    // const numValue = parseInt(value, 10);
+    // if (!isNaN(numValue)) {
+    //   setSettings(prev => ({...prev, [key]: numValue}));
+    // }
   };
 
   const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const {name, value} = e.target;
-    const numValue = parseInt(value, 10);
-
-    if (!isNaN(numValue)) {
-      setSettings(prev => ({...prev, [name]: numValue}));
-    } else if (value === "") {
-      setSettings(prev => ({...prev, [name]: 0})); // 或者 undefined，看你需求
-    }
+    // const {name, value} = e.target;
+    // const numValue = parseInt(value, 10);
+    //
+    // if (!isNaN(numValue)) {
+    //   setSettings(prev => ({...prev, [name]: numValue}));
+    // } else if (value === "") {
+    //   setSettings(prev => ({...prev, [name]: 0})); // 或者 undefined，看你需求
+    // }
   };
 
   const handleSave = async () => {
-    if (activeProfile) {
-      const updatedProfile = {
-        ...activeProfile,
-        settings: {...activeProfile.settings, ...settings} as AppSettings,
-      };
-      await saveProfile(updatedProfile);
-      onClose();
-    }
+    // if (activeProfile) {
+    //   const updatedProfile = {
+    //     ...activeProfile,
+    //     settings: {...activeProfile.settings, ...settings} as AppSettings,
+    //   };
+    //   await saveProfile(updatedProfile);
+    //   onClose();
+    // }
+    onClose();
   };
 
   return (
@@ -67,7 +67,7 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({onClose}) => {
           label={t("arena.higherLevel")}
           type="number"
           className="w-full"
-          value={settings.higher_level}
+          value={settings.ArenaLevelDiff}
           onChange={handleNumericChange}
           min="-89"
           max="89"
@@ -79,7 +79,7 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({onClose}) => {
           label={t("arena.max_refresh_times")}
           type="number"
           className="w-full"
-          value={settings.max_refresh_times}
+          value={settings.maxArenaRefreshTimes}
           onChange={handleNumericChange}
           min="0"
         />
@@ -88,8 +88,8 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({onClose}) => {
         <FormSelect
           label={t("arena.opponent_no")}
           className="w-full"
-          value={settings.opponent_no.toString()}
-          onChange={handleChange("opponent_no")}
+          value={settings.ArenaComponentNumber.toString()}
+          onChange={handleChange("ArenaComponentNumber")}
           options={[
             {value: "1", label: "1"},
             {value: "2", label: "2"},
