@@ -2,13 +2,13 @@ import React, {useEffect, useState} from "react";
 import {useApp} from "@/contexts/AppContext";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect";
-import {Card} from "@/components/ui/Card";
 import type {AppSettings} from "@/lib/types";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type TeamConfigProps = {
+  profileId: string;
   onClose: () => void;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 const PROPERTY: Record<string, string> = {
@@ -25,46 +25,36 @@ const MODE_DICT: Record<string, string> = {
   order: "按侧栏顺序编队",
 };
 
-const COL_NUM_DICT: Record<string, number> = {
-  preset_team_attribute: 4,
-  side_team_attribute: 4,
-};
+interface Draft {
+  choose_team_method: string,
+  side_team_attribute: string[][],
+  preset_team_attribute: string[][],
+}
 
-const TeamConfig: React.FC<TeamConfigProps> = ({
-                                                 onClose,
-                                                 settings,
-                                                 onChange,
-                                               }) => {
+const TeamConfig: React.FC<TeamConfigProps> = (
+  {
+    profileId,
+    onClose
+  }
+) => {
   const {t} = useTranslation();
-  const {activeProfile, updateProfile} = useApp();
+
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+
 
   const [chooseMethod, setChooseMethod] = useState<string>(
     settings?.choose_team_method ?? "preset"
   );
 
-  const [teamData, setTeamData] = useState<Record<string, string[][]>>({
-    preset_team_attribute: Array(5).fill(Array(4).fill("Unused")),
-    side_team_attribute: Array(4).fill(Array(1).fill("Unused")),
+  const [draft, setDraft] = useState<Draft>({
+    choose_team_method: settings.choose_team_method,
+    side_team_attribute: settings.side_team_attribute,
+    preset_team_attribute: settings.preset_team_attribute
   });
-
-  useEffect(() => {
-    if (settings?.preset_team_attribute) {
-      setTeamData((prev) => ({
-        ...prev,
-        preset_team_attribute: settings.preset_team_attribute as string[][],
-      }));
-    }
-    if (settings?.side_team_attribute) {
-      setTeamData((prev) => ({
-        ...prev,
-        side_team_attribute: settings.side_team_attribute as string[][],
-      }));
-    }
-  }, [settings]);
 
   const handleCellChange =
     (tableKey: string, row: number, col: number) => (value: string) => {
-      setTeamData((prev) => {
+      setDraft((prev) => {
         const newTable = prev[tableKey].map((r, ri) =>
           ri === row ? r.map((c, ci) => (ci === col ? value : c)) : r
         );
@@ -73,30 +63,27 @@ const TeamConfig: React.FC<TeamConfigProps> = ({
     };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {
-      choose_team_method: chooseMethod,
-      ...teamData,
-    };
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    const patch: Partial<AppSettings> = draft;
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 
   const renderTable = (key: string) => {
-    const rows = teamData[key];
+    const rows = draft[key];
     const cols = key == 'preset_team_attribute' ? 4 : 1;
     return (
       <div
         className={`grid gap-2 border rounded-lg p-2 bg-slate-50 dark:bg-slate-800`}
         style={
-         {
-           gridTemplateColumns:`repeat(${cols}, minmax(0, 1fr))`
-         }
+          {
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`
+          }
         }
       >
         {rows.map((row, ri) =>

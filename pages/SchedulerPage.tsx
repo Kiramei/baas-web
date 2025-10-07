@@ -286,7 +286,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
       </div>
 
       {/* 下半部分：任务穿梭面板 */}
-      <div className="grid grid-cols-2 gap-4 flex-1 min-h-40">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 md:min-h-40">
         {/* 左边 */}
         <Card className="flex flex-col min-h-0">
           <CardContent className="flex flex-col flex-1 min-h-0">

@@ -1,15 +1,15 @@
 import React from "react";
-import type { AppSettings } from "@/lib/types";
-import { useApp } from "@/contexts/AppContext";
+import type {AppSettings} from "@/lib/types";
+import {useApp} from "@/contexts/AppContext";
 import SwitchButton from "@/components/ui/SwitchButton";
-import { FormInput } from "@/components/ui/FormInput";
-import { useTranslation } from "react-i18next";
+import {FormInput} from "@/components/ui/FormInput";
+import {useTranslation} from "react-i18next";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type PushConfigProps = {
+  profileId: string;
   onClose: () => void;
-  profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 interface PushState {
@@ -20,39 +20,35 @@ interface PushState {
 }
 
 const PushConfig: React.FC<PushConfigProps> = ({
-                                                 onClose,
                                                  profileId,
-                                                 settings,
-                                                 onChange,
+                                                 onClose
                                                }) => {
-  const { t } = useTranslation();
-  const { activeProfile, updateProfile } = useApp();
+  const {t} = useTranslation();
+  const {activeProfile, updateProfile} = useApp();
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
 
   const [draft, setDraft] = React.useState<PushState>({
-    push_after_error: settings?.push_after_error ?? false,
-    push_after_completion: settings?.push_after_completion ?? false,
-    push_json: settings?.push_json ?? "",
-    push_serverchan: settings?.push_serverchan ?? "",
+    push_json: settings.push_json,
+    push_serverchan: settings.push_serverchan,
+    push_after_error: settings.push_after_error,
+    push_after_completion: settings.push_after_completion
   });
 
   const handleChange =
     <K extends keyof PushState>(key: K) =>
       (value: PushState[K]) => {
-        setDraft((prev) => ({ ...prev, [key]: value }));
-        if (onChange) {
-          onChange({ ...settings, [key]: value });
-        }
+        setDraft((prev) => ({...prev, [key]: value}));
       };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = { ...draft };
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: { ...activeProfile.settings, ...patch },
-      });
-    }
+    const patch: Partial<AppSettings> = {...draft};
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 

@@ -1,33 +1,32 @@
 import React from "react";
-import type {AppSettings} from "@/lib/types.ts";
-import {useApp} from "@/contexts/AppContext.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {useTranslation} from "react-i18next";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {serverMap} from "@/lib/utils.ts";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
 
 type TacticalConfigProps = {
   onClose: () => void;
   profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 interface TacticalState {
-  hard_level: string;
+  totalForceFightDifficulty: string;
 }
 
 
 const TacticalConfig: React.FC<TacticalConfigProps> = ({
-                                                         onClose,
                                                          profileId,
-                                                         settings,
-                                                         onChange,
+                                                         onClose
                                                        }) => {
   const {t} = useTranslation();
-  const {staticConfig} = useApp();
-  const total_assault_difficulties = staticConfig.total_assault_difficulties.CN as string[];
+  const staticConfig = useWebSocketStore(state => state.staticStore);
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+
+  const total_assault_difficulties = staticConfig.total_assault_difficulties[serverMap[settings.server]] as string[];
 
   const [draft, setDraft] = React.useState<TacticalState>({
-    hard_level: settings?.hard_level ?? total_assault_difficulties[0],
+    totalForceFightDifficulty: settings?.totalForceFightDifficulty ?? total_assault_difficulties[0],
   });
 
   const handleSave = () => {
@@ -36,17 +35,17 @@ const TacticalConfig: React.FC<TacticalConfigProps> = ({
 
   const handleChange = (key: keyof TacticalState) => (value: string) => {
     setDraft(prev => ({...prev, [key]: value}));
-    if (onChange) {
-      onChange({...settings, [key]: value});
-    }
+    // if (onChange) {
+    //   onChange({...settings, [key]: value});
+    // }
   }
 
   return (<div className="space-y-6">
     <FormSelect
       label={t("tactical.hardLevel")}
       className="w-full"
-      value={draft.hard_level.toString()}
-      onChange={handleChange("hard_level")}
+      value={draft.totalForceFightDifficulty.toString()}
+      onChange={handleChange("totalForceFightDifficulty")}
       options={total_assault_difficulties.map((level, _) => ({
         value: level,
         label: level,

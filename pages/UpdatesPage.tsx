@@ -139,7 +139,7 @@ const UpdatePage: React.FC = () => {
           <Info className="w-5 h-5 text-cyan-400"/>
           <CardTitle
             className="text-lg font-semibold tracking-wide bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            {t("versionInfo") ?? "版本信息"}
+            {t("versionInfo")}
           </CardTitle>
         </CardHeader>
 
@@ -167,7 +167,7 @@ const UpdatePage: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {t("updateChannel") ?? "选择合适的更新渠道，填写 Mirror 酱 CDK"}
+            {t("updateChannel")}
           </p>
           <FormSelect
             value={repo}
@@ -183,12 +183,12 @@ const UpdatePage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Key className="w-4 h-4"/>
-            {t("mirrorCdk") ?? "Mirror 酱 CDK"}
+            {t("mirrorCdk")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex gap-2 items-center">
           <FormInput
-            placeholder={t("enterCdk") ?? "在此处粘贴 Mirror 酱 CDK"}
+            placeholder={t("enterCdk")}
             value={cdk}
             onChange={e => setCdk(e.target.value)}
             className="flex-1"
@@ -202,12 +202,12 @@ const UpdatePage: React.FC = () => {
             {mcLoading ? (
               <div className="flex justify-center items-center">
                 <Loader2 className="animate-spin mr-2 h-4 w-4"/>
-                {t("verifying")}
+                {t("mirror.verifying")}
               </div>
             ) : (
               <div className="flex justify-center items-center">
                 <UserSearch className="mr-1 h-4 w-4"/>
-                {t("verify")}
+                {t("mirror.verify")}
               </div>
             )}
           </CButton>
@@ -242,12 +242,12 @@ const UpdatePage: React.FC = () => {
               {apiLoading ? (
                 <div className="flex justify-center items-center">
                   <Loader2 className="animate-spin mr-2 h-4 w-4"/>
-                  {t("testing")}
+                  {t("shaTest.testing")}
                 </div>
               ) : (
                 <div className="flex justify-center items-center">
                   <TestTube className="mr-1 h-4 w-4"/>
-                  {t("testAll")}
+                  {t("shaTest.testAll")}
                 </div>
               )}
             </CButton>
@@ -261,19 +261,19 @@ const UpdatePage: React.FC = () => {
               <tr>
                 <th
                   className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                  {t("method") ?? "方法"}
+                  {t("shaTest.method")}
                 </th>
                 <th
                   className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                  {t("status") ?? "状态"}
+                  {t("shaTest.status")}
                 </th>
                 <th
                   className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                  {t("time") ?? "耗时"}
+                  {t("shaTest.time")}
                 </th>
                 <th
                   className="px-4 py-3 text-center font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                  {t("sha") ?? "SHA值"}
+                  {t("shaTest.sha")}
                 </th>
               </tr>
               </thead>

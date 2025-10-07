@@ -4,11 +4,13 @@ import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {Modal} from "@/components/ui/Modal";
 import {SearchCode} from "lucide-react"; // 用你给的 Modal
-import {Loader2} from "lucide-react";  // 如果想加 loading 图标可以用
+import {Loader2} from "lucide-react";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {getTimestampMs} from "@/lib/utils.ts";  // 如果想加 loading 图标可以用
 
 type ADBSeekProps = {
-  onDetect?: () => Promise<string[]>;   // 调用 adb 检测，返回地址列表
-  onSelect?: (addr: string) => void;   // 点击某个地址后的回调
+  onDetect?: () => Promise<string[]>;
+  onSelect?: (addr: string) => void;
 };
 
 // mock 数据
@@ -26,24 +28,25 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const trigger = useWebSocketStore(state => state.trigger)
 
   const handleDetect = async () => {
     setLoading(true);
-    setError(null);
-    try {
-      const addrs = await onDetect();
-      if (!addrs || addrs.length === 0) {
-        setError(t("adb.noResults"));
+
+    trigger({
+      timestamp: getTimestampMs(),
+      command: "detect_adb",
+      payload: {}
+    }, (e) => {
+      console.log("detect_adb", e.data.addresses);
+      const addrList = e.data.addresses;
+      if (!addrList || addrList.length === 0) {
         setResults([]);
       } else {
-        setResults(addrs);
+        setResults(addrList);
       }
-    } catch (e: any) {
-      setError(t("adb.detectFailed") + (e.message || ""));
-    } finally {
       setLoading(false);
-    }
+    });
   };
 
   return (
@@ -57,7 +60,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
           height: "36px"
         }
       }>
-        <SearchCode size="small"/>
+        <SearchCode size={20}/>
       </CButton>
 
       {/* Modal */}
@@ -86,8 +89,6 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
             )}
           </CButton>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {results.map((addr) => (
               <Card
@@ -101,7 +102,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
                 {addr}
               </Card>
             ))}
-            {results.length === 0 && !loading && !error && (
+            {results.length === 0 && !loading && (
               <p className="text-sm text-slate-500">
                 {t("adb.noData") || "暂无结果"}
               </p>

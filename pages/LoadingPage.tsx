@@ -9,7 +9,6 @@ import {useRef} from "react";
 import {TextGenerateEffect} from "@/components/ui/text-generate-effect.tsx";
 import {useGlobalLogStore} from "@/store/globalLogStore.ts";
 import {formatIsoToReadable} from "@/lib/utils.ts";
-import {randomInt} from "crypto";
 import {motion} from "framer-motion";
 import {useTheme} from "@/hooks/useTheme.tsx";
 

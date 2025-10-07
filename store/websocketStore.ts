@@ -34,7 +34,7 @@ interface WrappedStatusItem {
 
 interface CommandPayload {
   command: string;
-  config_id: string | null;
+  config_id?: string;
   timestamp: number;
   payload: { [id: string]: any };
 }
@@ -83,6 +83,7 @@ interface WebSocketState {
   modify: (path: string, value: any) => void;
   _all_data_initialized: boolean;
   trigger: (payload: CommandPayload, callback?: (e) => void) => void;
+  pendingCallbacks: Record<string, (data: any) => void>;
 }
 
 const {appendGlobalLog} = useGlobalLogStore.getState()
@@ -147,6 +148,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     eventStore: {},
     guiStore: {},
     statusStore: {},
+    pendingCallbacks: {},
 
     _all_data_initialized: false,
 
@@ -277,6 +279,17 @@ export const useWebSocketStore = create<WebSocketState>()(
                 }
               }));
             }
+          }
+        },
+        "command_response": (message: WsMessageItem) => {
+          const { timestamp, command, data, status } = message;
+
+          const cb = get().pendingCallbacks[timestamp];
+          if (cb) {
+            cb({ command, data, status });
+            delete get().pendingCallbacks[timestamp]; // 用完即删，防止内存泄漏
+          } else {
+            console.warn("未找到对应回调:", message);
           }
         }
       };
@@ -409,9 +422,21 @@ export const useWebSocketStore = create<WebSocketState>()(
       });
     },
     trigger: (payload, callback) => {
-      get().send("trigger", {type: "command", ...payload});
-      callback?.(payload);
+      const timestamp = payload.timestamp || Date.now();
+
+      // 缓存回调函数
+      if (callback) {
+        get().pendingCallbacks[timestamp] = callback;
+      }
+
+      // 发送消息
+      get().send("trigger", {
+        type: "command",
+        timestamp,
+        ...payload,
+      });
     }
+
   }))
 );
 

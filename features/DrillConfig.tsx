@@ -1,44 +1,40 @@
-import React, { useEffect, useMemo, useState } from "react";
-import type { AppSettings } from "@/lib/types.ts";
-import { useApp } from "@/contexts/AppContext.tsx";
-import { useTranslation } from "react-i18next";
-import { FormSelect } from "@/components/ui/FormSelect.tsx";
+import React, {useEffect, useMemo, useState} from "react";
+import type {AppSettings} from "@/lib/types.ts";
+import {useApp} from "@/contexts/AppContext.tsx";
+import {useTranslation} from "react-i18next";
+import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
-import { Separator } from "@/components/ui/separator.tsx";
+import {Separator} from "@/components/ui/separator.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
 
 type DrillConfigProps = {
   onClose: () => void;
   profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 const DrillConfig: React.FC<DrillConfigProps> = ({
                                                    onClose,
-                                                   profileId,
-                                                   settings,
-                                                   onChange,
+                                                   profileId
                                                  }) => {
-  const { t } = useTranslation();
-  const { activeProfile, updateProfile } = useApp();
+  const {t} = useTranslation();
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
 
-  // 选项
   const party_nos = ["1", "2", "3", "4"];
   const total_assault_difficulties = ["1", "2", "3", "4"];
 
   // 从外部配置拿初始值
   const ext = useMemo(() => {
-    const s = settings ?? activeProfile?.settings ?? {};
     return {
-      drill_enable_sweep: s.drill_enable_sweep ?? false,
-      drill_fight_formation_list: Array.isArray(s.drill_fight_formation_list)
-        ? s.drill_fight_formation_list.map(String)
+      drill_enable_sweep: settings.drill_enable_sweep ?? false,
+      drill_fight_formation_list: Array.isArray(settings.drill_fight_formation_list)
+        ? settings.drill_fight_formation_list.map(String)
         : ["1", "1", "1"],
-      drill_difficulty_list: Array.isArray(s.drill_difficulty_list)
-        ? s.drill_difficulty_list.map(String)
+      drill_difficulty_list: Array.isArray(settings.drill_difficulty_list)
+        ? settings.drill_difficulty_list.map(String)
         : ["1", "1", "1"],
     };
-  }, [settings, activeProfile]);
+  }, [settings]);
 
   const [draft, setDraft] = useState(ext);
 
@@ -53,25 +49,25 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
         setDraft((prev) => {
           const list = [...prev[key]];
           list[idx] = value;
-          return { ...prev, [key]: list };
+          return {...prev, [key]: list};
         });
       };
 
   // 保存
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {
-      drill_enable_sweep: draft.drill_enable_sweep,
-      drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
-      drill_difficulty_list: draft.drill_difficulty_list.map(Number),
-    };
+    // const patch: Partial<AppSettings> = {
+    //   drill_enable_sweep: draft.drill_enable_sweep,
+    //   drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
+    //   drill_difficulty_list: draft.drill_difficulty_list.map(Number),
+    // };
 
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: { ...activeProfile.settings, ...patch },
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 
@@ -82,12 +78,12 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
         label={t("drill.useAllAfterSweep")}
         checked={draft.drill_enable_sweep}
         onChange={(val) =>
-          setDraft((prev) => ({ ...prev, drill_enable_sweep: val }))
+          setDraft((prev) => ({...prev, drill_enable_sweep: val}))
         }
         className="w-full"
       />
 
-      <Separator />
+      <Separator/>
 
       {/* 出击队伍编号 */}
       <div>
@@ -100,7 +96,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
               <FormSelect
                 value={val}
                 onChange={handleListChange("drill_fight_formation_list", i)}
-                options={party_nos.map((p) => ({ value: p, label: p }))}
+                options={party_nos.map((p) => ({value: p, label: p}))}
                 className="flex-1"
               />
               {i !== draft.drill_fight_formation_list.length - 1 && (

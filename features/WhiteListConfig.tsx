@@ -4,32 +4,29 @@ import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {toast} from "sonner"
 import {FormInput} from "@/components/ui/FormInput.tsx";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {serverMap} from "@/lib/utils.ts";
 
 type WhiteListConfigProps = {
   onClose: () => void;
   profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
                                                            onClose,
-                                                           profileId,
-                                                           settings,
-                                                           onChange,
+                                                           profileId
                                                          }) => {
   const {t} = useTranslation();
-  const {activeProfile, updateProfile} = useApp();
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const server_mode = serverMap[settings.server]
 
   const ext = useMemo(() => {
-    const s = settings ?? activeProfile?.settings ?? {};
     return {
-      server_mode: (s as any).server_mode ?? "CN",
-      clear_friend_white_list: Array.isArray((s as any).clear_friend_white_list)
-        ? (s as any).clear_friend_white_list
-        : [],
+      server_mode: server_mode,
+      clear_friend_white_list: settings.clear_friend_white_list
     };
-  }, [settings, activeProfile]);
+  }, [settings]);
 
   const [inputCode, setInputCode] = useState("");
   const [whiteList, setWhiteList] = useState<string[]>(ext.clear_friend_white_list);
@@ -72,13 +69,13 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
     setWhiteList(newList);
 
     const patch: Partial<AppSettings> = {clear_friend_white_list: newList};
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     setInputCode("");
     toast.success(t("friend.addedSuccess"), {
       description: t("friend.added") + code,
@@ -90,18 +87,23 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
     setWhiteList(newList);
 
     const patch: Partial<AppSettings> = {clear_friend_white_list: newList};
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
 
     toast.success(t("friend.deletedSuccess"), {
       description: t("friend.deleted") + code,
     });
   };
+
+  const handleSave = async () => {
+    onClose();
+  }
+
 
   return (
     <div className="space-y-4">
@@ -118,7 +120,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
           onClick={handleAdd}
           className="px-4 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
         >
-          {t("confirm")}
+          {t("friend.add")}
         </button>
       </div>
 
@@ -127,7 +129,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
         {whiteList.map((code) => (
           <span
             key={code}
-            className="inline-flex items-center px-3 py-1 rounded-full bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+            className="inline-flex items-center px-3 py-1 rounded-full bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100 font-mono font-bold"
           >
             {code}
             <button
@@ -141,6 +143,16 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
         {whiteList.length === 0 && (
           <p className="text-slate-500 text-sm">{t("friend.empty")}</p>
         )}
+      </div>
+
+      {/* 保存按钮 */}
+      <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+        >
+          {t("save")}
+        </button>
       </div>
     </div>
   );

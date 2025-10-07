@@ -6,12 +6,12 @@ import {Switch} from "@/components/ui/switch";
 import {FormInput} from "@/components/ui/FormInput";
 import {FormSelect} from "@/components/ui/FormSelect";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
+import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type EmulatorConfigProps = {
+  profileId: string;
   onClose: () => void;
-  profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 interface EmulatorState {
@@ -19,7 +19,7 @@ interface EmulatorState {
   emulator_wait_time: string;
   emulatorIsMultiInstance: boolean;
   program_address: string;
-  emulatorMultiInstanceNumber: string;
+  emulatorMultiInstanceNumber: number;
   multiEmulatorName: string;
 }
 
@@ -30,33 +30,25 @@ const multiMap: Record<string, string> = {
   bluestacks_nxt: "蓝叠国际版",
 };
 
-const EmulatorConfig: React.FC<EmulatorConfigProps> = ({
-                                                         onClose,
-                                                         settings,
-                                                         onChange,
-                                                       }) => {
+const EmulatorConfig: React.FC<EmulatorConfigProps> = (
+  {
+    profileId,
+    onClose
+  }
+) => {
   const {t} = useTranslation();
   const {activeProfile, updateProfile} = useApp();
 
-  const [draft, setDraft] = useState<EmulatorState>({
-    open_emulator_stat: settings?.open_emulator_stat ?? false,
-    emulator_wait_time: settings?.emulator_wait_time ?? "5",
-    emulatorIsMultiInstance: settings?.emulatorIsMultiInstance ?? false,
-    program_address: settings?.program_address ?? "",
-    emulatorMultiInstanceNumber: settings?.emulatorMultiInstanceNumber ?? "1",
-    multiEmulatorName: settings?.multiEmulatorName ?? Object.keys(multiMap)[0],
-  });
+  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
 
-  useEffect(() => {
-    setDraft({
-      open_emulator_stat: settings?.open_emulator_stat ?? false,
-      emulator_wait_time: settings?.emulator_wait_time ?? "5",
-      emulatorIsMultiInstance: settings?.emulatorIsMultiInstance ?? false,
-      program_address: settings?.program_address ?? "",
-      emulatorMultiInstanceNumber: settings?.emulatorMultiInstanceNumber ?? "1",
-      multiEmulatorName: settings?.multiEmulatorName ?? Object.keys(multiMap)[0],
-    });
-  }, [settings]);
+  const [draft, setDraft] = useState<EmulatorState>({
+    open_emulator_stat: settings.open_emulator_stat,
+    emulator_wait_time: settings.emulator_wait_time,
+    emulatorIsMultiInstance: settings.emulatorIsMultiInstance,
+    program_address: settings.program_address,
+    emulatorMultiInstanceNumber: settings.emulatorMultiInstanceNumber,
+    multiEmulatorName: settings.multiEmulatorName,
+  });
 
   const handleChange =
     (key: keyof EmulatorState) =>
@@ -66,13 +58,13 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = ({
 
   const handleSave = async () => {
     const patch: Partial<AppSettings> = {...draft};
-    if (onChange) {
-      await onChange(patch);
-    } else if (activeProfile) {
-      await updateProfile(activeProfile.id, {
-        settings: {...activeProfile.settings, ...patch},
-      });
-    }
+    // if (onChange) {
+    //   await onChange(patch);
+    // } else if (activeProfile) {
+    //   await updateProfile(activeProfile.id, {
+    //     settings: {...activeProfile.settings, ...patch},
+    //   });
+    // }
     onClose();
   };
 

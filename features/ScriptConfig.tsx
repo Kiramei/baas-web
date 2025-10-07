@@ -6,12 +6,11 @@ import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {Switch} from "@/components/ui/switch";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type ScriptConfigProps = {
+  profileId: string;
   onClose: () => void;
-  profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
 };
 
 interface ScriptState {
@@ -23,34 +22,27 @@ interface ScriptState {
 }
 
 const ScriptConfig: React.FC<ScriptConfigProps> = ({
-                                                     onClose,
                                                      profileId,
-                                                     settings,
-                                                     onChange,
+                                                     onClose
                                                    }) => {
   const {t} = useTranslation();
-  const {staticConfig} = useApp();
+  const staticConfig = useWebSocketStore(state => state.staticStore);
+  const settings = useWebSocketStore(state => state.configStore[profileId]);
 
   const thenOptions = [
-    t("script.doNothing") || "无动作",
-    t("script.exitBaas") || "退出 Baas",
-    t("script.exitEmu") || "退出 模拟器",
-    t("script.exitBoth") || "退出 Baas 和 模拟器",
-    t("script.shutdown") || "关机",
+    [t("script.doNothing"), "无动作"],
+    [t("script.exitBaas"), "退出 Baas"],
+    [t("script.exitEmu"), "退出 模拟器"],
+    [t("script.exitBoth"), "退出 Baas 和 模拟器"],
+    [t("script.shutdown"), "关机"]
   ];
 
   const [draft, setDraft] = React.useState<ScriptState>({
-    screenshot_interval: settings?.screenshot_interval ?? "1.0",
-    autostart: settings?.autostart ?? false,
-    then: settings?.then ?? thenOptions[0],
-    screenshot_method:
-      settings?.screenshot_method ??
-      staticConfig?.screenshot_methods?.[0] ??
-      "nemu",
-    control_method:
-      settings?.control_method ??
-      staticConfig?.control_methods?.[0] ??
-      "uiautomator2",
+    screenshot_interval: settings.screenshot_interval,
+    autostart: settings.autostart,
+    then: settings.then,
+    screenshot_method: settings.screenshot_method,
+    control_method: settings.control_method
   });
 
   const handleChange =
@@ -60,9 +52,9 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
       };
 
   const handleSave = async () => {
-    if (onChange) {
-      await onChange({...settings, ...draft});
-    }
+    // if (onChange) {
+    //   await onChange({...settings, ...draft});
+    // }
     onClose();
   };
 
@@ -95,8 +87,8 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
         value={draft.then}
         onChange={handleChange("then")}
         options={thenOptions.map((opt) => ({
-          value: opt,
-          label: opt,
+          value: opt[1],
+          label: opt[0],
         }))}
       />
 
