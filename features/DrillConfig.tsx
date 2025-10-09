@@ -19,6 +19,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
                                                  }) => {
   const {t} = useTranslation();
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
 
   const party_nos = ["1", "2", "3", "4"];
   const total_assault_difficulties = ["1", "2", "3", "4"];
@@ -26,21 +27,14 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
   // 从外部配置拿初始值
   const ext = useMemo(() => {
     return {
-      drill_enable_sweep: settings.drill_enable_sweep ?? false,
-      drill_fight_formation_list: Array.isArray(settings.drill_fight_formation_list)
-        ? settings.drill_fight_formation_list.map(String)
-        : ["1", "1", "1"],
-      drill_difficulty_list: Array.isArray(settings.drill_difficulty_list)
-        ? settings.drill_difficulty_list.map(String)
-        : ["1", "1", "1"],
+      drill_enable_sweep: settings.drill_enable_sweep,
+      drill_fight_formation_list: settings.drill_fight_formation_list.map(String),
+      drill_difficulty_list: settings.drill_difficulty_list.map(String)
     };
   }, [settings]);
 
   const [draft, setDraft] = useState(ext);
-
-  useEffect(() => {
-    setDraft(ext);
-  }, [ext]);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   // 更新数组选择
   const handleListChange =
@@ -55,19 +49,13 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
 
   // 保存
   const handleSave = async () => {
-    // const patch: Partial<AppSettings> = {
-    //   drill_enable_sweep: draft.drill_enable_sweep,
-    //   drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
-    //   drill_difficulty_list: draft.drill_difficulty_list.map(Number),
-    // };
+    const patch: Partial<AppSettings> = {
+      drill_enable_sweep: draft.drill_enable_sweep,
+      drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
+      drill_difficulty_list: draft.drill_difficulty_list.map(Number),
+    };
+    modify(`${profileId}::config`, patch)
 
-    // if (onChange) {
-    //   await onChange(patch);
-    // } else if (activeProfile) {
-    //   await updateProfile(activeProfile.id, {
-    //     settings: {...activeProfile.settings, ...patch},
-    //   });
-    // }
     onClose();
   };
 
@@ -136,7 +124,8 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>

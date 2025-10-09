@@ -4,15 +4,23 @@ import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import ADBSeekModal from "@/components/ADBSeekModal.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import type {AppSettings} from "@/lib/types.ts";
 
 interface ServerConfigProps {
   profileId: string;
   onClose: () => void;
 }
 
+interface Draft {
+  server: string;
+  adbIP: string;
+  adbPort: string;
+}
+
 const ServerConfig: React.FC<ServerConfigProps> = ({profileId, onClose}) => {
   const {t} = useTranslation();
   const settings = useWebSocketStore(state => state.configStore[profileId])
+  const modify = useWebSocketStore(state => state.modify);
 
   const ext = React.useMemo(() => {
     return {
@@ -23,12 +31,26 @@ const ServerConfig: React.FC<ServerConfigProps> = ({profileId, onClose}) => {
   }, [settings]);
 
   const [draft, setDraft] = React.useState(ext);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   const handleChange = (key: string) => (value: string) => {
     setDraft(prev => ({...prev, [key]: value}));
   };
 
   const handleSave = async () => {
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
+    });
+
+    if (Object.keys(patch).length === 0) {
+      onClose();
+      return;
+    }
+    modify(`${profileId}::config`, patch)
+
     onClose();
   }
 
@@ -90,7 +112,8 @@ const ServerConfig: React.FC<ServerConfigProps> = ({profileId, onClose}) => {
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t('save')}
         </button>

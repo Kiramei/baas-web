@@ -107,8 +107,6 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
   const eventConfigs = useWebSocketStore((e) => e.eventStore[profileId] ?? []);
   const modify = useWebSocketStore((e) => e.modify);
 
-  // console.log(eventConfigs)
-
   const filtered = useMemo(() => {
     let base = eventConfigs.filter((t) => t.event_name.includes(search));
 
@@ -197,63 +195,6 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           #{profile?.name}
         </h2>
       </div>
-
-      {/* 上半部分 */}
-      {/*<div className="grid grid-cols-1 md:grid-cols-2 gap-2">*/}
-      {/*  /!* Running Task *!/*/}
-      {/*  <Card>*/}
-      {/*    <CardHeader>*/}
-      {/*      <CardTitle className="flex items-center">*/}
-      {/*        <Hourglass className="w-5 h-5 mr-2 text-primary-500"/>*/}
-      {/*        {t("runningTask")}*/}
-      {/*      </CardTitle>*/}
-      {/*    </CardHeader>*/}
-      {/*    <CardContent className="flex justify-center items-center h-42">*/}
-      {/*      {runningTask ? (*/}
-      {/*        <p className="text-lg font-semibold text-primary-600 dark:text-primary-400">*/}
-      {/*          {runningTask}*/}
-      {/*        </p>*/}
-      {/*      ) : (*/}
-      {/*        <p className="text-slate-500 dark:text-slate-400">*/}
-      {/*          {t("noTaskRunning")}*/}
-      {/*        </p>*/}
-      {/*      )}*/}
-      {/*    </CardContent>*/}
-      {/*  </Card>*/}
-
-      {/*  /!* Queue *!/*/}
-      {/*  <Card>*/}
-      {/*    <CardHeader>*/}
-      {/*      <CardTitle className="flex items-center">*/}
-      {/*        <CalendarCheck className="w-5 h-5 mr-2 text-green-500"/>*/}
-      {/*        {t("taskQueue")}*/}
-      {/*      </CardTitle>*/}
-      {/*    </CardHeader>*/}
-      {/*    <CardContent>*/}
-      {/*      {taskQueue && taskQueue.length > 0 ? (*/}
-      {/*        <AnimatedList*/}
-      {/*          className="space-y-0 h-35 overflow-auto pr-2 gap-2"*/}
-      {/*          delay={50}*/}
-      {/*        >*/}
-      {/*          {taskQueue.map((task, index) => (*/}
-      {/*            <div*/}
-      {/*              key={index}*/}
-      {/*              className="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-md"*/}
-      {/*            >*/}
-      {/*              <span className="text-slate-700 dark:text-slate-300">*/}
-      {/*                {task}*/}
-      {/*              </span>*/}
-      {/*            </div>*/}
-      {/*          ))}*/}
-      {/*        </AnimatedList>*/}
-      {/*      ) : (*/}
-      {/*        <p className="h-35 max-h-35 text-slate-500 dark:text-slate-400">*/}
-      {/*          {t("noTasksQueued")}*/}
-      {/*        </p>*/}
-      {/*      )}*/}
-      {/*    </CardContent>*/}
-      {/*  </Card>*/}
-      {/*</div>*/}
 
       <div className="grid grid-cols-1 gap-2">
         <Card>

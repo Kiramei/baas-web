@@ -1,8 +1,10 @@
+import {toast} from "sonner"
 import {create} from "zustand";
 import {SecureWebSocket} from "@/lib/SecureWebSocket";
 import {subscribeWithSelector} from "zustand/middleware";
-import {deepMerge, isPlainObject, pause} from "@/lib/utils.ts";
+import {deepMerge, getTimestampMs, isPlainObject, pause} from "@/lib/utils.ts";
 import {useGlobalLogStore} from "@/store/globalLogStore.ts";
+import {t} from "i18next";
 
 const SECRET = "FOSL";
 const BASE = "ws://localhost:8190";
@@ -81,9 +83,10 @@ interface WebSocketState {
   send: (name: WsName, data: any) => void;
   init: () => Promise<void>;
   modify: (path: string, value: any) => void;
+  patch: (path: string, value: any) => void;
   _all_data_initialized: boolean;
   trigger: (payload: CommandPayload, callback?: (e) => void) => void;
-  pendingCallbacks: Record<string, (data: any) => void>;
+  pendingCallbacks: Record<string, (data?: any) => void>;
 }
 
 const {appendGlobalLog} = useGlobalLogStore.getState()
@@ -282,15 +285,45 @@ export const useWebSocketStore = create<WebSocketState>()(
           }
         },
         "command_response": (message: WsMessageItem) => {
-          const { timestamp, command, data, status } = message;
+          const {timestamp, command, data, status} = message;
 
           const cb = get().pendingCallbacks[timestamp];
           if (cb) {
-            cb({ command, data, status });
-            delete get().pendingCallbacks[timestamp]; // 用完即删，防止内存泄漏
+            cb({command, data, status});
+            delete get().pendingCallbacks[timestamp];
           } else {
-            console.warn("未找到对应回调:", message);
+            console.warn("CallBack Not Found:", message);
           }
+        },
+
+        "patch": (message: WsMessageItem) => {
+          const ops = message.ops;
+          const resource = message.resource;
+          if (resource === "gui") return;
+          const resource_id = message.resource_id ?? null;
+          if (!resource_id) return;
+
+          if (Array.isArray(ops)) {
+            ops.forEach((op) => {
+              const path = `${resource_id}::${resource}${op.path}`;
+              let value = op.value;
+              get().patch(path, value);
+            });
+          } else {
+            console.error("Invalid patch message:", message);
+          }
+        },
+
+        "patch_ack": (message: WsMessageItem) => {
+          const {timestamp} = message;
+          const cb = get().pendingCallbacks[timestamp];
+          if (cb) {
+            cb();
+            delete get().pendingCallbacks[timestamp];
+          } else {
+            console.warn("CallBack Not Found:", message);
+          }
+
         }
       };
       const ws = new SecureWebSocket(url, SECRET, name);
@@ -381,11 +414,13 @@ export const useWebSocketStore = create<WebSocketState>()(
       );
     },
 
-    modify: (path: string, patch: any) => {
-      const [resourceId, scope] = path.split("::");
+    patch: (path: string, patch: any) => {
+      const [resourceId, scopeRaw] = path.split("::");
+      const [scope, ...keys] = scopeRaw.split("/");
 
       set((state) => {
         let storeKey: keyof WebSocketState;
+        // 确定目标 store
         switch (scope) {
           case "config":
             storeKey = "configStore";
@@ -401,35 +436,73 @@ export const useWebSocketStore = create<WebSocketState>()(
         }
 
         const store = state[storeKey] as Record<string, any>;
-        const prev = store?.[resourceId];
+        const prev = store?.[resourceId] ?? {};
 
-        const base =
-          prev ?? (isPlainObject(patch) ? {} : Array.isArray(patch) ? [] : undefined);
+        if (!(keys[0] in prev) && patch === undefined) {
+          return; // No change
+        }
 
-        const merged =
-          isPlainObject(patch) || Array.isArray(patch)
-            ? deepMerge(base as any, patch)
-            : patch;
+        let base = {...prev};
+        // 直接更新指定的字段
+        if (keys.length === 0 || (keys.length === 1 && keys[0] === "")) base = patch;
+        else {
+          let current = base;
+          for (let i = 0; i < keys.length - 1; i++) {
+            const key = keys[i];
+            if (!current[key]) {
+              current[key] = {};
+            }
+            current = current[key];
+          }
 
-        if (merged === prev) return;
+          const lastKey = keys[keys.length - 1];
+          current[lastKey] = patch;
+        }
 
         return {
           [storeKey]: {
             ...store,
-            [resourceId]: merged,
-          },
+            [resourceId]: base
+          }
         };
       });
     },
+
+
+    modify: (path: string, patch: any) => {
+      const [resourceId, scope] = path.split("::");
+      const timestamp = getTimestampMs();
+      const ops = isPlainObject(patch) ?
+        Object.entries(patch).map(([key, value]) => ({
+          op: "replace",
+          path: `/${key}`,
+          value: value
+        }))
+        :
+        [{
+          op: "replace",
+          path: "/",
+          value: patch
+        }]
+      get().pendingCallbacks[timestamp] = () => {
+        toast.success(t("settings.updateSuccess"), {
+          description: t("settings.updateSuccessDesc"),
+        })
+      };
+      get().send("sync", {
+        type: "patch",
+        resource_id: resourceId,
+        resource: scope,
+        timestamp: timestamp,
+        ops: ops
+      });
+    },
+
     trigger: (payload, callback) => {
       const timestamp = payload.timestamp || Date.now();
-
-      // 缓存回调函数
       if (callback) {
         get().pendingCallbacks[timestamp] = callback;
       }
-
-      // 发送消息
       get().send("trigger", {
         type: "command",
         timestamp,

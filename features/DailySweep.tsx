@@ -1,7 +1,5 @@
-import React, {useState, useMemo, useEffect} from "react";
+import React, {useState, useMemo} from "react";
 import {useTranslation} from "react-i18next";
-import {useApp} from "@/contexts/AppContext";
-import type {AppSettings} from "@/lib/types.ts";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {FormSelect} from "@/components/ui/FormSelect";
 import {FormInput} from "@/components/ui/FormInput";
@@ -11,16 +9,7 @@ import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {DynamicConfig} from "@/lib/type.dynamic.ts";
 import CButton from "@/components/ui/CButton.tsx";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
-
-// mock 后端逻辑
-function readTask(str: string, isNormal: boolean) {
-  const parts = str.split("-");
-  return {
-    stage: parts.slice(0, 2).join("-"),
-    times: Number(parts[2] ?? 1),
-    type: isNormal ? "normal" : "hard",
-  };
-}
+import type {AppSettings} from "@/lib/types.ts";
 
 interface DailySweepTabsProps {
   profileId: string;
@@ -42,9 +31,9 @@ type Draft = {
 
 const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => {
   const {t} = useTranslation();
-  const {activeProfile, saveProfile} = useApp();
 
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
   const staticConfig = useWebSocketStore(state => state.staticStore);
   const hard_task_student_material = staticConfig.hard_task_student_material
   const [openStudentModal, setOpenStudentModal] = useState(false);
@@ -64,8 +53,6 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
     };
   }, []);
 
-  const [mainlineInput, setMainlineInput] = useState(ext.mainlinePriority);
-  const [hardInput, setHardInput] = useState(ext.hardPriority);
   const [draft, setDraft] = useState<Draft>(ext);
 
   const getStagesByName = (name: string): string[] => {
@@ -80,73 +67,23 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
     );
   };
 
-  // 学生关卡字典
-  // const studentTaskDict = useMemo(() => {
-  //   const dict: Record<string, string[]> = {
-  //     [t("placeholder.stage")]: [],
-  //     [t("stage.byStudent")]: ["1-1-1"],
-  //     [t("stage.AliceBaby")]: ["1-1-2"],
-  //   };
-  //   if (lessonConfig?.hard_task_student_material) {
-  //     lessonConfig.hard_task_student_material.forEach(([stage, studentName]: any) => {
-  //       const translated = studentName;
-  //       if (!dict[translated]) dict[translated] = [];
-  //       dict[translated].push(stage + "-3");
-  //     });
-  //   }
-  //   return dict;
-  // }, [lessonConfig, t]);
-
-  // const [selectedStudent, setSelectedStudent] = useState(Object.keys(studentTaskDict)[0]);
-
-  // 保存逻辑
-  const handleSaveDaily = async () => {
-    // if (!activeProfile) return;
-    // try {
-    //   const cleaned = hardInput.replace(/ /g, "").replace(/，/g, ",");
-    //   const parsed = cleaned ? cleaned.split(",").map((x) => readTask(x, false)) : [];
-    //   await saveProfile({
-    //     ...activeProfile,
-    //     settings: {
-    //       ...activeProfile.settings,
-    //       mainlinePriority: mainlineInput,
-    //       hardPriority: cleaned,
-    //       unfinished_hard_tasks: parsed,
-    //     } as AppSettings,
-    //   });
-    //   alert(t("configSaved"));
-    //   onClose();
-    // } catch (e: any) {
-    //   alert("Error: " + e.message);
-    // }
-  };
-
-  const handleSaveSweep = async () => {
-    // if (!activeProfile) return;
-    // await saveProfile({
-    //   ...activeProfile,
-    //   settings: {
-    //     ...activeProfile.settings,
-    //     ...form,
-    //   } as AppSettings,
-    // });
-    // alert(t("configSaved"));
-    // onClose();
-  };
-
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-  const handleStudentSelect = (student: string) => {
-    // setSelectedStudent(student);
-    // if (student === t("placeholder.stage")) return;
-    // const stages = studentTaskDict[student];
-    // if (!stages) return;
-    // const current = hardInput ? hardInput + "," : "";
-    // setHardInput(current + stages.join(","));
-  };
-
   const handleSave = async () => {
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
+    });
 
+    if (Object.keys(patch).length === 0) {
+      onClose();
+      return;
+    }
+    modify(`${profileId}::config`, patch)
+
+    onClose();
   }
 
   return (
@@ -179,11 +116,6 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
                 placeholder={t("placeholder.config.insert")}
                 className='flex-1'
               />
-              {/*<FormSelect*/}
-              {/*  value={selectedStudent}*/}
-              {/*  onChange={handleStudentSelect}*/}
-              {/*  options={Object.keys(studentTaskDict).map((s) => ({value: s, label: s}))}*/}
-              {/*/>*/}
               <CButton onClick={() => setOpenStudentModal(true)} variant={"secondary"}>
                 {t("stage.selectStudent")}
               </CButton>
@@ -256,11 +188,12 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
         <button
           onClick={handleSave}
           disabled={!dirty}
-          className="px-6 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-60"
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>
       </div>
+
       <StudentSelectorModal
         isOpen={openStudentModal}
         onClose={function (): void {
@@ -269,8 +202,6 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
         allStudents={getUniqueNames()}
         selected={[]}
         onChange={function (list: string[]): void {
-          // const priority = getPhase2RecommendedPriority(list[0]);
-          // setDraft((d) => ({...d, createPriority_phase2: priority}));
           const stages = getStagesByName(list[0])
           setDraft(state => {
             const current = state.hardPriority ? state.hardPriority + ", " : "";

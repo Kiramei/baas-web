@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import type {Asset} from '@/lib/types.ts';
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
+import {List} from "lucide-react";
 
 
 const useTimeAgo = () => {
@@ -86,23 +88,56 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({profileId}) => {
     },
   ]
 
+  const showDetail = (item) => () => {
+
+  }
+
+  const [open, setOpen] = useState(Array.from({length: 8}).map(e => false));
+
   return (
-    <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
-      {assetItems.map(item => (
-        <div key={item.name}
-             className="bg-white dark:bg-slate-800/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start">
-          <div className={'flex flex-col items-center justify-center mr-4 min-w-10 ml-1'}>
-            <img src={item.icon} className={`w-8 h-6`} alt={item.name}/>
-            <div className="text-sm text-slate-500 dark:text-slate-400">{item.name}</div>
-          </div>
-          <div>
-            <div className="text-l font-bold text-slate-800 dark:text-slate-100">{item.value}</div>
-            <div
-              className="text-xs text-slate-400 dark:text-slate-500 mt-1">{timeAgo(item.time)}</div>
-          </div>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
+        {assetItems.map(((item, idx) => (
+          <Popover open={open[idx]} onOpenChange={(newState) => setOpen(prev => {
+            const copy = [...prev];
+            copy[idx] = newState;
+            return copy
+          })} key={item.name}>
+            <PopoverTrigger asChild>
+              <div
+                key={item.name}
+                onMouseMove={() => setOpen(prev => {
+                  const copy = [...prev];
+                  copy[idx] = false;
+                  return copy
+                })}
+                onMouseLeave={() => setOpen(prev => {
+                  const copy = [...prev];
+                  copy[idx] = false;
+                  return copy
+                })}
+                className="bg-white dark:bg-slate-800/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start">
+                <div className={'flex flex-col items-center justify-center mr-4 min-w-10 ml-1'}>
+                  <img src={item.icon} className={`w-8 h-6`} alt={item.name}/>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">{item.name}</div>
+                </div>
+                <div>
+                  <div className="text-l font-bold text-slate-800 dark:text-slate-100">{item.value}</div>
+                  <div
+                    className="text-xs text-slate-400 dark:text-slate-500 mt-1">{timeAgo(item.time)}</div>
+                </div>
+              </div>
+            </PopoverTrigger>
+
+            <PopoverContent
+              className="w-56 p-2 mr-6 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 max-h-100 overflow-y-auto"
+            >
+            </PopoverContent>
+          </Popover>
+        )))}
+      </div>
+
+    </>
   );
 };
 

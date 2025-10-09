@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {X} from "lucide-react";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
@@ -17,15 +16,11 @@ import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {serverMap} from "@/lib/utils.ts";
 
-// 学生结构
-
-// props 定义
 type CafeConfigProps = {
   onClose: () => void;
   profileId?: string;
 };
 
-// 草稿定义
 type Draft = {
   cafe_reward_collect_hour_reward: boolean;
   cafe_reward_use_invitation_ticket: boolean;
@@ -54,6 +49,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
   const studentNames = staticConfig.student_names;
   const {t} = useTranslation();
   const settings = useWebSocketStore(e => e.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
 
   const ext = useMemo(() => {
     return {
@@ -92,12 +88,12 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
   // 数字输入
   const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    if (raw === "") return setDraft((d) => ({...d, cafe_pat_rounds: ""}));
+    if (raw === "") return setDraft((d) => ({...d, cafe_reward_affection_pat_round: ""}));
     const n = Number(raw);
     if (Number.isFinite(n)) {
       setDraft((d) => ({
         ...d,
-        cafe_pat_rounds: clamp(Math.trunc(n), 4, 15),
+        cafe_reward_affection_pat_round: clamp(Math.trunc(n), 4, 15),
       }));
     }
   };
@@ -119,14 +115,8 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
       onClose();
       return;
     }
+    modify(`${profileId}::config`, patch)
 
-    // if (onChange) {
-    //   await onChange(patch);
-    // } else if (activeProfile) {
-    //   await updateProfile(activeProfile.id, {
-    //     settings: {...activeProfile.settings, ...patch},
-    //   });
-    // }
     onClose();
   };
 
@@ -191,7 +181,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
           <FormSelect
             label={t("cafe.invite1Mode")}
             value={draft.cafe_reward_invite1_criterion}
-            onChange={onSelectChange("cafe_invite1_criterion")}
+            onChange={onSelectChange("cafe_reward_invite1_criterion")}
             options={[
               {value: "lowest_affection", label: t("cafe.lowestAffection")},
               {value: "highest_affection", label: t("cafe.highestAffection")},
@@ -255,7 +245,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
             <FormSelect
               label={t("cafe.invite2Mode")}
               value={draft.cafe_reward_invite2_criterion}
-              onChange={onSelectChange("cafe_invite2_criterion")}
+              onChange={onSelectChange("cafe_reward_invite2_criterion")}
               options={[
                 {value: "lowest_affection", label: t("cafe.lowestAffection")},
                 {value: "highest_affection", label: t("cafe.highestAffection")},
@@ -285,7 +275,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
                   {draft.favorStudent2.map((name) => (
                     <span
                       key={name}
-                      className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm"
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-200 rounded-full text-sm dark:bg-slate-700"
                     >
                       {name}
                       <button
@@ -342,7 +332,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         <button
           onClick={handleSave}
           disabled={!dirty || draft.cafe_reward_affection_pat_round === ""}
-          className="px-6 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-60"
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>

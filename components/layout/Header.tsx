@@ -146,8 +146,7 @@ const Header: React.FC = () => {
   const handleEdit = async (tab: Tab, name: string, server: string) => {
     const trimmed = name.trim();
     if (tabs.some(t => t.id !== tab.id && t.name.trim() === trimmed)) throw new Error(t('nameExists') || 'Name already exists');
-
-    // await updateProfile(tab.settings, {name: trimmed, server: server});
+    console.log(1232)
     modify(`${tab.id}::config`, {name: trimmed, server: server})
     setTabs(prev => prev.map(t => t.id === tab.id ? {...t, name: trimmed, server} : t));
     if (activeProfile?.id === tab.id) setActiveProfile({...activeProfile, name: trimmed});
@@ -376,6 +375,8 @@ function ProfileEditorModal(props: {
       setSubmitting(true);
       await props.onSubmit({name: nm, server});
     } catch (e: any) {
+      console.error(e);
+      console.error({nm, server});
       setErr(e?.message || t('saveFailed') || 'Save failed');
     } finally {
       setSubmitting(false);

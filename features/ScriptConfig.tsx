@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useMemo, useState} from "react";
 import type {AppSettings} from "@/lib/types.ts";
 import {useApp} from "@/contexts/AppContext.tsx";
 import {useTranslation} from "react-i18next";
@@ -13,7 +13,7 @@ type ScriptConfigProps = {
   onClose: () => void;
 };
 
-interface ScriptState {
+interface Draft {
   screenshot_interval: string;
   autostart: boolean;
   then: string;
@@ -28,6 +28,7 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
   const {t} = useTranslation();
   const staticConfig = useWebSocketStore(state => state.staticStore);
   const settings = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
 
   const thenOptions = [
     [t("script.doNothing"), "无动作"],
@@ -37,24 +38,40 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
     [t("script.shutdown"), "关机"]
   ];
 
-  const [draft, setDraft] = React.useState<ScriptState>({
-    screenshot_interval: settings.screenshot_interval,
-    autostart: settings.autostart,
-    then: settings.then,
-    screenshot_method: settings.screenshot_method,
-    control_method: settings.control_method
-  });
+  const ext = useMemo(() => {
+    return {
+      screenshot_interval: settings.screenshot_interval,
+      autostart: settings.autostart,
+      then: settings.then,
+      screenshot_method: settings.screenshot_method,
+      control_method: settings.control_method
+    } as Draft;
+  }, [settings]);
+
+  const [draft, setDraft] = useState<Draft>(ext);
+
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   const handleChange =
-    (key: keyof ScriptState) =>
+    (key: keyof Draft) =>
       (value: string | boolean) => {
         setDraft((prev) => ({...prev, [key]: value as any}));
       };
 
   const handleSave = async () => {
-    // if (onChange) {
-    //   await onChange({...settings, ...draft});
-    // }
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
+    });
+
+    if (Object.keys(patch).length === 0) {
+      onClose();
+      return;
+    }
+    modify(`${profileId}::config`, patch)
+
     onClose();
   };
 
@@ -122,7 +139,8 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>

@@ -52,8 +52,6 @@ export const TaskStatus: React.FC<{ profileId: string }> = ({profileId}) => {
           <PopoverTrigger asChild>
             <button
               className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg outline-none"
-              // onMouseEnter={() => setOpen(true)}
-              // onMouseLeave={() => setOpen(false)}
               onClick={() => setOpen(!open)}
             >
               <List className="w-5 h-5 text-slate-600 dark:text-slate-300"/>
@@ -61,9 +59,7 @@ export const TaskStatus: React.FC<{ profileId: string }> = ({profileId}) => {
           </PopoverTrigger>
 
           <PopoverContent
-            className="w-56 p-2 mr-6 bg-white dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 max-h-100 overflow-y-auto"
-            // onMouseEnter={() => setOpen(true)}
-            // onMouseLeave={() => setOpen(false)}
+            className="w-56 p-2 mr-6 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 max-h-100 overflow-y-auto"
             onFocusOutside={() => setOpen(false)}
           >
             {taskQueue && taskQueue.length > 0 ? (

@@ -1,16 +1,17 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import type {AppSettings} from "@/lib/types.ts";
 
 interface ArenaConfigProps {
   profileId: string;
   onClose: () => void;
 }
 
-type Draft = {
+interface Draft {
   ArenaLevelDiff: number;
   ArenaComponentNumber: number;
   maxArenaRefreshTimes: number;
@@ -19,6 +20,7 @@ type Draft = {
 const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
   const {t} = useTranslation();
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
 
   const ext = useMemo(() => {
     return {
@@ -28,33 +30,39 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
     } as Draft;
   }, [settings]);
 
+  const [draft, setDraft] = useState<Draft>(ext);
+
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
+
   const handleChange = (key: string) => (value: string) => {
-    // const numValue = parseInt(value, 10);
-    // if (!isNaN(numValue)) {
-    //   setSettings(prev => ({...prev, [key]: numValue}));
-    // }
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue)) {
+      setDraft((d) => ({...d, [key]: numValue}))
+    }
   };
 
   const handleNumericChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // const {name, value} = e.target;
-    // const numValue = parseInt(value, 10);
-    //
-    // if (!isNaN(numValue)) {
-    //   setSettings(prev => ({...prev, [name]: numValue}));
-    // } else if (value === "") {
-    //   setSettings(prev => ({...prev, [name]: 0})); // 或者 undefined，看你需求
-    // }
+    const {name, value} = e.target;
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue)) {
+      setDraft((d) => ({...d, [name]: numValue}))
+    }
   };
 
   const handleSave = async () => {
-    // if (activeProfile) {
-    //   const updatedProfile = {
-    //     ...activeProfile,
-    //     settings: {...activeProfile.settings, ...settings} as AppSettings,
-    //   };
-    //   await saveProfile(updatedProfile);
-    //   onClose();
-    // }
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
+    });
+
+    if (Object.keys(patch).length === 0) {
+      onClose();
+      return;
+    }
+    modify(`${profileId}::config`, patch)
+
     onClose();
   };
 
@@ -62,24 +70,24 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
     <div className="space-y-6">
       <div className="space-y-2">
         <FormInput
-          id="higher_level"
-          name="higher_level"
+          id="ArenaLevelDiff"
+          name="ArenaLevelDiff"
           label={t("arena.higherLevel")}
           type="number"
           className="w-full"
-          value={settings.ArenaLevelDiff}
+          value={draft.ArenaLevelDiff}
           onChange={handleNumericChange}
           min="-89"
           max="89"
         />
 
         <FormInput
-          id="max_refresh_times"
-          name="max_refresh_times"
+          id="maxArenaRefreshTimes"
+          name="maxArenaRefreshTimes"
           label={t("arena.max_refresh_times")}
           type="number"
           className="w-full"
-          value={settings.maxArenaRefreshTimes}
+          value={draft.maxArenaRefreshTimes}
           onChange={handleNumericChange}
           min="0"
         />
@@ -88,7 +96,7 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
         <FormSelect
           label={t("arena.opponent_no")}
           className="w-full"
-          value={settings.ArenaComponentNumber.toString()}
+          value={draft.ArenaComponentNumber.toString()}
           onChange={handleChange("ArenaComponentNumber")}
           options={[
             {value: "1", label: "1"},
@@ -103,7 +111,8 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t('save')}
         </button>

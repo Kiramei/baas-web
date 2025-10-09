@@ -36,7 +36,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
     if (!profile) return;
     if (scriptRunning) return;
     trigger({
-      timestamp: getTimestamp(),
+      timestamp: getTimestampMs(),
       command: "start_scheduler",
       config_id: profileId,
       payload: {}
@@ -149,13 +149,13 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
               checked={scrollToEnd}
               onChange={setScrollToEnd}
               label={t('log.scroll')}
+              className="!px-4"
             />
             <CButton onClick={exportLog} className='ml-2'>
               <div className='flex'>
                 <FileUp size={20} className={'mr-2'}/>
                 {t('log.export')}
               </div>
-
             </CButton>
           </div>
 

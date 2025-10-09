@@ -1,7 +1,5 @@
 import React, {useState, useMemo, useEffect} from "react";
 import {useTranslation} from "react-i18next";
-import {useApp} from "../contexts/AppContext";
-import type {AppSettings} from "../lib/types.ts";
 import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 
 // shadcn tabs
@@ -18,23 +16,23 @@ import {serverMap} from "@/lib/utils.ts";
 
 type TabKey = "common" | "tactical";
 
-type Draft = {
+interface Draft {
   CommonShopList: number[];
   CommonShopRefreshTime: number | string;
   TacticalChallengeShopList: number[];
   TacticalChallengeShopRefreshTime: number | string;
-};
+}
 
 const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
                                                                             profileId,
                                                                             onClose,
                                                                           }) => {
   const {t} = useTranslation();
-  const {activeProfile} = useApp();
   const staticConfig = useWebSocketStore((state) => state.staticStore);
   const settings: Partial<DynamicConfig> = useWebSocketStore(
     (state) => state.configStore[profileId]
   );
+  const modify = useWebSocketStore(state => state.modify);
 
   const serverType = serverMap[settings.server];
 
@@ -129,17 +127,14 @@ const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
       onClose();
       return;
     }
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (draft[k] !== ext[k]) {
-        patch[k as keyof AppSettings] = draft[k] as any;
+        patch[k] = draft[k] as any;
       }
     });
+    modify(`${profileId}::config`, patch)
 
-    if (Object.keys(patch).length > 0 && activeProfile) {
-      // TODO: 发给服务端 / 更新 store
-      console.log("patch", patch);
-    }
     onClose();
   };
 

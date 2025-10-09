@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {FormInput} from "@/components/ui/FormInput";
 import SwitchButton from "@/components/ui/SwitchButton";
@@ -25,7 +25,7 @@ const PROPERTY_MAP: Record<string, string> = {
   Unused: "未使用",
 };
 
-interface StageState {
+interface Draft {
   manual_boss: boolean;
   explore_normal_task_list: string;
   explore_hard_task_list: string;
@@ -41,12 +41,18 @@ const StageConfig: React.FC<StageConfigProps> = (
 
     const staticConfig = useWebSocketStore(state => state.staticStore);
     const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+    const modify = useWebSocketStore(state => state.modify);
 
-    const [draft, setDraft] = useState({
-      manual_boss: settings.manual_boss,
-      explore_normal_task_list: settings.explore_normal_task_list,
-      explore_hard_task_list: settings.explore_hard_task_list,
-    });
+    const ext = useMemo<Draft>(() => {
+      return {
+        manual_boss: settings.manual_boss,
+        explore_normal_task_list: settings.explore_normal_task_list,
+        explore_hard_task_list: settings.explore_hard_task_list,
+      } as Draft;
+    }, [settings]);
+
+    const [draft, setDraft] = useState<Draft>(ext);
+    const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
     // mock 活动数据（真实数据应从 config.static_config 或接口获取）
     const eventName = staticConfig.current_game_activity[serverMap[settings.server]] ?? t("stage.noEvent");
@@ -58,22 +64,24 @@ const StageConfig: React.FC<StageConfigProps> = (
     ]);
 
     const handleSave = async () => {
-      const patch: Partial<AppSettings> = {
-        manual_boss: draft.manual_boss,
-        explore_normal_task_list: draft.explore_normal_task_list,
-        explore_hard_task_list: draft.explore_hard_task_list,
-      };
-      // if (onChange) {
-      //   await onChange(patch);
-      // } else if (activeProfile) {
-      //   await updateProfile(activeProfile.id, {
-      //     settings: {...activeProfile.settings, ...patch},
-      //   });
+      const patch: Partial<AppSettings> = {};
+      (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+        if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+          (patch as any)[k] = draft[k];
+        }
+      });
+
+      if (Object.keys(patch).length === 0) {
+        onClose();
+        return;
+      }
+      modify(`${profileId}::config`, patch)
+
       onClose();
     }
 
 
-    const handleChange = (key: keyof StageState) => (value: any) => {
+    const handleChange = (key: keyof Draft) => (value: any) => {
       setDraft(prev => ({...prev, [key]: value}));
     }
 
@@ -164,7 +172,8 @@ const StageConfig: React.FC<StageConfigProps> = (
         <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700"
+            disabled={!dirty}
+            className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
           >
             {t("save")}
           </button>

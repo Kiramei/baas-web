@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {useApp} from "@/contexts/AppContext";
 import type {AppSettings} from "@/lib/types.ts";
 import {Check, Plus, X} from "lucide-react";
 import {Reorder} from "framer-motion";
@@ -20,7 +19,7 @@ type LessonConfigProps = {
 };
 
 type Draft = {
-  lesson_enableFavorStudent: boolean;
+  lesson_enableInviteFavorStudent: boolean;
   lesson_favorStudent: string[];
   lesson_relationship_first: boolean;
   lesson_each_region_object_priority: string[][];
@@ -36,6 +35,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                                                    }) => {
   const {t} = useTranslation();
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
   const staticConfig = useWebSocketStore(state => state.staticStore);
   const lessonNames = staticConfig.lesson_region_name[serverMap[settings.server]];
   const studentNames = staticConfig.student_names;
@@ -44,7 +44,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
   // 外部设置 → 默认值
   const ext = useMemo(() => {
     return {
-      lesson_enableFavorStudent: settings.lesson_enableInviteFavorStudent ?? false,
+      lesson_enableInviteFavorStudent: settings.lesson_enableInviteFavorStudent ?? false,
       lesson_favorStudent: settings.lesson_favorStudent ?? [],
       lesson_relationship_first: settings.lesson_relationship_first ?? false,
       lesson_each_region_object_priority:
@@ -83,13 +83,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
       onClose();
       return;
     }
-    // if (onChange) {
-    //   await onChange(patch);
-    // } else if (activeProfile) {
-    //   await updateProfile(activeProfile.id, {
-    //     settings: {...activeProfile.settings, ...patch},
-    //   });
-    // }
+    modify(`${profileId}::config`, patch)
     onClose();
   };
 
@@ -132,10 +126,10 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
       {/* 优先做指定学生 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <SwitchButton
-          checked={draft.lesson_enableFavorStudent}
+          checked={draft.lesson_enableInviteFavorStudent}
           label={t("lesson.enableFavorStudent")}
           onChange={(checked) =>
-            setDraft((d) => ({...d, lesson_enableFavorStudent: checked}))
+            setDraft((d) => ({...d, lesson_enableInviteFavorStudent: checked}))
           }
         />
 
@@ -150,7 +144,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
 
 
       {/* 指定学生 */}
-      {draft.lesson_enableFavorStudent && (
+      {draft.lesson_enableInviteFavorStudent && (
         <div>
           <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-200">
             {t("lesson.favorStudent")}
@@ -295,7 +289,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
         <button
           onClick={handleSave}
           disabled={!dirty}
-          className="px-6 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-60"
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>

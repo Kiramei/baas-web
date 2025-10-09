@@ -1,8 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import type {AppSettings} from "@/lib/types";
-import {useApp} from "@/contexts/AppContext";
 import {useTranslation} from "react-i18next";
-import {Switch} from "@/components/ui/switch";
 import {FormInput} from "@/components/ui/FormInput";
 import {FormSelect} from "@/components/ui/FormSelect";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
@@ -14,7 +12,7 @@ type EmulatorConfigProps = {
   onClose: () => void;
 };
 
-interface EmulatorState {
+interface Draft {
   open_emulator_stat: boolean;
   emulator_wait_time: string;
   emulatorIsMultiInstance: boolean;
@@ -37,34 +35,45 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = (
   }
 ) => {
   const {t} = useTranslation();
-  const {activeProfile, updateProfile} = useApp();
 
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
+  const modify = useWebSocketStore(state => state.modify);
 
-  const [draft, setDraft] = useState<EmulatorState>({
-    open_emulator_stat: settings.open_emulator_stat,
-    emulator_wait_time: settings.emulator_wait_time,
-    emulatorIsMultiInstance: settings.emulatorIsMultiInstance,
-    program_address: settings.program_address,
-    emulatorMultiInstanceNumber: settings.emulatorMultiInstanceNumber,
-    multiEmulatorName: settings.multiEmulatorName,
-  });
+  const ext = useMemo<Draft>(() => {
+    return {
+      open_emulator_stat: settings.open_emulator_stat,
+      emulator_wait_time: settings.emulator_wait_time,
+      emulatorIsMultiInstance: settings.emulatorIsMultiInstance,
+      program_address: settings.program_address,
+      emulatorMultiInstanceNumber: settings.emulatorMultiInstanceNumber,
+      multiEmulatorName: settings.multiEmulatorName,
+    } as Draft;
+  }, [settings]);
+
+  const [draft, setDraft] = useState<Draft>(ext);
+
+  const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   const handleChange =
-    (key: keyof EmulatorState) =>
+    (key: keyof Draft) =>
       (value: string | boolean) => {
         setDraft((prev) => ({...prev, [key]: value as any}));
       };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {...draft};
-    // if (onChange) {
-    //   await onChange(patch);
-    // } else if (activeProfile) {
-    //   await updateProfile(activeProfile.id, {
-    //     settings: {...activeProfile.settings, ...patch},
-    //   });
-    // }
+    const patch: Partial<AppSettings> = {};
+    (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
+      if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
+        (patch as any)[k] = draft[k];
+      }
+    });
+
+    if (Object.keys(patch).length === 0) {
+      onClose();
+      return;
+    }
+    modify(`${profileId}::config`, patch)
+
     onClose();
   };
 
@@ -156,7 +165,8 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = (
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors"
+          disabled={!dirty}
+          className="px-6 py-2 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:opacity-60"
         >
           {t("save")}
         </button>
