@@ -6,6 +6,7 @@ import {FormInput} from "@/components/ui/FormInput.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
 import {OrderedMultiSelector, TimeSelectorModal} from "@/components/MultiSelector.tsx";
 import {EventConfig} from "@/lib/type.event.ts";
+import {DateTimePicker} from "@/components/DateTimePicker.tsx";
 
 interface FeatureSwitchModalProps {
   task: EventConfig;
@@ -34,6 +35,15 @@ const FeatureSwitchModal: React.FC<FeatureSwitchModalProps> = ({task, onClose, o
           label={t("scheduler.eventName")}
           value={form.event_name} disabled
         />
+
+        <label className="block text-sm font-medium">{t("scheduler.nextTick")}</label>
+
+        <DateTimePicker
+          value={task.next_tick * 1000}
+          onChange={(ts) => handleChange("next_tick", Math.floor(ts / 1000))}
+          className="w-full justify-center flex xl:hidden"
+        />
+
         <div className="grid grid-cols-1 gap-y-2 lg:grid-cols-2 gap-2">
 
           {/* 优先级 */}

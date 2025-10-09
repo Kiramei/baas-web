@@ -45,6 +45,7 @@
   "pushDesc": "配置消息推送",
   "other": "其他",
   "otherDesc": "杂项功能与设置",
+  "taskOverview": "任务概览",
   "uiSettings": "界面",
   "theme": "主题",
   "light": "浅色",
@@ -191,6 +192,7 @@
   "scheduler.sortByTime": "按时间排序",
   "scheduler.detailConfig": "任务详细调度配置",
   "scheduler.eventName": "任务名称",
+  "scheduler.nextTick": "下次执行时间",
   "scheduler.priority": "优先级",
   "scheduler.interval": "间隔 (秒)",
   "scheduler.dailyReset": "每日重置时间",
@@ -330,5 +332,10 @@
   "shaTest.time": "耗时",
   "shaTest.sha": "SHA值",
   "shaTest.testing": "SHA 测试中",
-  "shaTest.testAll": "测试所有方法"
+  "shaTest.testAll": "测试所有方法",
+  "configAdd.nameRequired": "配置名不能为空",
+  "configAdd.serverRequired": "需要指定服务器",
+  "configAdd.nameDuplicate": "配置名已存在",
+  "configAdd.selectServer": "请选择服务器",
+  "create": "创建"
 }

@@ -324,7 +324,7 @@ export const TimeSelectorModal: React.FC<TimeModeProps | RangeModeProps> = (
                     newValues[index] = arr
                     onChange(newValues as any)
                   }}
-                  className="w-18.5"
+                  className="w-20.5 md:w-18.5"
                   childClassName="h-6 px-1 bg-slate-200 dark:bg-slate-600 shadow-none translate-y-[-1px]"
                 />
               )}

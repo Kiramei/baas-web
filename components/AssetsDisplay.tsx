@@ -87,7 +87,7 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({profileId}) => {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-1">
+    <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
       {assetItems.map(item => (
         <div key={item.name}
              className="bg-white dark:bg-slate-800/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start">

@@ -362,15 +362,16 @@ function ProfileEditorModal(props: {
   React.useEffect(() => {
     if (props.open) {
       setName(props.initial?.name ?? '');
-      setServer(props.initial?.server ?? 'CN');
+      setServer(props.initial?.server ?? 'NULL');
       setErr(null);
     }
   }, [props.open, props.initial]);
 
   const handleSubmit = async () => {
     const nm = name.trim();
-    if (!nm) return setErr(t('nameRequired') || 'Name is required');
-    if (props.checkName(nm, props.initial?.id)) return setErr(t('nameExists') || 'Name already exists');
+    if (!nm) return setErr(t('configAdd.nameRequired'));
+    if (server === 'NULL') return setErr(t('configAdd.serverRequired') || 'Server is required');
+    if (props.checkName(nm, props.initial?.id)) return setErr(t('configAdd.nameDuplicate') || 'Name already exists');
     try {
       setSubmitting(true);
       await props.onSubmit({name: nm, server});
@@ -411,7 +412,9 @@ function ProfileEditorModal(props: {
             onChange={
               (e) => setServer(e)
             }
+            placeholder={t("configAdd.selectServer")}
             options={[
+              {label: t("configAdd.selectServer"), value: "NULL"},
               {label: t('server.cn.official'), value: "官服"},
               {label: t('server.cn.bilibili'), value: "B服"},
               {label: t('server.global'), value: "国际服"},

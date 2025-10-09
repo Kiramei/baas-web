@@ -133,3 +133,9 @@ html, body, #root {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+    .content-height-sm {
+        height: calc(100 - 70px);
+    }
+}

@@ -38,7 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, activePage, setActiveP
       <Sidebar activePage={activePage} setActivePage={setActivePage}/>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header/>
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-100 dark:bg-slate-800">
+        <main className="flex-1 overflow-y-auto p-6 pr-0 sm:pr-6 bg-slate-100 dark:bg-slate-800">
           {children}
         </main>
       </div>

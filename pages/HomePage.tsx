@@ -109,7 +109,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
           <CButton
             variant="secondary"
             onClick={() => setHotkeyModalOpen(true)}
-            className="flex items-center"
+            className="items-center hidden sm:flex"
           >
             <KeyboardIcon className="w-4 h-4 mr-2"/>
             {t('hotkeys')}
@@ -161,7 +161,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
 
         </CardHeader>
 
-        <CardContent className="flex-1 min-h-0 p-0 flex">
+        <CardContent className="flex-1 min-h-0 p-0 flex overflow-x-hidden">
           <Logger logs={logStore[`config:${profileId}`]} scrollToEnd={scrollToEnd}/>
         </CardContent>
       </Card>

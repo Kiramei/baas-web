@@ -5,17 +5,15 @@ import {useTranslation} from "react-i18next";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 
 type OtherConfigProps = {
-  onClose: () => void;
-  profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
+  profileId: string;
 };
 
-const OtherConfig: React.FC<OtherConfigProps> = ({
-                                                   profileId,
-                                                 }) => {
+const OtherConfig: React.FC<OtherConfigProps> = (
+  {
+    profileId
+  }
+) => {
   const {t} = useTranslation();
-  const {activeProfile} = useApp();
 
   const handleFhx = async () => {
     // ⚠️ 接口留空，需要你在这里实现与后端或主线程交互
