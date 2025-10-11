@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {Dispatch, SetStateAction, useEffect, useMemo, useState} from "react";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {FormInput} from "@/components/ui/FormInput";
 import SwitchButton from "@/components/ui/SwitchButton";
@@ -10,10 +10,13 @@ import {useApp} from "@/contexts/AppContext";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {DynamicConfig} from "@/lib/type.dynamic.ts";
-import {serverMap} from "@/lib/utils.ts";
+import {getTimestampMs, serverMap} from "@/lib/utils.ts";
+import {toast} from "sonner";
+import {PageKey} from "@/App.tsx";
 
 type StageConfigProps = {
   profileId: string;
+  setActivePage: Dispatch<SetStateAction<PageKey>>;
   onClose: () => void;
 };
 
@@ -34,6 +37,7 @@ interface Draft {
 const StageConfig: React.FC<StageConfigProps> = (
     {
       profileId,
+      setActivePage,
       onClose
     }
   ) => {
@@ -42,6 +46,7 @@ const StageConfig: React.FC<StageConfigProps> = (
     const staticConfig = useWebSocketStore(state => state.staticStore);
     const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
     const modify = useWebSocketStore(state => state.modify);
+    const trigger = useWebSocketStore(state => state.trigger);
 
     const ext = useMemo<Draft>(() => {
       return {
@@ -85,6 +90,34 @@ const StageConfig: React.FC<StageConfigProps> = (
       setDraft(prev => ({...prev, [key]: value}));
     }
 
+    const handleTrigger = (taskName: string) => async () => {
+      if (taskName === "start_hard_task" || taskName === "start_normal_task") {
+        if (taskName === "start_hard_task" && (!draft.explore_hard_task_list || draft.explore_hard_task_list.trim() === "")) {
+          toast.error(t("stage.noHardTask"));
+          return;
+        }else if (taskName === "start_normal_task" && (!draft.explore_normal_task_list || draft.explore_normal_task_list.trim() === "")) {
+          toast.error(t("stage.noNormalTask"));
+          return;
+        }
+        await handleSave();
+      }
+      trigger({
+        timestamp: getTimestampMs(),
+        command: "solve",
+        config_id: profileId,
+        payload: {
+          task: taskName,
+        }
+      }, (e) => {
+        console.log("Task Triggered:", taskName, e);
+        toast(t("stage.taskTriggerStart"), {
+          description: t("stage.taskTriggered", {task: t(taskName)}),
+        })
+      });
+      onClose();
+      setActivePage("home")
+    }
+
 
     return (
       <div>
@@ -103,6 +136,13 @@ const StageConfig: React.FC<StageConfigProps> = (
               className="w-full"
             />
 
+            <div className="flex gap-2 w-full">
+              <CButton className="flex-1" onClick={handleTrigger("start_main_story")}>{t("stage.story.main")}</CButton>
+              <CButton className="flex-1" onClick={handleTrigger("start_group_story")}>{t("stage.story.group")}</CButton>
+              <CButton className="flex-1" onClick={handleTrigger("start_mini_story")}>{t("stage.story.mini")}</CButton>
+            </div>
+
+
             <Separator/>
 
             <div className="w-full flex flex-row gap-2 items-end">
@@ -114,7 +154,7 @@ const StageConfig: React.FC<StageConfigProps> = (
                 className="flex-1"
               />
               <CButton
-                onClick={() => console.log("开始普通关任务", draft.explore_normal_task_list)}
+                onClick={handleTrigger("start_normal_task")}
                 className="h-9"
               >
                 {t("execute")}
@@ -131,7 +171,7 @@ const StageConfig: React.FC<StageConfigProps> = (
               />
 
               <CButton
-                onClick={() => console.log("开始困难关任务", draft.explore_hard_task_list)}
+                onClick={handleTrigger("start_hard_task")}
                 className="h-9"
               >
                 {t("execute")}
@@ -149,9 +189,12 @@ const StageConfig: React.FC<StageConfigProps> = (
             </Card>
 
             <div className="flex gap-2 w-full">
-              <CButton className="flex-1" onClick={() => console.log("推故事")}>{t("stage.story")}</CButton>
-              <CButton className="flex-1" onClick={() => console.log("推任务")}>{t("stage.mission")}</CButton>
-              <CButton className="flex-1" onClick={() => console.log("推挑战")}>{t("stage.challenge")}</CButton>
+              <CButton className="flex-1"
+                       onClick={handleTrigger("start_explore_activity_story")}>{t("stage.story")}</CButton>
+              <CButton className="flex-1"
+                       onClick={handleTrigger("start_explore_activity_mission")}>{t("stage.mission")}</CButton>
+              <CButton className="flex-1"
+                       onClick={handleTrigger("start_explore_activity_challenge")}>{t("stage.challenge")}</CButton>
             </div>
 
             <div>

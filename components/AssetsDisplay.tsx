@@ -100,7 +100,7 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({profileId}) => {
         {assetItems.map(((item, idx) => (
           <Popover open={open[idx]} onOpenChange={(newState) => setOpen(prev => {
             const copy = [...prev];
-            copy[idx] = newState;
+            copy[idx] = false;
             return copy
           })} key={item.name}>
             <PopoverTrigger asChild>

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {Dispatch, SetStateAction, useCallback, useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Card, CardDescription, CardHeader, CardTitle} from '../components/ui/Card';
 import {Modal} from '@/components/ui/Modal';
@@ -33,6 +33,7 @@ import ArtifactConfig from "@/features/ArtifactConfig.tsx";
 import ScriptConfig from "@/features/ScriptConfig.tsx";
 import StageConfig from "@/features/StageConfig.tsx";
 import TeamConfig from "@/features/TeamConfig.tsx";
+import {PageKey} from "@/App.tsx";
 
 type Feature =
   'cafe'
@@ -73,6 +74,7 @@ export interface FeatureComponentProps {
   profileId?: string;
   settings?: any;
   onChange?: (patch: any) => Promise<void>; // 只改当前配置的 settings（部分）
+  setActivePage?: Dispatch<SetStateAction<PageKey>>
 }
 
 // map 同名不变；我们会把 settings/onChange 注入给它们
@@ -122,7 +124,7 @@ const MotionCard: React.FC<React.PropsWithChildren<{ onClick?: () => void }>> = 
   </motion.div>
 );
 
-const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
+const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) => {
   const {t} = useTranslation();
   const {profiles, activeProfile, updateProfile} = useApp();
 
@@ -204,6 +206,7 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId}) => {
             profileId={profile?.id}
             settings={settings}
             onChange={patchSettings}
+            setActivePage={setActivePage}
           />
         </Modal>
       )}

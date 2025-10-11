@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   return (
     <div className="relative">
       {/* 侧边栏 - 桌面端 */}
-      <aside className="w-64 h-full flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col lg:block hidden">
+      <aside className="w-64 h-full flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex-col lg:block hidden">
         <div className="h-16 flex items-center border-b border-slate-200 dark:border-slate-700 px-4">
           {/* 左侧 title */}
           <img

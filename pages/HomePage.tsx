@@ -18,14 +18,12 @@ import {formatIsoToReadable, getTimestamp, getTimestampMs} from "@/lib/utils.ts"
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const {logs, assets, schedulerStatus} = useApp();
   const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
   const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
   const {profiles, activeProfile, updateProfile} = useApp();
   const pid = profileId ?? activeProfile?.id;
   const profile = useMemo(() => profiles.find(p => p.id === pid) ?? activeProfile ?? null, [profiles, pid, activeProfile]);
-  const settings = profile?.settings ?? {};
 
   const statusStore = useWebSocketStore((e) => e.statusStore);
   const trigger = useWebSocketStore((e) => e.trigger);

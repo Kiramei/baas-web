@@ -1,11 +1,11 @@
 import React from "react";
 import type {AppSettings} from "@/lib/types";
-import {useApp} from "@/contexts/AppContext";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 
 type OtherConfigProps = {
   profileId: string;
+  onClose: () => void;
 };
 
 const OtherConfig: React.FC<OtherConfigProps> = (

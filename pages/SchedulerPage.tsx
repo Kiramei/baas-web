@@ -211,7 +211,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                 {runningTask ? (
                   <div className="px-3 py-2 bg-primary-100 dark:bg-primary-800 rounded-md">
                     <span className="text-primary-700 dark:text-primary-300 font-semibold">
-                      {t("runningTask")}: {runningTask}
+                      {t("runningTask")}: {t(runningTask)}
                     </span>
                   </div>
                 ) : (

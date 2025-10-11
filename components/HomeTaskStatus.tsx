@@ -22,7 +22,7 @@ export const TaskStatus: React.FC<{ profileId: string }> = ({profileId}) => {
         <div className={'flex flex-col items-center justify-center float-end'}>
           {runningTask ? (
             <span className="text-lg font-semibold text-primary-600 dark:text-primary-400">
-                {runningTask}
+                {t(runningTask)}
               </span>
           ) : (
             <span className="text-slate-500 dark:text-slate-400">{t('noTaskRunning')}</span>

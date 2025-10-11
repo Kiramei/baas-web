@@ -69,7 +69,7 @@ const App: React.FC = () => {
 };
 
 
-type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'updates';
+export type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'updates';
 
 // 计算“实例键”：三页带 profileId，其他页不带
 const instanceKeyOf = (page: PageKey, pid?: string) =>
@@ -111,7 +111,7 @@ const Main: React.FC = () => {
       case 'scheduler':
         return <SchedulerPage profileId={pid}/>;
       case 'configuration':
-        return <ConfigurationPage profileId={pid}/>;
+        return <ConfigurationPage profileId={pid} setActivePage={setActivePage}/>;
       case 'settings':
         return <SettingsPage/>;
       case 'updates':
