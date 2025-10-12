@@ -91,7 +91,7 @@ const Logger: React.FC<LoggerProps> = ({logs, scrollToEnd}) => {
         rowCount={logs.length}
         rowHeight={rowHeight}
         rowProps={{logs}}
-        className="min-w-[600px]"
+        // className="min-w-[600px]"
       />
     </div>
   );

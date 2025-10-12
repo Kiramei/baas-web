@@ -11,10 +11,8 @@ import {
   Settings,
   Search,
   Ban,
-  CalendarCheck,
 } from "lucide-react";
 import {ProfileProps} from "@/lib/types.ts";
-import {AnimatedList} from "@/components/ui/animated-list";
 import {FormInput} from "@/components/ui/FormInput";
 import {FormSelect} from "@/components/ui/FormSelect";
 import CButton from "@/components/ui/CButton.tsx";
@@ -223,7 +221,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
 
               {/* Task Queue */}
               {taskQueue && taskQueue.length > 0 ? (
-                <AnimatedList className="space-y-0 h-35 overflow-auto pr-2 gap-2" delay={50}>
+                <ul className="space-y-0 h-35 overflow-auto pr-2 gap-2">
                   {taskQueue.map((task, index) => (
                     <div
                       key={index}
@@ -232,7 +230,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                       <span className="text-slate-700 dark:text-slate-300">{task}</span>
                     </div>
                   ))}
-                </AnimatedList>
+                </ul>
               ) : (
                 <p className="h-35 max-h-35 text-slate-500 dark:text-slate-400">
                   {t("noTasksQueued")}

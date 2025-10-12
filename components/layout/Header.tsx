@@ -108,10 +108,6 @@ const Header: React.FC = () => {
 
   }, [configStore]);
 
-  useEffect(() => {
-    console.log(configStore)
-  }, [configStore]);
-
   const debouncedPersistOrder = useDebounce((tabsNow: Tab[]) => {
     reorderProfiles(tabsNow.map(t => t.id)).catch(() => {
     });

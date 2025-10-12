@@ -114,8 +114,8 @@ const Main: React.FC = () => {
         return <ConfigurationPage profileId={pid} setActivePage={setActivePage}/>;
       case 'settings':
         return <SettingsPage/>;
-      case 'updates':
-        return <UpdatesPage/>;
+      // case 'updates':
+      //   return <UpdatesPage/>;
       default:
         return <></>;
     }

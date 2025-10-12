@@ -1,25 +1,44 @@
-import React from "react";
+import React, {Dispatch, SetStateAction} from "react";
 import type {AppSettings} from "@/lib/types";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "@/components/ui/FormInput.tsx";
+import {toast} from "sonner";
+import {getTimestampMs} from "@/lib/utils.ts";
+import {PageKey} from "@/App.tsx";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type OtherConfigProps = {
   profileId: string;
   onClose: () => void;
+  setActivePage: Dispatch<SetStateAction<PageKey>>;
 };
 
 const OtherConfig: React.FC<OtherConfigProps> = (
   {
-    profileId
+    profileId,
+    onClose,
+    setActivePage
   }
 ) => {
   const {t} = useTranslation();
+  const trigger = useWebSocketStore(state => state.trigger);
 
-  const handleFhx = async () => {
-    // ⚠️ 接口留空，需要你在这里实现与后端或主线程交互
-    // 例如 window.electron.ipcRenderer.invoke("fhx")
-    console.log("一键反和谐 triggered");
-  };
+  const handleTrigger = (taskName: string) => async () => {
+    trigger({
+      timestamp: getTimestampMs(),
+      command: "solve",
+      config_id: profileId,
+      payload: {
+        task: taskName,
+      }
+    }, (_) => {
+      toast(t("stage.taskTriggerStart"), {
+        description: t("stage.taskTriggered", {task: t(taskName)}),
+      })
+    });
+    onClose();
+    setActivePage("home")
+  }
 
   return (
     <div className="space-y-2">
@@ -33,7 +52,7 @@ const OtherConfig: React.FC<OtherConfigProps> = (
           </p>
         </div>
         <button
-          onClick={handleFhx}
+          onClick={handleTrigger("start_fhx")}
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
         >
           {t("execute")}

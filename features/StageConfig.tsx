@@ -109,7 +109,6 @@ const StageConfig: React.FC<StageConfigProps> = (
           task: taskName,
         }
       }, (e) => {
-        console.log("Task Triggered:", taskName, e);
         toast(t("stage.taskTriggerStart"), {
           description: t("stage.taskTriggered", {task: t(taskName)}),
         })
@@ -149,7 +148,7 @@ const StageConfig: React.FC<StageConfigProps> = (
               <FormInput
                 label={t("stage.normalTask")}
                 value={draft.explore_normal_task_list}
-                onChange={(e) => handleChange("explore_hard_task_list")(e.target.value)}
+                onChange={(e) => handleChange("explore_normal_task_list")(e.target.value)}
                 placeholder={t("placeholder.config.insert")}
                 className="flex-1"
               />
