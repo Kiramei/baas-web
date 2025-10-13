@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from "react";
-import {useApp} from "@/contexts/AppContext";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect";
 import type {AppSettings} from "@/lib/types";

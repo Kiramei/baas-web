@@ -1,10 +1,8 @@
 import React, {useMemo, useState} from "react";
 import type {AppSettings} from "@/lib/types.ts";
-import {useApp} from "@/contexts/AppContext.tsx";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {Switch} from "@/components/ui/switch";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 

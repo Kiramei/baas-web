@@ -19,9 +19,9 @@ export function AutoScrollTerminal({children}: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (endRef.current) {
-      endRef.current.scrollIntoView({behavior: "smooth"}); // 平滑滚动到底
+      endRef.current.scrollIntoView({behavior: "smooth"});
     }
-  }, [children]); // 每次 children 改变时触发
+  }, [children]);
 
   return (
     <div

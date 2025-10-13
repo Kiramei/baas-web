@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '../components/ui/Card';
 import {useTheme} from '../hooks/useTheme';
@@ -24,8 +24,7 @@ import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {formatIsoToReadable, getTimestampMs} from "@/lib/utils.ts";
 
 type RepoConfig = {
-  url: string;
-  name: string;
+  label: string;
   method: string;
 };
 
@@ -37,22 +36,30 @@ type ShaTestResult = {
 };
 
 const reposInit: RepoConfig[] = [
-  {url: "https://github.com/pur1fying/blue_archive_auto_script.git", name: "GitHub (主仓库)", method: "github"},
-  {url: "https://gitee.com/pur1fy/blue_archive_auto_script.git", name: "Gitee (国内镜像)", method: "gitee"},
-  {url: "https://gitcode.com/m0_74686738/blue_archive_auto_script.git", name: "GitCode (国内镜像)", method: "gitcode"},
   {
-    url: "https://e.coding.net/g-jbio0266/baas/blue_archive_auto_script.git",
-    name: "腾讯工蜂 (国内镜像)",
-    method: "tencent"
+    label: "updateMethod.github",
+    method: "github"
+  },
+  {
+    label: "updateMethod.gitee",
+    method: "gitee"
+  },
+  {
+    label: "updateMethod.gitcode",
+    method: "gitcode"
+  },
+  {
+    label: "updateMethod.tencent",
+    method: "tencent_c_coding"
   }
 ];
 
 const shaMethodsInit = [
-  "GitHub API",
-  "Mirror酱免费API",
-  "Gitee仓库读取",
-  "GitCode仓库读取",
-  "腾讯工蜂仓库读取"
+  {label: "shaMethod.github", value: "github"},
+  {label: "shaMethod.mirrorc", value: "mirrorc"},
+  {label: "shaMethod.gitee", value: "gitee"},
+  {label: "shaMethod.gitcode", value: "gitcode"},
+  {label: "shaMethod.tencent_c_coding", value: "tencent_c_coding"}
 ];
 
 const SettingsPage: React.FC = () => {
@@ -60,6 +67,8 @@ const SettingsPage: React.FC = () => {
   const {theme, setTheme} = useTheme();
   const {uiSettings} = useApp();
   const trigger = useWebSocketStore(state => state.trigger);
+  const updateConfig = useWebSocketStore(state => state.updateStore);
+  const modify = useWebSocketStore(state => state.modify);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -116,11 +125,9 @@ const SettingsPage: React.FC = () => {
     },
   ]
 
-  const [repo, setRepo] = useState(reposInit[0].url);
-  const [shaMethod, setShaMethod] = useState(shaMethodsInit[0]);
-  const [cdk, setCdk] = useState("");
+  const [cdk, setCdk] = useState(updateConfig["mirrorcCdk"]);
   const [shaResults, setShaResults] = useState<ShaTestResult[]>(
-    shaMethodsInit.map(m => ({method: m, status: "pending"}))
+    shaMethodsInit.map(m => ({method: t(m.label), status: "pending"}))
   );
 
   const fetchVersion = () => {
@@ -147,14 +154,12 @@ const SettingsPage: React.FC = () => {
     });
   }
 
-  // mock 初始化
+  useEffect(() => {
+    console.log(updateConfig)
+  }, [updateConfig]);
+
   useEffect(() => {
     fetchVersion()
-    // setTimeout(() => {
-    //   setLocalVersion(`${verLocal}.${shaLocal}`);
-    //   setRemoteVersion(`${verRemote}.${shaRemote}`);
-    //   setUpdateStatus("GitHub 拉取更新");
-    // }, 800);
   }, []);
 
   useEffect(() => {
@@ -185,13 +190,17 @@ const SettingsPage: React.FC = () => {
         e.data.map(el => ({
           status: el.success ? "success" : "error",
           method: t(`shaMethod.${el.name}`),
-          time: +(el.duration).toFixed(3),
+          time: el.duration.toFixed(3),
           sha: el.value
         }))
       )
       setApiLoading(false);
     });
   };
+
+  const handleChannelChange = (e: ChangeEvent<HTMLInputElement>) => {
+    modify("global::setup_toml", {updateMethod: e.target.value})
+  }
 
   const handleTestCdk = () => {
     if (!cdk) {
@@ -351,9 +360,9 @@ const SettingsPage: React.FC = () => {
 
           <FormSelect
             label={t("updateChannel")}
-            value={repo}
-            onChange={setRepo}
-            options={reposInit.map(r => ({value: r.url, label: r.name}))}
+            value={updateConfig["updateMethod"]}
+            onChange={value => modify("global::setup_toml", {updateMethod: value})}
+            options={reposInit.map(r => ({value: r.method, label: t(r.label)}))}
           />
 
 
@@ -361,9 +370,9 @@ const SettingsPage: React.FC = () => {
 
             <FormSelect
               label={t("shaConnectivityTest")}
-              value={shaMethod}
-              onChange={setShaMethod}
-              options={shaMethodsInit.map(m => ({value: m, label: m}))}
+              value={updateConfig["shaMethod"]}
+              onChange={value => modify("global::setup_toml", {shaMethod: value})}
+              options={shaMethodsInit.map(m => ({value: m.value, label: t(m.label)}))}
               className="flex-grow"
             />
 

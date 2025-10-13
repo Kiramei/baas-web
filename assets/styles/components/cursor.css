@@ -1,29 +1,42 @@
 /* 默认指针（普通状态） */
-html, body, label {
+* {
     cursor: url('/assets/cursors/normal.cur'), auto;
 }
 
-/* 链接/按钮（手指） */
-a,
-button,
-select,
-.cursor-link,
-[role="button"],
-.cursor-pointer,
-input[type="button"] {
-    cursor: url('/assets/cursors/link.cur'), pointer;
+* {
+    user-select: none;
+}
+
+img {
+    -webkit-user-drag: none;
 }
 
 input[type="text"],
-input[type="password"],
-input[type="number"],
-input[type="time"],
-textarea,
-[contenteditable="true"],
-.cursor-text {
+.allow-select-text * {
+    user-select: text;
+}
+
+/* 链接/按钮（手指） */
+a, a *,
+button, button *,
+select, select *,
+.cursor-link, .cursor-link *,
+[role="button"], [role="button"] *,
+.cursor-pointer, .cursor-pointer *,
+input[type="button"], input[type="button"] * {
+    cursor: url('/assets/cursors/link.cur'), pointer !important;
+}
+
+input[type="text"], input[type="text"] *,
+input[type="password"], input[type="password"] *,
+input[type="number"], input[type="number"] *,
+input[type="time"], input[type="time"] *,
+textarea, textarea *,
+[contenteditable="true"], [contenteditable="true"] *,
+.cursor-text, .cursor-text * {
     cursor: url('/assets/cursors/text_static_white.cur') 7 16, text;
 }
 
-.cursor-grab {
+.cursor-grab, .cursor-grab * {
     cursor: url('/assets/cursors/move.cur'), grab;
 }

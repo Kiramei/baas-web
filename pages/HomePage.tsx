@@ -6,11 +6,11 @@ import CButton from '../components/ui/CButton.tsx';
 import Logger from '../components/ui/Logger';
 import AssetsDisplay from '../components/AssetsDisplay';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
-import {FileUp, Hourglass, KeyboardIcon, Logs, Play, Square} from 'lucide-react';
+import {FileUp, ListEnd, Logs, Play, Square} from 'lucide-react';
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
-import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
+// import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 
-import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
+// import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
 import {ProfileProps} from "@/lib/types.ts";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
@@ -19,9 +19,9 @@ import {formatIsoToReadable, getTimestamp, getTimestampMs} from "@/lib/utils.ts"
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
   const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
-  const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
+  // const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
-  const {profiles, activeProfile, updateProfile} = useApp();
+  const {profiles, activeProfile} = useApp();
   const pid = profileId ?? activeProfile?.id;
   const profile = useMemo(() => profiles.find(p => p.id === pid) ?? activeProfile ?? null, [profiles, pid, activeProfile]);
 
@@ -58,25 +58,25 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
 
 
   // 懒加载：仅在模态框打开时获取远端热键
-  const {hotkeys, setHotkeys, loading, save} = useRemoteHotkeys(t, hotkeyModalOpen);
+  // const {hotkeys, setHotkeys, loading, save} = useRemoteHotkeys(t, hotkeyModalOpen);
 
+  // Exclude In Web: HotKey Control
 
-  const handlers = useMemo(() => ({
-    'toggle-run': () => (scriptRunning ? stopScript() : startScript()),
-    'toggle-scroll': () => setScrollToEnd(v => !v),
-    'open-settings': () => setHotkeyModalOpen(true),
-    // 'clear-logs':  () => ...
-    // 'focus-search':() => ...
-    // 'help':        () => ...
-  }), [scriptRunning, startScript, stopScript]);
+  // const handlers = useMemo(() => ({
+  //   'toggle-run': () => (scriptRunning ? stopScript() : startScript()),
+  //   'toggle-scroll': () => setScrollToEnd(v => !v),
+  //   'open-settings': () => setHotkeyModalOpen(true),
+  //   // 'clear-logs':  () => ...
+  //   // 'focus-search':() => ...
+  //   // 'help':        () => ...
+  // }), [scriptRunning, startScript, stopScript]);
 
-  useBindHotkeyHandlers(hotkeys as HotkeyConfig[] | null, handlers);
+  // useBindHotkeyHandlers(hotkeys as HotkeyConfig[] | null, handlers);
 
-  // 关闭模态框时保存（你也可以改为“点保存按钮时保存”，看 Modal 内部实现）
-  const handleCloseModal = async () => {
-    if (hotkeys) await save(hotkeys);
-    setHotkeyModalOpen(false);
-  };
+  // const handleCloseModal = async () => {
+  //   if (hotkeys) await save(hotkeys);
+  //   setHotkeyModalOpen(false);
+  // };
 
   const exportLog = () => {
     const content = logStore[`config:${profileId}`].map(
@@ -104,19 +104,19 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
           <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <CButton
-            variant="secondary"
-            onClick={() => setHotkeyModalOpen(true)}
-            className="items-center hidden sm:flex"
-          >
-            <KeyboardIcon className="w-4 h-4 mr-2"/>
-            {t('hotkeys')}
-          </CButton>
+          {/*<CButton*/}
+          {/*  variant="secondary"*/}
+          {/*  onClick={() => setHotkeyModalOpen(true)}*/}
+          {/*  className="items-center hidden sm:flex"*/}
+          {/*>*/}
+          {/*  <KeyboardIcon className="w-4 h-4 mr-2"/>*/}
+          {/*  {t('hotkeys')}*/}
+          {/*</CButton>*/}
 
           <CButton
             onClick={scriptRunning ? stopScript : startScript}
             variant={scriptRunning ? 'danger' : 'primary'}
-            className="w-32 flex items-center justify-center"
+            className="w-25 pl-3 flex items-center justify-center"
           >
             {scriptRunning ? <Square className="w-4 h-4 mr-2"/> : <Play className="w-4 h-4 mr-2"/>}
             {scriptRunning ? t('stop') : t('start')}
@@ -142,7 +142,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
             </div>
 
           </CardTitle>
-          <div className={'flex items-center justify-center'}>
+          <div className={'lg:flex hidden  items-center justify-center'}>
             <SwitchButton
               checked={scrollToEnd}
               onChange={setScrollToEnd}
@@ -157,6 +157,20 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
             </CButton>
           </div>
 
+          <div className={'lg:hidden flex  items-center justify-center'}>
+            <SwitchButton
+              checked={scrollToEnd}
+              onChange={setScrollToEnd}
+              label={t('log.scroll')}
+              className="!px-4 ml-2 w-8 h-8"
+            >
+              <ListEnd size={20} className={'rounded w-4 h-4 translate-x-[-8px]'}/>
+            </SwitchButton>
+            <CButton onClick={exportLog} className='ml-2 w-8 h-8'>
+              <FileUp size={20} className={'rounded w-4 h-4 translate-x-[-8px]'}/>
+            </CButton>
+          </div>
+
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 p-0 flex overflow-x-hidden">
@@ -164,14 +178,13 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
         </CardContent>
       </Card>
 
-      {/* 模态框：打开=查看（loading 时可在 Modal 内做骨架屏/禁用保存） */}
-      <HotkeySettingsModal
-        isOpen={hotkeyModalOpen}
-        onClose={handleCloseModal}
-        value={hotkeys ?? []}
-        onChange={setHotkeys as (v: HotkeyConfig[]) => void}
-        // 你若能改 Modal，建议加 onSave={() => save(hotkeys ?? [])} 与 disabled={loading}
-      />
+
+      {/*<HotkeySettingsModal*/}
+      {/*  isOpen={hotkeyModalOpen}*/}
+      {/*  onClose={handleCloseModal}*/}
+      {/*  value={hotkeys ?? []}*/}
+      {/*  onChange={setHotkeys as (v: HotkeyConfig[]) => void}*/}
+      {/*/>*/}
     </div>
   );
 };

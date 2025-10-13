@@ -2,7 +2,7 @@
 
 import React, {useEffect, useRef} from "react"
 import type {LogItem} from "@/store/websocketStore.ts"
-import {formatIsoToReadable} from "@/lib/utils.ts"
+import {formatIsoToReadable, formatIsoToReadableTime} from "@/lib/utils.ts"
 import {List} from "react-window"
 import {type RowComponentProps, useDynamicRowHeight} from "react-window";
 import {Button} from "@/components/ui/button.tsx";
@@ -42,18 +42,18 @@ const getMessageStyle = (level: string) => {
   }
 };
 
-const Row = ({ index, logs, style }: RowComponentProps<{ logs: LogItem[] }>) => {
+const Row = ({index, logs, style}: RowComponentProps<{ logs: LogItem[] }>) => {
   const log: LogItem = logs[index];
   return (
-    <div style={style} className="flex items-start gap-2 cursor-text px-2">
+    <div style={style} className="flex items-start cursor-text px-2">
       {/* 时间 */}
-      <span className="text-gray-500 whitespace-nowrap min-w-[120px] hidden sm:block">
-        {formatIsoToReadable(log.time)}
+      <span className="text-gray-500 whitespace-nowrap min-w-[100px] hidden sm:block">
+        {formatIsoToReadableTime(log.time)}
       </span>
 
       {/* Level */}
       <span
-        className={`sm:min-w-[70px] ${getLevelColor(log.level)} font-bold flex justify-end`}
+        className={`sm:min-w-[70px] ${getLevelColor(log.level)} font-bold flex justify-end mr-2`}
       >
         {/* 在小屏幕下只显示第一个字母, 大屏幕显示完整内容 */}
         <span className="block sm:hidden">{log.level.trim().charAt(0)}</span>
@@ -84,15 +84,17 @@ const Logger: React.FC<LoggerProps> = ({logs, scrollToEnd}) => {
   });
 
   return (
-    <div className="w-full h-full bg-slate-900/80 dark:bg-slate/50 rounded-lg font-mono text-sm text-white py-1 pl-1 sm:py-4 sm:pl-4 overflow-x-auto">
-      <List
-        listRef={listRef}
-        rowComponent={Row}
-        rowCount={logs.length}
-        rowHeight={rowHeight}
-        rowProps={{logs}}
-        // className="min-w-[600px]"
-      />
+    <div
+      className="w-full h-full bg-slate-900/80 dark:bg-slate/50 rounded-lg font-mono text-sm text-white py-1 pl-1 sm:py-4 sm:pl-4 overflow-x-auto allow-select-text">
+      {logs ?
+        <List
+          listRef={listRef}
+          rowComponent={Row}
+          rowCount={logs.length}
+          rowHeight={rowHeight}
+          rowProps={{logs}}
+          // className="min-w-[600px]"
+        /> : <></>}
     </div>
   );
 };

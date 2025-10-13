@@ -59,7 +59,7 @@ function Input({className, type, ...props}: React.ComponentProps<"input">) {
   // 其他类型保持不变
   return (
     <input
-      type={type}
+      type={type??"text"}
       data-slot="input"
       className={cn(
         "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground " +

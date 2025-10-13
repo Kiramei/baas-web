@@ -128,15 +128,15 @@ const Header: React.FC = () => {
 
   const handleCreate = async (name: string, server: string) => {
     // 重名校验
-    if (tabs.some(t => t.name.trim() === name.trim())) throw new Error(t('nameExists') || 'Name already exists');
-    const created = await createProfile({name: name.trim(), server, settings: DEFAULT_CONFIG});
-    setTabs(prev => [...prev, created]);
-    setActiveProfile(created);
-    // 轻微“出现”动画由 motion 在 Tab 上处理（mount 时从 0→1）
-    setTimeout(() => {
-      const el = document.getElementById(`tab-${created.id}`);
-      el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-    }, 0);
+    // if (tabs.some(t => t.name.trim() === name.trim())) throw new Error(t('nameExists') || 'Name already exists');
+    // const created = await createProfile({name: name.trim(), server, settings: DEFAULT_CONFIG});
+    // setTabs(prev => [...prev, created]);
+    // setActiveProfile(created);
+    // // 轻微“出现”动画由 motion 在 Tab 上处理（mount 时从 0→1）
+    // setTimeout(() => {
+    //   const el = document.getElementById(`tab-${created.id}`);
+    //   el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+    // }, 0);
   };
 
   const handleEdit = async (tab: Tab, name: string, server: string) => {

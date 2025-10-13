@@ -52,7 +52,6 @@ const FeatureSwitchModal: React.FC<FeatureSwitchModalProps> = ({task, onClose, o
             type="number"
             value={form.priority ?? 0}
             onChange={(e) => handleChange("priority", Number(e.target.value))}
-            min={0}
           />
 
           {/* 执行间隔 */}

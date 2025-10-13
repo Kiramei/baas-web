@@ -6,7 +6,6 @@ import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {useTranslation} from "react-i18next";
 import type {AppSettings} from "@/lib/types";
-import {useApp} from "@/contexts/AppContext";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {DynamicConfig} from "@/lib/type.dynamic.ts";

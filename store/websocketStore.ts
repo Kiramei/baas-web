@@ -9,7 +9,7 @@ import {t} from "i18next";
 const SECRET = "FOSL";
 const BASE = "ws://localhost:8190";
 
-type WsName = "provider" | "sync" | "trigger";
+type WsName = "provider" | "sync" | "trigger" | "heartbeat";
 
 export interface LogItem {
   time: string;
@@ -77,6 +77,7 @@ interface WebSocketState {
   staticStore: any;
   eventStore: any;
   guiStore: any;
+  updateStore: any;
   statusStore: { [id: string]: StatusItem };
   connect: (name: WsName) => Promise<void>;
   disconnect: (name: WsName) => void;
@@ -84,9 +85,12 @@ interface WebSocketState {
   init: () => Promise<void>;
   modify: (path: string, value: any) => void;
   patch: (path: string, value: any) => void;
-  _all_data_initialized: boolean;
   trigger: (payload: CommandPayload, callback?: (e) => void) => void;
   pendingCallbacks: Record<string, (data?: any) => void>;
+
+  _all_data_initialized: boolean;
+  _heartbeat_time: number;
+  _initiating: boolean;
 }
 
 const {appendGlobalLog} = useGlobalLogStore.getState()
@@ -150,10 +154,13 @@ export const useWebSocketStore = create<WebSocketState>()(
     staticStore: {},
     eventStore: {},
     guiStore: {},
+    updateStore: {},
     statusStore: {},
     pendingCallbacks: {},
 
     _all_data_initialized: false,
+    _heartbeat_time: 0,
+    _initiating: false,
 
     connect: async (name: WsName) => {
       if (get().connections[name]) return;
@@ -162,6 +169,7 @@ export const useWebSocketStore = create<WebSocketState>()(
       if (name === "provider") url = `${BASE}/ws/provider`;
       if (name === "sync") url = `${BASE}/ws/sync`;
       if (name === "trigger") url = `${BASE}/ws/trigger`;
+      if (name === "heartbeat") url = `${BASE}/ws/heartbeat`;
 
       const resourceCallBack = {
         "config": (message: WsMessageItem) => {
@@ -188,6 +196,11 @@ export const useWebSocketStore = create<WebSocketState>()(
         "gui": (message: WsMessageItem) => {
           set((_) => ({
             guiStore: message.data,
+          }));
+        },
+        "setup_toml": (message: WsMessageItem) => {
+          set((_) => ({
+            updateStore: message.data,
           }));
         },
       };
@@ -219,6 +232,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         "snapshot": (message: WsMessageItem) => {
           resourceCallBack[message.resource](message);
         },
+
         "logs_full": (message: WsMessageItem) => {
           const scopes = message.scopes;
           const log_added: { [key: string]: LogItem[] } = Object.fromEntries(scopes.map((id) => [id, []]));
@@ -323,7 +337,11 @@ export const useWebSocketStore = create<WebSocketState>()(
           } else {
             console.warn("CallBack Not Found:", message);
           }
+        },
 
+        "heartbeat": (message: WsMessageItem) => {
+          const {timestamp} = message;
+          set(state => ({...state, _heartbeat_time: timestamp}));
         }
       };
       const ws = new SecureWebSocket(url, SECRET, name);
@@ -335,6 +353,17 @@ export const useWebSocketStore = create<WebSocketState>()(
           console.error("Message parse error:", err, msg);
         }
       });
+
+      ws.onClose = () => {
+        set((state) => {
+          const next = {...state.connections};
+          delete next[name];
+          return {connections: next};
+        });
+      };
+
+      ws.onError = (e) => console.error("Socket error:", e);
+
       set((state) => ({
         connections: {...state.connections, [name]: ws},
       }));
@@ -359,6 +388,10 @@ export const useWebSocketStore = create<WebSocketState>()(
     },
 
     init: async () => {
+      if (get()._initiating) return;
+      set(state => ({...state, _initiating: true}));
+      await connectWithRetry("heartbeat");
+
       await connectWithRetry("provider")
       // await pause(Infinity)
       // Sync Stage Init
@@ -377,6 +410,14 @@ export const useWebSocketStore = create<WebSocketState>()(
         get,
         api.subscribe,
         (s: WebSocketState) => Object.keys(s.guiStore).length,
+        (len) => len > 0
+      );
+
+      get().send("sync", {type: "pull", resource: "setup_toml"});
+      await waitFor(
+        get,
+        api.subscribe,
+        (s: WebSocketState) => Object.keys(s.updateStore).length,
         (len) => len > 0
       );
 
@@ -412,6 +453,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         (s: WebSocketState) => s._all_data_initialized,
         (status) => status
       );
+      set(state => ({...state, _initiating: false}));
     },
 
     patch: (path: string, patch: any) => {
@@ -430,6 +472,9 @@ export const useWebSocketStore = create<WebSocketState>()(
             break;
           case "gui":
             storeKey = "guiStore";
+            break;
+          case "setup_toml":
+            storeKey = "updateStore";
             break;
           default:
             throw new Error(`Unknown resource scope: ${scope}`);
@@ -458,13 +503,20 @@ export const useWebSocketStore = create<WebSocketState>()(
           const lastKey = keys[keys.length - 1];
           current[lastKey] = patch;
         }
-
-        return {
-          [storeKey]: {
-            ...store,
-            [resourceId]: base
-          }
-        };
+        if (resourceId === "global")
+          return {
+            [storeKey]: {
+              ...store,
+              ...base
+            }
+          };
+        else
+          return {
+            [storeKey]: {
+              ...store,
+              [resourceId]: base
+            }
+          };
       });
     },
 

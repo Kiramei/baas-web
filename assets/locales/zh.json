@@ -385,5 +385,11 @@
   "version.untested": "未测试",
   "version.testing": "测试中...",
   "version.tapToTest": "检查更新",
-  "version.checkError": "版本获取失败"
+  "version.checkError": "版本获取失败",
+  "heartbeat.connected": "服务已连接",
+  "heartbeat.connecting": "服务连接中...",
+  "updateMethod.github": "GitHub（主仓库）",
+  "updateMethod.gitee": "Gitee（国内镜像）",
+  "updateMethod.gitcode": "GitCode（国内镜像）",
+  "updateMethod.tencent": "腾讯工蜂（国内镜像）"
 }

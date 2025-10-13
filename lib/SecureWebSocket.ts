@@ -37,6 +37,11 @@ export class SecureWebSocket {
   private ws: WebSocket | null = null;
   private fernetSecret: any = null;
 
+  // 外部可绑定的回调
+  public onOpen?: (event: Event) => void;
+  public onClose?: (event: CloseEvent) => void;
+  public onError?: (event: Event) => void;
+
   constructor(url: string, sharedSecret: string, name: string) {
     this.url = url;
     this.sharedSecret = sharedSecret;
@@ -45,10 +50,12 @@ export class SecureWebSocket {
 
   async connect(onMessage?: (msg: any) => void): Promise<void> {
     return new Promise((resolve, reject) => {
+      let handshakeDone = false;
       this.ws = new WebSocket(this.url);
 
-      this.ws.onopen = () => {
+      this.ws.onopen = (e) => {
         console.log(`[${this.name}] Connected`);
+        this.onOpen?.(e);
       };
 
       this.ws.onmessage = async (event) => {
@@ -61,15 +68,21 @@ export class SecureWebSocket {
           } else if (msg.type === "handshake_ok") {
             this.fernetSecret = await buildFernet(this.sharedSecret);
             console.log(`[${this.name}] Handshake OK`);
-            resolve();
+            handshakeDone = true;
+            resolve(); // 连接建立完成
           }
         } catch {
           if (!this.fernetSecret) return;
           try {
             const token = event.data;
-            const f = new window.fernet.Token({secret: this.fernetSecret, token, ttl: 0});
+            const f = new window.fernet.Token({
+              secret: this.fernetSecret,
+              token,
+              ttl: 0,
+            });
             const plaintext = f.decode();
-            console.log(`[${this.name}] Recv: ${plaintext}`);
+            if (this.name !== "heartbeat")
+              console.log(`[${this.name}] Recv: ${plaintext}`);
             onMessage?.(plaintext);
           } catch (err) {
             console.error(`[${this.name}] Decrypt error: ${err}`);
@@ -77,19 +90,36 @@ export class SecureWebSocket {
         }
       };
 
-      this.ws.onerror = (e) => reject(e);
-      this.ws.onclose = () => console.log(`[${this.name}] Closed`);
+      this.ws.onerror = (e) => {
+        console.error(`[${this.name}] Error:`, e);
+        this.onError?.(e);
+        if (!handshakeDone) reject(e); // 若握手未完成，视为连接失败
+      };
+
+      this.ws.onclose = (e) => {
+        console.warn(
+          `[${this.name}] Closed (code=${e.code}, reason=${e.reason || "none"})`
+        );
+        this.onClose?.(e); // 通知外部
+        if (!handshakeDone) reject(e); // 若连接在握手前关闭，视为失败
+      };
     });
   }
 
   sendJson(obj: any) {
     if (!this.fernetSecret) throw new Error("Handshake not done");
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN)
+      throw new Error("WebSocket not open");
     const token = new window.fernet.Token({secret: this.fernetSecret});
-    this.ws?.send(token.encode(JSON.stringify(obj)));
+    const encoded = token.encode(JSON.stringify(obj));
+    this.ws.send(encoded);
     console.log(`[${this.name}] Sent: ${JSON.stringify(obj)}`);
   }
 
   close(): void {
-    this.ws.close();
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
   }
 }

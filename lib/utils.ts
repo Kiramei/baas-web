@@ -63,6 +63,19 @@ export const formatIsoToReadable = (iso: string): string => {
   );
 }
 
+export const formatIsoToReadableTime = (iso: string): string => {
+  const date = new Date(iso);
+
+  const pad = (n: number, len = 2) => String(n).padStart(len, "0");
+
+  return (
+    `${pad(date.getHours())}:` +
+    `${pad(date.getMinutes())}:` +
+    `${pad(date.getSeconds())}.` +
+    `${pad(date.getMilliseconds(), 3)}`
+  );
+}
+
 export const assert = (condition: any, msg?: string) => {
   if (!condition) {
     throw new Error(msg ?? "Assertion failed");

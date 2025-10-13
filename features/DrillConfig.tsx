@@ -1,6 +1,5 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useMemo, useState} from "react";
 import type {AppSettings} from "@/lib/types.ts";
-import {useApp} from "@/contexts/AppContext.tsx";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";

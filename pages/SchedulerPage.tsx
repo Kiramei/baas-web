@@ -45,10 +45,11 @@ const TaskRow = React.memo(function TaskRow(
       className="flex items-center justify-between bg-slate-50 dark:bg-slate-700 p-2 rounded-md gap-2 min-w-0 overflow-x-hidden">
       {side === "left" ? (
         <>
-          <EllipsisWithTooltip
-            text={t("eventName." + task.func_name)}
-            className="flex-grow min-w-0 overflow-hidden text-ellipsis text-left mr-2"
-          />
+          <div className="flex flex-grow min-w-0 overflow-hidden text-ellipsis text-left mr-2">
+            <EllipsisWithTooltip
+              text={t("eventName." + task.func_name)}
+            />
+          </div>
           <DateTimePicker
             value={task.next_tick * 1000}
             onChange={(ts) => onChangeTime(task, ts)}
@@ -76,10 +77,11 @@ const TaskRow = React.memo(function TaskRow(
             onChange={(ts) => onChangeTime(task, ts)}
             className="hidden xl:flex"
           />
-          <EllipsisWithTooltip
-            text={t("eventName." + task.func_name)}
-            className="flex-grow min-w-0 overflow-hidden text-ellipsis text-right mr-2"
-          />
+          <div className="flex flex-grow min-w-0 overflow-hidden text-ellipsis text-right mr-2 justify-end">
+            <EllipsisWithTooltip
+              text={t("eventName." + task.func_name)}
+            />
+          </div>
         </>
       )}
     </div>

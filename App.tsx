@@ -6,10 +6,10 @@ import HomePage from '@/pages/HomePage';
 import SchedulerPage from '@/pages/SchedulerPage';
 import ConfigurationPage from '@/pages/ConfigurationPage';
 import SettingsPage from '@/pages/SettingsPage';
-import UpdatesPage from '@/pages/UpdatesPage';
+// import UpdatesPage from '@/pages/UpdatesPage';
 import type {Variants} from 'framer-motion';
 import {motion} from 'framer-motion';
-import {useApp} from '@/contexts/AppContext'; // ⬅️ 新增：拿到 activeProfile
+import {useApp} from '@/contexts/AppContext'; // 新增：拿到 activeProfile
 import {LoadingPage} from './pages/LoadingPage';
 import {Toaster} from "sonner";
 
@@ -89,11 +89,11 @@ const parseInstanceKey = (k: string): [PageKey, string | undefined] => {
 const Main: React.FC = () => {
   const [activePage, setActivePage] = React.useState<PageKey>('home');
 
-  // ⬇️ 新增：拿当前激活配置 id
+  // 拿当前激活配置 id
   const {activeProfile} = useApp();
 
   const activePid = activeProfile.id;
-  // ✅ 初始化保活集合用“实例键”，而非仅页面名
+  // 初始化保活集合用“实例键”，而非仅页面名
   const seenKeysRef = React.useRef<Set<string>>(
     new Set([instanceKeyOf('home', activePid)]) // 初始保活 Home:当前配置
   );
@@ -128,13 +128,13 @@ const Main: React.FC = () => {
     <MainLayout activePage={activePage} setActivePage={setActivePage}>
       {/* 外层容器固定尺寸，内部页面叠放 */}
       <div className="relative flex-1 min-h-0 overflow-hidden scroll-embedded h-[calc(100%-70px)] lg:h-full">
-        {/* ⬇️ 用“已见实例键”来渲染，确保同一页面不同配置能各自保活 */}
+        {/* 用“已见实例键”来渲染，确保同一页面不同配置能各自保活 */}
         {Array.from(seenKeysRef.current).map((instKey) => {
           const [page, pid] = parseInstanceKey(instKey);
           const isActive = instKey === activeInstanceKey;
           return (
             <motion.div
-              key={instKey} // ⬅️ 关键：实例键作为 key，区分不同配置的同一页面
+              key={instKey} // 关键：实例键作为 key，区分不同配置的同一页面
               className="absolute inset-0 overflow-y-auto scroll-embedded pr-2 "
               variants={variants}
               initial={isActive ? 'show' : 'hide'}
