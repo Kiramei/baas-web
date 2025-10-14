@@ -54,6 +54,8 @@ const reposInit: RepoConfig[] = [
   }
 ];
 
+let hybrid = true;
+
 const shaMethodsInit = [
   {label: "shaMethod.github", value: "github"},
   {label: "shaMethod.mirrorc", value: "mirrorc"},
@@ -69,6 +71,7 @@ const SettingsPage: React.FC = () => {
   const trigger = useWebSocketStore(state => state.trigger);
   const updateConfig = useWebSocketStore(state => state.updateStore);
   const modify = useWebSocketStore(state => state.modify);
+  const [reposInitState, setReposInitState] = useState(reposInit);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -107,6 +110,9 @@ const SettingsPage: React.FC = () => {
   const [mcLoading, setMcLoading] = useState(false);
   const [versionChecking, setVersionChecking] = useState(true);
 
+  const [updateMethod, setUpdateMethod] = useState<string>(updateConfig["updateMethod"]);
+  const [dueDate, setDueDate] = useState("");
+
   const infos = [
     {
       label: t("localVersion") ?? "当前版本",
@@ -124,10 +130,9 @@ const SettingsPage: React.FC = () => {
       icon: <RefreshCcw className={`w-8 h-8 text-purple-500 ${versionChecking ? "animate-spin" : ""}`}/>
     },
   ]
-
   const [cdk, setCdk] = useState(updateConfig["mirrorcCdk"]);
   const [shaResults, setShaResults] = useState<ShaTestResult[]>(
-    shaMethodsInit.map(m => ({method: t(m.label), status: "pending"}))
+    shaMethodsInit.map(m => ({method: m.label, status: "pending"}))
   );
 
   const fetchVersion = () => {
@@ -155,12 +160,29 @@ const SettingsPage: React.FC = () => {
   }
 
   useEffect(() => {
-    console.log(updateConfig)
-  }, [updateConfig]);
+    if (hybrid) {
+      hybrid = false;
+      fetchVersion()
+      if (cdk) {
+        console.log("...")
+        handleTestCdk(undefined)
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    fetchVersion()
-  }, []);
+    console.log("[update]", updateConfig)
+    if (updateConfig["mirrorcCdk"]) {
+      setReposInitState([...reposInit, {
+        label: "updateMethod.mirrorc",
+        method: "mirrorc"
+      }])
+      setUpdateMethod("mirrorc");
+    } else {
+      setUpdateMethod(updateConfig["updateMethod"]);
+      setReposInitState(reposInit.filter(ele => ele.method !== "mirrorc"))
+    }
+  }, [updateConfig]);
 
   useEffect(() => {
     if (verLocal + shaLocal + verRemote + shaRemote !== "") {
@@ -179,13 +201,11 @@ const SettingsPage: React.FC = () => {
   const handleTestSha = () => {
     setApiLoading(true);
     setShaResults(shaResults.map(r => ({...r, status: "testing"})));
-
     trigger({
       timestamp: getTimestampMs(),
       command: "test_all_sha",
       payload: {}
     }, (e) => {
-      console.log(e);
       setShaResults(
         e.data.map(el => ({
           status: el.success ? "success" : "error",
@@ -198,38 +218,51 @@ const SettingsPage: React.FC = () => {
     });
   };
 
-  const handleChannelChange = (e: ChangeEvent<HTMLInputElement>) => {
-    modify("global::setup_toml", {updateMethod: e.target.value})
+  const handleUpdateMethod = (value: string) => {
+    if (value === "mirrorc") {
+      setUpdateMethod(value)
+      return;
+    } else if (value !== "mirrorc" && updateConfig["mirrorcCdk"]) {
+      setCdk("");
+      setDueDate("")
+    }
+    modify("global::setup_toml", {mirrorcCdk: ""}, false);
+    modify("global::setup_toml", {updateMethod: value});
+    setUpdateMethod(value)
   }
 
-  const handleTestCdk = () => {
+  const handleTestCdk = (_, showMessage: boolean = true) => {
     if (!cdk) {
-      toast.error(t("cdk.noCDKInput"))
-      return
+      if (showMessage) {
+        toast.error(t("cdk.noCDKInput"))
+      }
     }
-
     setMcLoading(true);
-
     trigger({
-      timestamp: getTimestampMs(),
+      timestamp: getTimestampMs() + Math.random(),
       command: "valid_cdk",
       payload: {
         "cdk": cdk
       }
     }, (e) => {
-      console.log(e);
       if (e.data.success) {
         const expires_at_iso = e.data.expires_at_iso;
         console.log(expires_at_iso)
         const message = expires_at_iso ?
           t(e.data.message, {expire_date: formatIsoToReadable(expires_at_iso)}) as string
           : t(e.data.message);
-        console.log(message)
-        toast.success(t("CDK Test OK"), {description: message});
+        if (showMessage) toast.success(t("CDK Test OK"), {description: message});
+        setDueDate(expires_at_iso)
+        modify("global::setup_toml", {mirrorcCdk: cdk}, false);
       } else {
-        toast.error(t(e.data.message), {
-          description: t(e.data.mirrorc_message)
-        })
+        if (cdk !== "" && showMessage) {
+          toast.error(t(e.data.message), {
+            description: t(e.data.mirrorc_message)
+          })
+        }
+        setCdk("")
+        setDueDate("")
+        modify("global::setup_toml", {mirrorcCdk: ""}, false);
       }
       setMcLoading(false);
     });
@@ -237,8 +270,43 @@ const SettingsPage: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('settings')}</h2>
+    <div className="space-y-4">
+
+      <Card
+        className="relative overflow-hidden rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 shadow-lg">
+        {/* 渐变边框光晕 */}
+        <div
+          className="absolute inset-0 rounded-2xl border border-transparent [mask-composite:exclude] bg-gradient-to-r from-cyan-400/40 via-indigo-400/40 to-purple-400/40 blur-2xl opacity-40 pointer-events-none"
+        />
+
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Info className="w-5 h-5 text-cyan-400"/>
+          <CardTitle
+            className="text-lg font-semibold tracking-wide bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+            {t("versionInfo")}
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {infos.map((info, i) => (
+            <div key={i}
+                 className={`flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800/40 transition ${info.label === t("updateMethod") ? " cursor-link hover:bg-white/70 dark:hover:bg-slate-700/50" : ""}`}
+                 onClick={info.label === t("updateMethod") ? fetchVersion : undefined}
+            >
+              {info.icon}
+              <div className="flex flex-col">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  {info.label}
+                </p>
+                <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                  {info.value}
+                </p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>{t('uiSettings')}</CardTitle>
@@ -286,85 +354,58 @@ const SettingsPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('title.updateSetting')}</h2>
-      <Card
-        className="relative overflow-hidden rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 shadow-lg">
-        {/* 渐变边框光晕 */}
-        <div
-          className="absolute inset-0 rounded-2xl border border-transparent [mask-composite:exclude] bg-gradient-to-r from-cyan-400/40 via-indigo-400/40 to-purple-400/40 blur-2xl opacity-40 pointer-events-none"
-        />
-
-        <CardHeader className="flex flex-row items-center gap-2">
-          <Info className="w-5 h-5 text-cyan-400"/>
-          <CardTitle
-            className="text-lg font-semibold tracking-wide bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            {t("versionInfo")}
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {infos.map((info, i) => (
-            <div key={i}
-                 className={`flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800/40 transition ${info.label === t("updateMethod") ? " cursor-link hover:bg-white/70 dark:hover:bg-slate-700/50" : ""}`}
-                 onClick={info.label === t("updateMethod") ? fetchVersion : undefined}
-            >
-              {info.icon}
-              <div className="flex flex-col">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                  {info.label}
-                </p>
-                <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                  {info.value}
-                </p>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* 全局更新设置 */}
       <Card>
         <CardHeader>
           <CardTitle>{t("globalUpdateSettings") ?? "全局更新设置"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2 items-center">
-            <FormInput
-              label={t("mirrorCdk")}
-              placeholder={t("enterCdk")}
-              value={cdk}
-              onChange={e => setCdk(e.target.value)}
-              className="flex-1"
-            />
+          <div className="grid grid-cols-1 gap-1">
 
-            <CButton
-              onClick={handleTestCdk}
-              disabled={mcLoading}
-              className="pl-3 self-end"
-            >
-              {mcLoading ? (
-                <div className="flex justify-center items-center">
-                  <Loader2 className="animate-spin mr-2 h-4 w-4"/>
-                  {t("mirror.verifying")}
-                </div>
-              ) : (
-                <div className="flex justify-center items-center">
-                  <UserSearch className="mr-1 h-4 w-4"/>
-                  {t("mirror.verify")}
-                </div>
-              )}
-            </CButton>
+            <div className="flex gap-2 items-center">
+              <FormInput
+                label={t("mirrorCdk")}
+                placeholder={t("enterCdk")}
+                value={cdk}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    handleTestCdk(undefined);
+                  }
+                }}
+                onChange={e => setCdk(e.target.value)}
+                className="flex-1"
+              />
+
+              <CButton
+                onClick={handleTestCdk}
+                disabled={mcLoading}
+                className="pl-3 self-end"
+              >
+                {mcLoading ? (
+                  <div className="flex justify-center items-center">
+                    <Loader2 className="animate-spin mr-2 h-4 w-4"/>
+                    {t("mirror.verifying")}
+                  </div>
+                ) : (
+                  <div className="flex justify-center items-center">
+                    <UserSearch className="mr-1 h-4 w-4"/>
+                    {t("mirror.verify")}
+                  </div>
+                )}
+              </CButton>
+            </div>
+            {dueDate !== "" ? <div className="text-sm text-slate-600">
+              {t("update.dueDate")}: {formatIsoToReadable(dueDate)}
+            </div> : <div className="text-sm text-slate-600">&nbsp;</div>}
           </div>
 
           <Separator/>
 
           <FormSelect
             label={t("updateChannel")}
-            value={updateConfig["updateMethod"]}
-            onChange={value => modify("global::setup_toml", {updateMethod: value})}
-            options={reposInit.map(r => ({value: r.method, label: t(r.label)}))}
+            value={updateMethod}
+            onChange={handleUpdateMethod}
+            options={reposInitState.map(r => ({value: r.method, label: t(r.label)}))}
           />
-
 
           <div className="flex gap-2">
 
@@ -427,8 +468,9 @@ const SettingsPage: React.FC = () => {
                   className="odd:bg-white even:bg-slate-50 dark:odd:bg-slate-900 dark:even:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   {/* 方法列自适应 */}
-                  <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                    <EllipsisWithTooltip text={r.method}/>
+                  <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex">
+                    <EllipsisWithTooltip text={t(r.method)}/>
+                    <div className="flex-grow"></div>
                   </td>
 
                   {/* 状态列：固定宽度 */}
@@ -448,14 +490,14 @@ const SettingsPage: React.FC = () => {
                   </td>
 
                   {/* 耗时列：固定宽度 */}
-                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700 w-24">
+                  <td className="px-4 py-3 text-center border-b border-slate-200 dark:border-slate-700 font-mono w-24">
                     {r.time ?? "-"}
                   </td>
 
                   {/* SHA列：固定宽度，单行截断或换行 */}
                   <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-mono w-20">
                     {r.sha ?
-                      <EllipsisWithTooltip text={r.sha.substring(0, 6)} tooltip={r.sha}></EllipsisWithTooltip> : "-"}
+                      <EllipsisWithTooltip text={r.sha.substring(0, 6)} tooltip={r.sha}/> : "-"}
                   </td>
                 </tr>
               ))}
@@ -464,7 +506,6 @@ const SettingsPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
     </div>
   );
 };

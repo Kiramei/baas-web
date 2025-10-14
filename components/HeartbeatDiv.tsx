@@ -63,22 +63,20 @@ const HeartbeatDiv = () => {
   const [connected, setConnected] = useState(false);
 
   return (
-    <>
+    <div
+      className="flex flex-row items-center justify-center p-4 bg-slate-100/50 dark:bg-slate-700/50 w-full rounded-xl self-start">
+      <HeartbeatIndicator onStateChanged={setConnected}/>
+      <motion.div
+        className="ml-4 text-sm font-bold rounded-lg"
+        animate={{
+          color: connected ? "var(--color-primary-400)" : "var(--color-slate-400)",
+        }}
+        transition={{duration: 0.4}}
+      >
+        {connected ? t("heartbeat.connected") : t("heartbeat.connecting")}
+      </motion.div>
       <div className="flex-grow"/>
-      <div className="flex flex-row items-center justify-center p-4 bg-slate-100/50 dark:bg-slate-700/50 w-full rounded-xl self-start">
-        <HeartbeatIndicator onStateChanged={setConnected}/>
-        <motion.div
-          className="ml-4 text-sm font-bold rounded-lg"
-          animate={{
-            color: connected ? "var(--color-primary-400)" : "var(--color-slate-400)",
-          }}
-          transition={{ duration: 0.4 }}
-        >
-          {connected ? t("heartbeat.connected") : t("heartbeat.connecting")}
-        </motion.div>
-        <div className="flex-grow"/>
-      </div>
-    </>
+    </div>
   );
 }
 

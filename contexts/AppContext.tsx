@@ -2,13 +2,6 @@ import React, {createContext, useContext, useState, useEffect, ReactNode, useCal
 import type {ConfigProfile, SchedulerStatus, Asset, LogEntry, AppSettings, UISettings} from '@/lib/types.ts';
 
 import api from '@/services/api';
-import {
-  createProfile as apiCreateProfile,
-  updateProfile as apiUpdateProfile,
-  deleteProfile as apiDeleteProfile,
-  reorderProfiles as apiReorderProfiles,
-  type ProfileDTO,
-} from '@/services/profileService';
 import {GlobalSelectProvider} from "@/components/ui/select-global"
 
 // type

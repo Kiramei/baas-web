@@ -6,7 +6,7 @@ import HomePage from '@/pages/HomePage';
 import SchedulerPage from '@/pages/SchedulerPage';
 import ConfigurationPage from '@/pages/ConfigurationPage';
 import SettingsPage from '@/pages/SettingsPage';
-// import UpdatesPage from '@/pages/UpdatesPage';
+import WikiPage from "@/pages/WikiPage.tsx";
 import type {Variants} from 'framer-motion';
 import {motion} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext'; // 新增：拿到 activeProfile
@@ -69,7 +69,7 @@ const App: React.FC = () => {
 };
 
 
-export type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'updates';
+export type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'wiki';
 
 // 计算“实例键”：三页带 profileId，其他页不带
 const instanceKeyOf = (page: PageKey, pid?: string) =>
@@ -114,8 +114,8 @@ const Main: React.FC = () => {
         return <ConfigurationPage profileId={pid} setActivePage={setActivePage}/>;
       case 'settings':
         return <SettingsPage/>;
-      // case 'updates':
-      //   return <UpdatesPage/>;
+      case 'wiki':
+        return <WikiPage/>;
       default:
         return <></>;
     }

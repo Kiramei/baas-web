@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {useTranslation} from 'react-i18next';
-import {Home, ListChecks, SlidersHorizontal, Settings, GitBranch} from 'lucide-react';
-import HeartbeatChart from "@/components/HeartbeatDiv.tsx";
+import {Home, ListChecks, SlidersHorizontal, Settings, BookOpenText, ArrowBigUpDash} from 'lucide-react';
+import HeartbeatChart, {HeartbeatIndicator} from "@/components/HeartbeatDiv.tsx";
+import {motion} from "framer-motion";
 
 interface SidebarProps {
   activePage: string;
@@ -16,7 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({activePage, setActivePage}) => {
     {id: 'scheduler', label: t('scheduler'), icon: ListChecks},
     {id: 'configuration', label: t('configuration'), icon: SlidersHorizontal},
     {id: 'settings', label: t('settings'), icon: Settings},
-    {id: 'updates', label: t('updates'), icon: GitBranch},
+    {id: 'wiki', label: t('wiki'), icon: BookOpenText},
   ];
 
   return (
@@ -58,7 +59,17 @@ const Sidebar: React.FC<SidebarProps> = ({activePage, setActivePage}) => {
               </li>
             ))}
           </ul>
-        <HeartbeatChart/>
+          <div className="flex-grow"/>
+          <button
+            className="flex flex-row items-center justify-center p-4 bg-red-100/50 hover:bg-red-100/90 dark:bg-red-900/50 hover:dark:bg-red-900/90 w-full rounded-xl self-start mb-2 transition">
+            <ArrowBigUpDash className="text-red-500"/>
+            <div className="ml-2 text-sm font-bold rounded-lg text-red-500">
+              {t("update.available")}
+            </div>
+            <div className="flex-grow"/>
+          </button>
+
+          <HeartbeatChart/>
         </nav>
 
       </aside>

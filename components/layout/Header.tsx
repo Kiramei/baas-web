@@ -1,19 +1,16 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useApp} from '@/contexts/AppContext';
 import {ChevronLeft, ChevronRight, FilePlus2, Loader2, Pencil, Trash2, X} from 'lucide-react';
 import {AnimatePresence, motion, Reorder} from 'framer-motion';
 import {
-  createProfile, DEFAULT_CONFIG,
-  deleteProfile as apiDelete,
   type ProfileDTO,
-  reorderProfiles,
-  updateProfile
 } from '@/services/profileService';
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {useWebSocketStore, waitFor, waitForNormal} from "@/store/websocketStore.ts";
 import {StorageUtil} from "@/lib/storage.ts";
+import {getTimestampMs} from "@/lib/utils.ts";
 
 // 小工具：去抖，避免拖拽过程中频繁打后端
 const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
@@ -33,10 +30,11 @@ const Header: React.FC = () => {
   const {activeProfile, setActiveProfile} = useApp();
 
   const [tabs, setTabs] = React.useState<Tab[]>([]);
+  const tabsRef = useRef(tabs);
   const [loading, setLoading] = React.useState(false);
 
   const configStore = useWebSocketStore((s) => s.configStore);
-  const {modify} = useWebSocketStore();
+  const {modify, trigger} = useWebSocketStore();
 
   const stripRef = React.useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = React.useState({left: false, right: false});
@@ -104,18 +102,10 @@ const Header: React.FC = () => {
         }, 0);
       })();
     })
-
-
   }, [configStore]);
-
-  const debouncedPersistOrder = useDebounce((tabsNow: Tab[]) => {
-    reorderProfiles(tabsNow.map(t => t.id)).catch(() => {
-    });
-  }, 500);
 
   const onReorder = async (next: Tab[]) => {
     setTabs(next);
-    debouncedPersistOrder(next);
     await StorageUtil.set("tabOrder", next.map(t => t.id));
   };
 
@@ -126,23 +116,38 @@ const Header: React.FC = () => {
     el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
   };
 
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
+
   const handleCreate = async (name: string, server: string) => {
-    // 重名校验
-    // if (tabs.some(t => t.name.trim() === name.trim())) throw new Error(t('nameExists') || 'Name already exists');
-    // const created = await createProfile({name: name.trim(), server, settings: DEFAULT_CONFIG});
-    // setTabs(prev => [...prev, created]);
-    // setActiveProfile(created);
-    // // 轻微“出现”动画由 motion 在 Tab 上处理（mount 时从 0→1）
-    // setTimeout(() => {
-    //   const el = document.getElementById(`tab-${created.id}`);
-    //   el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-    // }, 0);
+    if (tabsRef.current.some(t => t.name.trim() === name.trim()))
+      throw new Error(t('nameExists'));
+
+    const serialName = await new Promise<string>((resolve) => {
+      trigger(
+        {
+          timestamp: getTimestampMs() + Math.random() * 1000,
+          command: "add_config",
+          payload: { name, server },
+        },
+        (e) => resolve(e.data.serial)
+      );
+    });
+
+    await waitForNormal(
+      () => tabsRef.current.filter(p => p.id === serialName),
+      val => val.length !== 0,
+    );
+
+    const next = tabsRef.current.find(p => p.id === serialName);
+    if (next) setActiveProfile(next);
   };
+
 
   const handleEdit = async (tab: Tab, name: string, server: string) => {
     const trimmed = name.trim();
     if (tabs.some(t => t.id !== tab.id && t.name.trim() === trimmed)) throw new Error(t('nameExists') || 'Name already exists');
-    console.log(1232)
     modify(`${tab.id}::config`, {name: trimmed, server: server})
     setTabs(prev => prev.map(t => t.id === tab.id ? {...t, name: trimmed, server} : t));
     if (activeProfile?.id === tab.id) setActiveProfile({...activeProfile, name: trimmed});
@@ -153,18 +158,31 @@ const Header: React.FC = () => {
       alert(t('cannotDeleteLast') || 'Cannot delete the last profile.');
       return;
     }
-    await apiDelete(tab.id);
+
+    let nextActive: Tab | null = null;
+
     setTabs(prev => {
       const idx = prev.findIndex(p => p.id === tab.id);
       const next = prev.filter(p => p.id !== tab.id);
-      // 如果删的是当前激活，跳到相邻可用配置
       if (activeProfile?.id === tab.id) {
-        const neighbor = next[Math.max(0, Math.min(idx, next.length - 1))];
-        if (neighbor) setActiveProfile(neighbor);
+        nextActive = next[Math.max(0, Math.min(idx, next.length - 1))] ?? null;
       }
       return next;
     });
+
+    if (nextActive) {
+      queueMicrotask(() => setActiveProfile(nextActive));
+    }
+
+    trigger({
+      timestamp: getTimestampMs() + Math.random() * 1000,
+      command: "remove_config",
+      payload: {
+        "id": tab.id
+      }
+    });
   };
+
 
   // 关闭右键菜单
   React.useEffect(() => {
@@ -210,10 +228,10 @@ const Header: React.FC = () => {
               onReorder={onReorder}
               className="flex items-stretch h-10 gap-1"
             >
-              {tabs.map((tab) => {
+              {tabs.map((tab,idx) => {
                 const active = activeProfile?.id === tab.id;
                 return (
-                  <Reorder.Item
+                  statusStore[tab.id] ? <Reorder.Item
                     id={`tab-${tab.id}`}
                     key={tab.id}
                     value={tab}
@@ -252,7 +270,7 @@ const Header: React.FC = () => {
                     >
                       <X className="w-3.5 h-3.5"/>
                     </button>
-                  </Reorder.Item>
+                  </Reorder.Item> : <div key={tab.id}></div>
                 );
               })}
             </Reorder.Group>)}
@@ -398,8 +416,9 @@ function ProfileEditorModal(props: {
 
         <div className="space-y-4">
           <FormInput
-            label={t('profileName')}
             value={name}
+            label={t('profileName')}
+            placeholder={t('placeholder.profileName')}
             onChange={(e) => setName(e.target.value)}
           />
 
@@ -434,10 +453,11 @@ function ProfileEditorModal(props: {
           </button>
           <button
             onClick={handleSubmit}
-            className="px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60"
+            className="px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 flex items-center"
             disabled={submitting}
           >
-            {props.mode === 'create' ? (t('create') || 'Create') : (t('save') || 'Save')}
+            {submitting && <Loader2 className="animate-spin mr-2 h-4 w-4"/>}
+            <span>{props.mode === 'create' ? (t('create') || 'Create') : (t('save') || 'Save')}</span>
           </button>
         </div>
       </motion.div>

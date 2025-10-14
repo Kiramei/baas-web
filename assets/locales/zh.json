@@ -14,6 +14,7 @@
   "noTasksQueued": "队列中暂无任务",
   "logs": "日志",
   "assets": "资产",
+  "wiki": "文档",
   "lastUpdated": "上次更新",
   "secondsAgo": "{{count}}秒前",
   "minutesAgo": "{{count}}分钟前",
@@ -46,7 +47,7 @@
   "other": "其他",
   "otherDesc": "杂项功能与设置",
   "taskOverview": "任务概览",
-  "uiSettings": "界面",
+  "uiSettings": "界面设置",
   "theme": "主题",
   "light": "浅色",
   "dark": "深色",
@@ -391,5 +392,9 @@
   "updateMethod.github": "GitHub（主仓库）",
   "updateMethod.gitee": "Gitee（国内镜像）",
   "updateMethod.gitcode": "GitCode（国内镜像）",
-  "updateMethod.tencent": "腾讯工蜂（国内镜像）"
+  "updateMethod.tencent": "腾讯工蜂（国内镜像）",
+  "updateMethod.mirrorc": "Mirror酱更新",
+  "update.dueDate": "到期时间",
+  "placeholder.profileName": "在此输入您的配置名",
+  "update.available": "发现新版本"
 }

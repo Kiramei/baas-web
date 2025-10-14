@@ -23,6 +23,8 @@ import {EventConfig} from "@/lib/type.event.ts";
 import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
+const EMPTY_ARRAY: any[] = [];
+
 // ✅ 单行任务组件，Memo 化
 const TaskRow = React.memo(function TaskRow(
   {
@@ -104,7 +106,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
 
   const runningTask = useWebSocketStore((e) => e.statusStore[profileId]?.current_task);
   const taskQueue = useWebSocketStore((e) => e.statusStore[profileId]?.waiting_tasks);
-  const eventConfigs = useWebSocketStore((e) => e.eventStore[profileId] ?? []);
+  const eventConfigs = useWebSocketStore((e) => e.eventStore[profileId] ?? EMPTY_ARRAY);
   const modify = useWebSocketStore((e) => e.modify);
 
   const filtered = useMemo(() => {

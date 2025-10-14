@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import {useApp} from "@/contexts/AppContext.tsx";
 
-type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'updates';
+type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'wiki';
 
 
 interface MainLayoutProps {

@@ -2,7 +2,7 @@ import {toast} from "sonner"
 import {create} from "zustand";
 import {SecureWebSocket} from "@/lib/SecureWebSocket";
 import {subscribeWithSelector} from "zustand/middleware";
-import {deepMerge, getTimestampMs, isPlainObject, pause} from "@/lib/utils.ts";
+import {getTimestampMs, isPlainObject} from "@/lib/utils.ts";
 import {useGlobalLogStore} from "@/store/globalLogStore.ts";
 import {t} from "i18next";
 
@@ -83,7 +83,7 @@ interface WebSocketState {
   disconnect: (name: WsName) => void;
   send: (name: WsName, data: any) => void;
   init: () => Promise<void>;
-  modify: (path: string, value: any) => void;
+  modify: (path: string, value: any, showToast?: boolean) => void;
   patch: (path: string, value: any) => void;
   trigger: (payload: CommandPayload, callback?: (e) => void) => void;
   pendingCallbacks: Record<string, (data?: any) => void>;
@@ -146,6 +146,38 @@ export const waitFor = <T>(
   });
 }
 
+export const waitForNormal = <T>(
+  getter: () => T,
+  predicate: (val: T) => boolean,
+  timeoutMs = Infinity,
+  intervalMs = 50
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+
+    const check = () => {
+      try {
+        const val = getter();
+        if (predicate(val)) {
+          clearInterval(timer);
+          resolve();
+        } else if (Date.now() - start >= timeoutMs) {
+          clearInterval(timer);
+          reject(new Error("waitFor timeout"));
+        }
+      } catch (err) {
+        clearInterval(timer);
+        reject(err);
+      }
+    };
+
+    // 立即检查一次（防止初始就满足）
+    check();
+    const timer = setInterval(check, intervalMs);
+  });
+};
+
+
 export const useWebSocketStore = create<WebSocketState>()(
   subscribeWithSelector((set, get, api) => ({
     connections: {},
@@ -207,24 +239,58 @@ export const useWebSocketStore = create<WebSocketState>()(
 
       const callbackDict = {
         "config_list": (message: WsMessageItem) => {
-          set((state) => {
-            const config_added = Object.fromEntries(message.data.map((id) => [id, {}]));
-            const statusStore = Object.fromEntries(message.data.map((id) => {
-              if (id in state.statusStore) return [id, state.statusStore[id]];
-              return [id, {}];
-            }));
-            const event_added = Object.fromEntries(message.data.map((id) => [id, []]));
-            const log_added = Object.fromEntries(
-              message.data.map((id) => {
-                const key = `config:${id}`;
-                return [key, state.logStore[key] ?? []];
-              })
+          set((state): Partial<WebSocketState> => {
+            const config_added = Object.fromEntries(
+              message.data
+                .filter((id) => !(id in state.configStore))
+                .map((id) => [id, {}])
             );
+
+            const event_added = Object.fromEntries(
+              message.data
+                .filter((id) => !(id in state.eventStore))
+                .map((id) => [id, []])
+            );
+
+            const log_added = Object.fromEntries(
+              message.data
+                .map((id) => {
+                  const key = `config:${id}`;
+                  if (key in state.logStore) return null;
+                  return [key, []];
+                })
+                .filter((x): x is [string, LogItem[]] => Boolean(x))
+            );
+
+            const status_added = Object.fromEntries(
+              message.data
+                .filter((id) => !(id in state.statusStore))
+                .map((id) => [id, {}])
+            );
+
+            const config_kept = Object.fromEntries(
+              Object.entries(state.configStore).filter(([id]) => message.data.includes(id))
+            );
+
+            const event_kept = Object.fromEntries(
+              Object.entries(state.eventStore).filter(([id]) => message.data.includes(id))
+            );
+
+            const log_kept = Object.fromEntries(
+              Object.entries(state.logStore).filter(([key]) =>
+                message.data.some((id) => key === `config:${id}`)
+              )
+            );
+
+            const status_kept = Object.fromEntries(
+              Object.entries(state.statusStore).filter(([id]) => message.data.includes(id))
+            );
+
             return {
-              configStore: {...state.configStore, ...config_added},
-              eventStore: {...state.eventStore, ...event_added},
-              logStore: {...state.logStore, ...log_added},
-              statusStore: {...state.statusStore, ...statusStore},
+              configStore: {...config_kept, ...config_added},
+              eventStore: {...event_kept, ...event_added},
+              logStore: {...log_kept, ...log_added},
+              statusStore: {...status_kept, ...status_added},
             };
           });
         },
@@ -319,9 +385,26 @@ export const useWebSocketStore = create<WebSocketState>()(
 
           if (Array.isArray(ops)) {
             ops.forEach((op) => {
-              const path = `${resource_id}::${resource}${op.path}`;
-              let value = op.value;
-              get().patch(path, value);
+              if (op.op === "add") {
+                get().send("sync", {type: "list"});
+                const prev_len = Object.keys(get().configStore).length
+                waitFor(
+                  get,
+                  api.subscribe,
+                  (s: WebSocketState) => Object.keys(s.configStore).length,
+                  (len) => len === prev_len + 1
+                ).then(() => {
+                  get().send("sync", {type: "pull", resource: "config", resource_id: resource_id});
+                  get().send("sync", {type: "pull", resource: "event", resource_id: resource_id});
+                })
+              }
+              if (op.op === "remove") {
+                get().send("sync", {type: "list"});
+              } else {
+                const path = `${resource_id}::${resource}${op.path}`;
+                let value = op.value;
+                get().patch(path, value);
+              }
             });
           } else {
             console.error("Invalid patch message:", message);
@@ -521,7 +604,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     },
 
 
-    modify: (path: string, patch: any) => {
+    modify: (path: string, patch: any, showToast: boolean = false) => {
       const [resourceId, scope] = path.split("::");
       const timestamp = getTimestampMs();
       const ops = isPlainObject(patch) ?
@@ -537,9 +620,11 @@ export const useWebSocketStore = create<WebSocketState>()(
           value: patch
         }]
       get().pendingCallbacks[timestamp] = () => {
-        toast.success(t("settings.updateSuccess"), {
-          description: t("settings.updateSuccessDesc"),
-        })
+        if (showToast) {
+          toast.success(t("settings.updateSuccess"), {
+            description: t("settings.updateSuccessDesc"),
+          })
+        }
       };
       get().send("sync", {
         type: "patch",
@@ -561,7 +646,6 @@ export const useWebSocketStore = create<WebSocketState>()(
         ...payload,
       });
     }
-
   }))
 );
 

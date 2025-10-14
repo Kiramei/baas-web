@@ -91,13 +91,13 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({ profileId }) => {
     },
     {
       name: t("property.keystone"),
-      value: config.create_item_holding_quantity.Keystone.toLocaleString(),
+      value: config.create_item_holding_quantity.Keystone?.toLocaleString() || "-1",
       time: config.pyroxene.time,
       icon: "../assets/icons/property/item_icon_craftitem_1.webp",
     },
     {
       name: t("property.keystone.piece"),
-      value: config.create_item_holding_quantity["Keystone-Piece"].toLocaleString(),
+      value: config.create_item_holding_quantity["Keystone-Piece"]?.toLocaleString() || "-1",
       time: config.pyroxene.time,
       icon: "../assets/icons/property/item_icon_craftitem_0.webp",
     },

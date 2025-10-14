@@ -28,7 +28,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const statusStore = useWebSocketStore((e) => e.statusStore);
   const trigger = useWebSocketStore((e) => e.trigger);
 
-  const scriptRunning = statusStore[profileId].running;
+  const scriptRunning = statusStore[profileId]?.running || false;
 
   const startScript = () => {
     if (!profile) return;
