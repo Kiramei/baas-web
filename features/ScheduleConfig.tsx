@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import type {AppSettings} from "@/lib/types.ts";
 import {Check, Plus, X} from "lucide-react";
 import {Reorder} from "framer-motion";
 import {Separator} from "@/components/ui/separator"
@@ -8,14 +7,14 @@ import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {serverMap} from "@/lib/utils.ts";
 
 type LessonConfigProps = {
   onClose: () => void;
   profileId?: string;
-  settings?: Partial<AppSettings>;
-  onChange?: (patch: Partial<AppSettings>) => Promise<void>;
+  settings?: Partial<DynamicConfig>;
+  onChange?: (patch: Partial<DynamicConfig>) => Promise<void>;
 };
 
 type Draft = {
@@ -27,7 +26,6 @@ type Draft = {
 };
 
 const levels = ["primary", "normal", "advanced", "superior"];
-const levelLabels = ["初级", "普通", "高级", "特级"];
 
 const LessonConfig: React.FC<LessonConfigProps> = ({
                                                      onClose,
@@ -72,7 +70,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
 
   // 保存
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         patch[k] = draft[k] as any;
@@ -217,8 +215,8 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
           <thead className="sticky top-0 bg-slate-100 dark:bg-slate-700 z-10">
           <tr>
             <th className="px-2 py-1 border text-left">{t("lesson.region")}</th>
-            {levelLabels.map((l) => (
-              <th key={l} className="px-2 py-1 border">{l}</th>
+            {levels.map((l) => (
+              <th key={l} className="px-2 py-1 border">{t(`schedule.${l}`)}</th>
             ))}
             <th className="px-2 py-1 border">{t("lesson.times")}</th>
           </tr>

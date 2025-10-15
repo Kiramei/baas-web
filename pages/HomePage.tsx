@@ -11,7 +11,7 @@ import SwitchButton from "@/components/ui/SwitchButton.tsx";
 // import {HotkeyConfig, HotkeySettingsModal} from "@/components/HotkeyConfig.tsx";
 
 // import {useBindHotkeyHandlers, useRemoteHotkeys} from '@/hooks/useHotkeys';
-import {ProfileProps} from "@/lib/types.ts";
+import {ProfileProps} from "@/types/app";
 import {TaskStatus} from "@/components/HomeTaskStatus.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {formatIsoToReadable, getTimestamp, getTimestampMs} from "@/lib/utils.ts";

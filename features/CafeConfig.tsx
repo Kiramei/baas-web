@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import type {AppSettings} from "@/lib/types.ts";
 import {X} from "lucide-react";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
 import {FormSelect} from "@/components/ui/FormSelect";
@@ -15,6 +14,7 @@ import {
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {serverMap} from "@/lib/utils.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 type CafeConfigProps = {
   onClose: () => void;
@@ -104,10 +104,11 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
   // 保存
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
-    (Object.keys(draft) as (keyof AppSettings)[]).forEach((k) => {
+    const patch: Partial<DynamicConfig> = {};
+    (Object.keys(draft) as (keyof DynamicConfig)[]).forEach((k) => {
       if (draft[k] !== ext[k]) {
-        patch[k] = draft[k] as AppSettings[typeof k];
+        // @ts-ignore
+        patch[k] = draft[k] as DynamicConfig[typeof k];
       }
     });
 

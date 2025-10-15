@@ -1,10 +1,10 @@
 import React, {useMemo, useState} from "react";
-import type {AppSettings} from "@/lib/types.ts";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 type ScriptConfigProps = {
   profileId: string;
@@ -57,7 +57,7 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
       };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

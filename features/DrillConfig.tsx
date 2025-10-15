@@ -1,11 +1,10 @@
 import React, {useMemo, useState} from "react";
-import type {AppSettings} from "@/lib/types.ts";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 type DrillConfigProps = {
   onClose: () => void;
@@ -48,7 +47,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
 
   // 保存
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {
+    const patch: Partial<DynamicConfig> = {
       drill_enable_sweep: draft.drill_enable_sweep,
       drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
       drill_difficulty_list: draft.drill_difficulty_list.map(Number),

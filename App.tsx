@@ -1,4 +1,4 @@
-import React, {Suspense, useEffect, useRef, useState} from 'react';
+import React, {Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {AppProvider} from '@/contexts/AppContext';
 import {ThemeProvider} from '@/hooks/useTheme';
 import MainLayout from '@/components/layout/MainLayout';
@@ -71,13 +71,11 @@ const App: React.FC = () => {
 
 export type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'wiki';
 
-// 计算“实例键”：三页带 profileId，其他页不带
 const instanceKeyOf = (page: PageKey, pid?: string) =>
   page === 'home' || page === 'scheduler' || page === 'configuration'
     ? `${page}:${pid ?? 'none'}`
     : page;
 
-// 反解实例键 -> [page, pid]
 const parseInstanceKey = (k: string): [PageKey, string | undefined] => {
   if (k.includes(':')) {
     const [p, pid] = k.split(':');
@@ -88,26 +86,21 @@ const parseInstanceKey = (k: string): [PageKey, string | undefined] => {
 
 const Main: React.FC = () => {
   const [activePage, setActivePage] = React.useState<PageKey>('home');
-
-  // 拿当前激活配置 id
   const {activeProfile} = useApp();
 
   const activePid = activeProfile.id;
-  // 初始化保活集合用“实例键”，而非仅页面名
-  const seenKeysRef = React.useRef<Set<string>>(
-    new Set([instanceKeyOf('home', activePid)]) // 初始保活 Home:当前配置
-  );
+  const currentKey = instanceKeyOf(activePage, activePid);
 
-  // 每次页面或配置切换，把当前实例加入保活集合
+  const [seenKeys, setSeenKeys] = React.useState<string[]>([instanceKeyOf('home', activePid)]);
+
   React.useEffect(() => {
-    seenKeysRef.current.add(instanceKeyOf(activePage, activePid));
-  }, [activePage, activePid]);
+    setSeenKeys(prev => (prev.includes(currentKey) ? prev : [...prev, currentKey]));
+  }, [currentKey]);
 
-  // 用函数映射生成页面（便于按 pid 渲染实例；需要的话可把 pid 作为 prop 传进页面）
-  const renderPage = React.useCallback((page: PageKey, pid: string) => {
+  const renderPage = useCallback((page: PageKey, pid: string) => {
     switch (page) {
       case 'home':
-        return <HomePage profileId={pid}/>; // 如需按配置取数，可给三页加 profileId prop
+        return <HomePage profileId={pid}/>;
       case 'scheduler':
         return <SchedulerPage profileId={pid}/>;
       case 'configuration':
@@ -117,32 +110,27 @@ const Main: React.FC = () => {
       case 'wiki':
         return <WikiPage/>;
       default:
-        return <></>;
+        return null;
     }
   }, []);
 
-  // 当前激活实例键
-  const activeInstanceKey = instanceKeyOf(activePage, activePid);
-
   return (
     <MainLayout activePage={activePage} setActivePage={setActivePage}>
-      {/* 外层容器固定尺寸，内部页面叠放 */}
       <div className="relative flex-1 min-h-0 overflow-hidden scroll-embedded h-[calc(100%-70px)] lg:h-full">
-        {/* 用“已见实例键”来渲染，确保同一页面不同配置能各自保活 */}
-        {Array.from(seenKeysRef.current).map((instKey) => {
+        {seenKeys.map((instKey) => {
           const [page, pid] = parseInstanceKey(instKey);
-          const isActive = instKey === activeInstanceKey;
+          const isActive = instKey === currentKey;
           return (
             <motion.div
-              key={instKey} // 关键：实例键作为 key，区分不同配置的同一页面
-              className="absolute inset-0 overflow-y-auto scroll-embedded pr-2 "
+              key={instKey}
+              className="absolute inset-0 overflow-y-auto scroll-embedded pr-2"
               variants={variants}
               initial={isActive ? 'show' : 'hide'}
               animate={isActive ? 'show' : 'hide'}
               style={{pointerEvents: isActive ? 'auto' : 'none'}}
               aria-hidden={!isActive}
             >
-              {renderPage(page, pid)}
+              {renderPage(page, pid!)}
             </motion.div>
           );
         })}
@@ -150,5 +138,6 @@ const Main: React.FC = () => {
     </MainLayout>
   );
 };
+
 
 export default App;

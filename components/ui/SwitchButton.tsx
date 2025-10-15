@@ -35,7 +35,7 @@ const SwitchButton: React.FC<SwitchButtonProps> = ({children, checked, label, on
         } ${className}`}
         {...props}
       >
-        {label ?? ""} : {checked ? t("on") : t("off")}
+        {label ?? ""} : {checked ? t("switch.on") : t("switch.off")}
       </button>)
   );
 };

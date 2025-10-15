@@ -3,23 +3,12 @@ import {useTranslation} from 'react-i18next';
 import {useApp} from '@/contexts/AppContext';
 import {ChevronLeft, ChevronRight, FilePlus2, Loader2, Pencil, Trash2, X} from 'lucide-react';
 import {AnimatePresence, motion, Reorder} from 'framer-motion';
-import {
-  type ProfileDTO,
-} from '@/services/profileService';
+import {type ProfileDTO} from '@/types/app';
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {useWebSocketStore, waitFor, waitForNormal} from "@/store/websocketStore.ts";
+import {useWebSocketStore, waitForNormal} from "@/store/websocketStore.ts";
 import {StorageUtil} from "@/lib/storage.ts";
 import {getTimestampMs} from "@/lib/utils.ts";
-
-// 小工具：去抖，避免拖拽过程中频繁打后端
-const useDebounce = <T, >(fn: (arg: T) => void, ms = 300) => {
-  const t = React.useRef<number | null>(null);
-  return React.useCallback((arg: T) => {
-    if (t.current) window.clearTimeout(t.current);
-    t.current = window.setTimeout(() => fn(arg), ms);
-  }, [fn, ms]);
-};
 
 const noScrollbarStyle = '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
@@ -31,7 +20,6 @@ const Header: React.FC = () => {
 
   const [tabs, setTabs] = React.useState<Tab[]>([]);
   const tabsRef = useRef(tabs);
-  const [loading, setLoading] = React.useState(false);
 
   const configStore = useWebSocketStore((s) => s.configStore);
   const {modify, trigger} = useWebSocketStore();
@@ -129,7 +117,7 @@ const Header: React.FC = () => {
         {
           timestamp: getTimestampMs() + Math.random() * 1000,
           command: "add_config",
-          payload: { name, server },
+          payload: {name, server},
         },
         (e) => resolve(e.data.serial)
       );
@@ -218,62 +206,58 @@ const Header: React.FC = () => {
       </div>
 
       <div ref={stripRef} className={`flex-1 overflow-x-auto ${noScrollbarStyle}`}>
-        {
-          loading ?
-            (<Loader2 className="animate-spin ml-2 h-4 w-4"/>)
-            :
-            (<Reorder.Group
-              axis="x"
-              values={tabs}
-              onReorder={onReorder}
-              className="flex items-stretch h-10 gap-1"
-            >
-              {tabs.map((tab,idx) => {
-                const active = activeProfile?.id === tab.id;
-                return (
-                  statusStore[tab.id] ? <Reorder.Item
-                    id={`tab-${tab.id}`}
-                    key={tab.id}
-                    value={tab}
-                    className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
+        <Reorder.Group
+          axis="x"
+          values={tabs}
+          onReorder={onReorder}
+          className="flex items-stretch h-10 gap-1"
+        >
+          {tabs.map((tab) => {
+            const active = activeProfile?.id === tab.id;
+            return (
+              statusStore[tab.id] ? <Reorder.Item
+                id={`tab-${tab.id}`}
+                key={tab.id}
+                value={tab}
+                className={`group relative flex items-center max-w-xs shrink-0 rounded-lg px-3 h-10 select-none
                     border cursor-pointer transition-colors
                     ${active
-                      ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 dark:border-slate-500'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}
+                  ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 dark:border-slate-500'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}
                   `}
-                    onClick={() => onSelect(tab)}
-                    onPointerDown={(e) => {
-                      if ((e as any).button === 1) {
-                        e.preventDefault();
-                        setConfirmDelete(tab);
-                      }
-                    }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setCtxMenu({x: e.clientX, y: e.clientY, tab});
-                    }}
-                  >
+                onClick={() => onSelect(tab)}
+                onPointerDown={(e: any) => {
+                  if ((e as any).button === 1) {
+                    e.preventDefault();
+                    setConfirmDelete(tab);
+                  }
+                }}
+                onContextMenu={(e: any) => {
+                  e.preventDefault();
+                  setCtxMenu({x: e.clientX, y: e.clientY, tab});
+                }}
+              >
 
-                    {statusStore[tab.id].running ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : <></>}
+                {statusStore[tab.id].running ? <Loader2 className="animate-spin mr-2 h-4 w-4"/> : <></>}
 
-                    {/* 配置名 */}
-                    <span className="truncate pr-5">{tab.name}</span>
+                {/* 配置名 */}
+                <span className="truncate pr-5">{tab.name}</span>
 
-                    {/* 关闭按钮：hover 时显示 */}
-                    <button
-                      title={t('delete') || 'Delete'}
-                      className="absolute right-1 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmDelete(tab);
-                      }}
-                    >
-                      <X className="w-3.5 h-3.5"/>
-                    </button>
-                  </Reorder.Item> : <div key={tab.id}></div>
-                );
-              })}
-            </Reorder.Group>)}
+                {/* 关闭按钮：hover 时显示 */}
+                <button
+                  title={t('delete') || 'Delete'}
+                  className="absolute right-1 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete(tab);
+                  }}
+                >
+                  <X className="w-3.5 h-3.5"/>
+                </button>
+              </Reorder.Item> : <div key={tab.id}></div>
+            );
+          })}
+        </Reorder.Group>
       </div>
 
       {/* 右侧：新建按钮 */}

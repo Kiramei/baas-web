@@ -78,6 +78,7 @@ interface WebSocketState {
   eventStore: any;
   guiStore: any;
   updateStore: any;
+  versionStore: any;
   statusStore: { [id: string]: StatusItem };
   connect: (name: WsName) => Promise<void>;
   disconnect: (name: WsName) => void;
@@ -188,6 +189,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     guiStore: {},
     updateStore: {},
     statusStore: {},
+    versionStore: {},
     pendingCallbacks: {},
 
     _all_data_initialized: false,
@@ -496,7 +498,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         (len) => len > 0
       );
 
-      get().send("sync", {type: "pull", resource: "setup_toml"});
+      get().send("sync", {type: "pull", resource: "setup_toml", resource_id: "global"});
       await waitFor(
         get,
         api.subscribe,
@@ -530,12 +532,33 @@ export const useWebSocketStore = create<WebSocketState>()(
 
       await connectWithRetry("trigger");
 
+      get().trigger({
+        timestamp: getTimestampMs(),
+        command: "check_for_update",
+        payload: {}
+      }, (e) => {
+        set((state) => ({
+          ...state, versionStore: {
+            local: e.data.local,
+            remote: e.data.remote
+          }
+        }))
+      });
+
+      await waitFor(
+        get,
+        api.subscribe,
+        (s: WebSocketState) => s.versionStore,
+        (versionStore) => Object.keys(versionStore).length > 0
+      );
+
       await waitFor(
         get,
         api.subscribe,
         (s: WebSocketState) => s._all_data_initialized,
         (status) => status
       );
+
       set(state => ({...state, _initiating: false}));
     },
 

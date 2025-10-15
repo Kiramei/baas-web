@@ -2,7 +2,6 @@ import React, {useState, useMemo, useEffect} from "react";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from "@/components/ui/select";
 import {Textarea} from "@/components/ui/textarea";
-import type {AppSettings} from "@/lib/types";
 import {useTranslation} from "react-i18next";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
@@ -10,7 +9,7 @@ import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
 import {serverMap} from "@/lib/utils.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import CButton from "@/components/ui/CButton.tsx";
 
 type ArtifactConfigProps = {
@@ -69,7 +68,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
 
   /** 保存 */
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

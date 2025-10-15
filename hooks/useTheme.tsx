@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState, ReactNode} from 'react';
-import type {Theme} from '../lib/types.ts';
+import type {Theme} from '../types/app.d.ts';
 
 interface ThemeContextType {
   theme: Theme;

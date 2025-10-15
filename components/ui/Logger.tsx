@@ -53,7 +53,7 @@ const Row = ({index, logs, style}: RowComponentProps<{ logs: LogItem[] }>) => {
 
       {/* Level */}
       <span
-        className={`sm:min-w-[70px] ${getLevelColor(log.level)} font-bold flex justify-end mr-2`}
+        className={`sm:min-w-[75px] ${getLevelColor(log.level)} font-bold flex justify-end mr-2`}
       >
         {/* 在小屏幕下只显示第一个字母, 大屏幕显示完整内容 */}
         <span className="block sm:hidden">{log.level.trim().charAt(0)}</span>
@@ -62,7 +62,7 @@ const Row = ({index, logs, style}: RowComponentProps<{ logs: LogItem[] }>) => {
 
       {/* Message */}
       <div
-        className={`flex-1 pl-2 sm:pl-4 whitespace-pre-wrap break-words ${getMessageStyle(log.level)}`}
+        className={`flex-1 pl-2 sm:pl-2 whitespace-pre-wrap break-words ${getMessageStyle(log.level)}`}
       >
         {log.message}
       </div>

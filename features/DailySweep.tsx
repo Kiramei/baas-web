@@ -6,10 +6,9 @@ import {FormInput} from "@/components/ui/FormInput";
 import {LabelWithTooltip} from "@/components/ui/LabelWithTooltip.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import CButton from "@/components/ui/CButton.tsx";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
-import type {AppSettings} from "@/lib/types.ts";
 
 interface DailySweepTabsProps {
   profileId: string;
@@ -70,7 +69,7 @@ const DailySweepTabs: React.FC<DailySweepTabsProps> = ({profileId, onClose}) => 
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

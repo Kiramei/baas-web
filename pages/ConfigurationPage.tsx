@@ -27,7 +27,7 @@ import {
 import {Coffee, Dices, Settings2, ShoppingCart, Swords, Server, Sword, Shield} from 'lucide-react';
 import {motion, Variants} from 'framer-motion';
 import {useApp} from '@/contexts/AppContext';
-import {ProfileProps} from "@/lib/types.ts";
+import {ProfileProps} from "@/types/app";
 import WhiteListConfig from "@/features/WhiteListConfig.tsx";
 import ArtifactConfig from "@/features/ArtifactConfig.tsx";
 import ScriptConfig from "@/features/ScriptConfig.tsx";
@@ -72,8 +72,6 @@ const FeatureWidthDict = {
 export interface FeatureComponentProps {
   onClose: () => void;
   profileId?: string;
-  settings?: any;
-  onChange?: (patch: any) => Promise<void>; // 只改当前配置的 settings（部分）
   setActivePage?: Dispatch<SetStateAction<PageKey>>
 }
 
@@ -126,19 +124,11 @@ const MotionCard: React.FC<React.PropsWithChildren<{ onClick?: () => void }>> = 
 
 const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) => {
   const {t} = useTranslation();
-  const {profiles, activeProfile, updateProfile} = useApp();
+  const {profiles, activeProfile} = useApp();
 
   // 当前配置 id
   const pid = profileId ?? activeProfile?.id;
   const profile = useMemo(() => profiles.find(p => p.id === pid) ?? activeProfile ?? null, [profiles, pid, activeProfile]);
-  const settings = profile?.settings ?? {};
-
-  // 只更新当前 profile 的 settings（部分 patch）
-  const patchSettings = useCallback(async (patch: any) => {
-    if (!profile) return;
-    const next = {...settings, ...patch};
-    await updateProfile(profile.id, {settings: next}); // AppContext 已实现合并与后端调用
-  }, [profile, settings, updateProfile]);
 
   const [modalContent, setModalContent] = useState<Feature | null>(null);
   const [modalWidth, setModalWidth] = useState<number | null>(null);
@@ -204,8 +194,6 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) =
           <CurrentModalContent
             onClose={closeModal}
             profileId={profile?.id}
-            settings={settings}
-            onChange={patchSettings}
             setActivePage={setActivePage}
           />
         </Modal>

@@ -3,8 +3,7 @@ import {useTranslation} from 'react-i18next';
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
-import type {AppSettings} from "@/lib/types.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 interface ArenaConfigProps {
   profileId: string;
@@ -50,7 +49,7 @@ const ArenaConfig: React.FC<ArenaConfigProps> = ({profileId, onClose}) => {
   };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

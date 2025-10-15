@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import type {Asset} from '@/lib/types.ts';
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
-import {List} from "lucide-react";
 
 
 const useTimeAgo = () => {

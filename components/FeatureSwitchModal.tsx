@@ -5,7 +5,7 @@ import CButton from "@/components/ui/CButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import {Separator} from "@/components/ui/separator.tsx";
 import {OrderedMultiSelector, TimeSelectorModal} from "@/components/MultiSelector.tsx";
-import {EventConfig} from "@/lib/type.event.ts";
+import {EventConfig} from "@/types/event";
 import {DateTimePicker} from "@/components/DateTimePicker.tsx";
 
 interface FeatureSwitchModalProps {

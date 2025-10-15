@@ -1,10 +1,9 @@
-import React, {useEffect, useMemo, useState} from "react";
-import type {AppSettings} from "@/lib/types";
+import React, {useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {FormInput} from "@/components/ui/FormInput";
 import {FormSelect} from "@/components/ui/FormSelect";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type EmulatorConfigProps = {
@@ -61,7 +60,7 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = (
       };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];
@@ -123,16 +122,16 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = (
               placeholder="C:\\Path\\to\\MuMuPlayer.exe"
               className="flex-1"
             />
-            <button
-              type="button"
-              className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md"
-              onClick={() => {
-                // TODO: 接入文件选择器
-                alert("选择文件逻辑待实现");
-              }}
-            >
-              {t("choose")}
-            </button>
+            {/*<button*/}
+            {/*  type="button"*/}
+            {/*  className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md"*/}
+            {/*  onClick={() => {*/}
+            {/*    // TODO: 接入文件选择器*/}
+            {/*    alert("选择文件逻辑待实现");*/}
+            {/*  }}*/}
+            {/*>*/}
+            {/*  {t("choose")}*/}
+            {/*</button>*/}
           </div>
         </div>
       )}

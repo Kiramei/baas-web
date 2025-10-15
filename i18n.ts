@@ -17,6 +17,6 @@ i18n
     },
   }).then(
     () => {
-
+      console.log("[app]", "i18n loaded.");
     }
 );

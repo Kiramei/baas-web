@@ -1,8 +1,7 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect";
-import type {AppSettings} from "@/lib/types";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type TeamConfigProps = {
@@ -10,19 +9,19 @@ type TeamConfigProps = {
   onClose: () => void;
 };
 
-const PROPERTY: Record<string, string> = {
-  burst: "爆发",
-  pierce: "贯穿",
-  mystic: "神秘",
-  shock: "振动",
-  Unused: "未使用",
-};
+const PROPERTY = [
+  "burst",
+  "pierce",
+  "mystic",
+  "shock",
+  "Unused"
+];
 
-const MODE_DICT: Record<string, string> = {
-  preset: "按预设编队",
-  side: "按侧栏属性编队",
-  order: "按侧栏顺序编队",
-};
+const MODE_DICT = [
+  "preset",
+  "side",
+  "order"
+];
 
 interface Draft {
   choose_team_method: string,
@@ -68,7 +67,7 @@ const TeamConfig: React.FC<TeamConfigProps> = (
   };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];
@@ -102,9 +101,9 @@ const TeamConfig: React.FC<TeamConfigProps> = (
               key={`${ri}-${ci}`}
               value={val}
               onChange={(v) => handleCellChange(key, ri, ci)(v)}
-              options={Object.entries(PROPERTY).map(([k, v]) => ({
+              options={PROPERTY.map((k) => ({
                 value: k,
-                label: v,
+                label: t(`property.${k}`),
               }))}
               className="w-full"
             />
@@ -121,9 +120,9 @@ const TeamConfig: React.FC<TeamConfigProps> = (
         label={t("team.chooseMethod")}
         value={draft.choose_team_method}
         onChange={handleChange("choose_team_method")}
-        options={Object.entries(MODE_DICT).map(([k, v]) => ({
+        options={MODE_DICT.map((k) => ({
           value: k,
-          label: v,
+          label: t(`team.${k}`),
         }))}
       />
 

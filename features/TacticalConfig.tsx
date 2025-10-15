@@ -3,8 +3,7 @@ import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {useTranslation} from "react-i18next";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {serverMap} from "@/lib/utils.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
-import type {AppSettings} from "@/lib/types.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 type TacticalConfigProps = {
   onClose: () => void;
@@ -37,7 +36,7 @@ const TacticalConfig: React.FC<TacticalConfigProps> = ({
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
   const handleSave = () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

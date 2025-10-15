@@ -1,8 +1,8 @@
-import React, {ChangeEvent, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '../components/ui/Card';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
 import {useTheme} from '../hooks/useTheme';
-import type {Theme} from '../lib/types.ts';
+import type {Theme} from '../types/app.d.ts';
 import {useApp} from "@/contexts/AppContext.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
@@ -11,7 +11,8 @@ import {Separator} from "@/components/ui/separator.tsx";
 import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 import {toast} from "sonner";
 import {
-  CheckCircle2, Cloud,
+  AppWindow,
+  CheckCircle2, Cloud, GitBranch,
   HardDrive,
   Info,
   Loader2,
@@ -70,6 +71,7 @@ const SettingsPage: React.FC = () => {
   const {uiSettings} = useApp();
   const trigger = useWebSocketStore(state => state.trigger);
   const updateConfig = useWebSocketStore(state => state.updateStore);
+  const versionStore = useWebSocketStore(state => state.versionStore);
   const modify = useWebSocketStore(state => state.modify);
   const [reposInitState, setReposInitState] = useState(reposInit);
 
@@ -98,34 +100,34 @@ const SettingsPage: React.FC = () => {
 
   const [localVersion, setLocalVersion] = useState(t("version.fetching"));
   const [remoteVersion, setRemoteVersion] = useState(t("version.fetching"));
-  const [updateStatus, setUpdateStatus] = useState(t("version.testing"));
+  const [updateStatus, setUpdateStatus] = useState(t("version.tapToTest"));
 
-  const [shaLocal, setShaLocal] = useState("");
-  const [shaRemote, setShaRemote] = useState("");
+  const [shaLocal, setShaLocal] = useState(versionStore["local"]);
+  const [shaRemote, setShaRemote] = useState(versionStore["remote"]);
 
   const [verLocal, setVerLocal] = useState("");
   const [verRemote, setVerRemote] = useState("");
 
   const [apiLoading, setApiLoading] = useState(false);
   const [mcLoading, setMcLoading] = useState(false);
-  const [versionChecking, setVersionChecking] = useState(true);
+  const [versionChecking, setVersionChecking] = useState(false);
 
   const [updateMethod, setUpdateMethod] = useState<string>(updateConfig["updateMethod"]);
   const [dueDate, setDueDate] = useState("");
 
   const infos = [
     {
-      label: t("localVersion") ?? "当前版本",
+      label: t("localVersion"),
       value: localVersion,
       icon: <HardDrive className="w-8 h-8 text-cyan-500"/>
     },
     {
-      label: t("remoteVersion") ?? "远程版本",
+      label: t("remoteVersion"),
       value: remoteVersion,
       icon: <Cloud className="w-8 h-8 text-indigo-500"/>
     },
     {
-      label: t("updateMethod") ?? "更新方式",
+      label: t("updateMethod"),
       value: t(updateStatus),
       icon: <RefreshCcw className={`w-8 h-8 text-purple-500 ${versionChecking ? "animate-spin" : ""}`}/>
     },
@@ -151,7 +153,6 @@ const SettingsPage: React.FC = () => {
       command: "check_for_update",
       payload: {}
     }, (e) => {
-      console.log(e);
       setShaLocal(e.data.local)
       setShaRemote(e.data.remote)
       setUpdateStatus("version.tapToTest")
@@ -162,9 +163,7 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     if (hybrid) {
       hybrid = false;
-      fetchVersion()
       if (cdk) {
-        console.log("...")
         handleTestCdk(undefined)
       }
     }
@@ -189,12 +188,11 @@ const SettingsPage: React.FC = () => {
       if (verLocal === null || shaLocal === null)
         setLocalVersion(t("version.checkError"));
       else
-        setLocalVersion(`${verLocal}.${shaLocal.slice(0, 6)}`);
-
+        setLocalVersion(`${shaLocal.slice(0, 6)}`);
       if (verRemote === null || shaRemote === null)
         setRemoteVersion(t("version.checkError"));
       else
-        setRemoteVersion(`${verRemote}.${shaRemote.slice(0, 6)}`);
+        setRemoteVersion(`${shaRemote.slice(0, 6)}`);
     }
   }, [verLocal, shaLocal, verRemote, shaRemote]);
 
@@ -308,7 +306,8 @@ const SettingsPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <AppWindow className="w-5 h-5"/>
           <CardTitle>{t('uiSettings')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -355,8 +354,9 @@ const SettingsPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>{t("globalUpdateSettings") ?? "全局更新设置"}</CardTitle>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <GitBranch className="w-5 h-5"/>
+          <CardTitle>{t("globalUpdateSettings")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-1">

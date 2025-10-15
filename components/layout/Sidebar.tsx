@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next';
 import {Home, ListChecks, SlidersHorizontal, Settings, BookOpenText, ArrowBigUpDash} from 'lucide-react';
 import HeartbeatChart, {HeartbeatIndicator} from "@/components/HeartbeatDiv.tsx";
 import {motion} from "framer-motion";
+import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 interface SidebarProps {
   activePage: string;
@@ -11,6 +12,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({activePage, setActivePage}) => {
   const {t} = useTranslation();
+  const versionConfig = useWebSocketStore(state => state.versionStore);
 
   const navItems = [
     {id: 'home', label: t('home'), icon: Home},
@@ -60,14 +62,14 @@ const Sidebar: React.FC<SidebarProps> = ({activePage, setActivePage}) => {
             ))}
           </ul>
           <div className="flex-grow"/>
-          <button
+          {(versionConfig["local"] != versionConfig["remote"]) && <button
             className="flex flex-row items-center justify-center p-4 bg-red-100/50 hover:bg-red-100/90 dark:bg-red-900/50 hover:dark:bg-red-900/90 w-full rounded-xl self-start mb-2 transition">
             <ArrowBigUpDash className="text-red-500"/>
             <div className="ml-2 text-sm font-bold rounded-lg text-red-500">
               {t("update.available")}
             </div>
             <div className="flex-grow"/>
-          </button>
+          </button>}
 
           <HeartbeatChart/>
         </nav>

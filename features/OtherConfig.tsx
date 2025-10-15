@@ -1,7 +1,5 @@
 import React, {Dispatch, SetStateAction} from "react";
-import type {AppSettings} from "@/lib/types";
 import {useTranslation} from "react-i18next";
-import {FormInput} from "@/components/ui/FormInput.tsx";
 import {toast} from "sonner";
 import {getTimestampMs} from "@/lib/utils.ts";
 import {PageKey} from "@/App.tsx";

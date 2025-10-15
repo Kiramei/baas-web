@@ -4,7 +4,7 @@ import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import ADBSeekModal from "@/components/ADBSeekModal.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import type {AppSettings} from "@/lib/types.ts";
+import {DynamicConfig} from "@/types/dynamic";
 
 interface ServerConfigProps {
   profileId: string;
@@ -38,7 +38,7 @@ const ServerConfig: React.FC<ServerConfigProps> = ({profileId, onClose}) => {
   };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

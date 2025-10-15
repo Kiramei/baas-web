@@ -10,7 +10,7 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {serverMap} from "@/lib/utils.ts";
 

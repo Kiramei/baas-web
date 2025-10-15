@@ -1,9 +1,8 @@
-import React, {useState, useEffect, useMemo} from "react";
+import React, {useState, useMemo} from "react";
 import {useTranslation} from "react-i18next";
-import type {AppSettings} from "@/lib/types.ts";
 import {toast} from "sonner"
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {serverMap} from "@/lib/utils.ts";
 
@@ -73,7 +72,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
   };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {clear_friend_white_list: draft.clear_friend_white_list};
+    const patch: Partial<DynamicConfig> = {clear_friend_white_list: draft.clear_friend_white_list};
     modify(`${profileId}::config`, patch)
     onClose();
   }

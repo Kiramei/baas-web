@@ -11,7 +11,7 @@ export const useGlobalLogStore = create<GlobalLogInterface>((set, get) => ({
 
   appendGlobalLog: (log: LogItem) => {
     set((state) => {
-      return { globalLogData: [...state.globalLogData, log ] }
+      return {globalLogData: [...state.globalLogData, log]}
     })
   }
 }));

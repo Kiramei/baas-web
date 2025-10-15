@@ -1,9 +1,9 @@
 import React from "react";
 
-const UpdatePage: React.FC = () => {
+const WikiPage: React.FC = () => {
   return (
     <></>
   );
 };
 
-export default UpdatePage;
+export default WikiPage;

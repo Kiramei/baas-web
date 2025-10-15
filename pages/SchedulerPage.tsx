@@ -12,14 +12,14 @@ import {
   Search,
   Ban,
 } from "lucide-react";
-import {ProfileProps} from "@/lib/types.ts";
+import {ProfileProps} from "@/types/app";
 import {FormInput} from "@/components/ui/FormInput";
 import {FormSelect} from "@/components/ui/FormSelect";
 import CButton from "@/components/ui/CButton.tsx";
 import {Separator} from "@/components/ui/separator";
 import FeatureSwitchModal from "@/components/FeatureSwitchModal";
 import {DateTimePicker} from "@/components/DateTimePicker.tsx";
-import {EventConfig} from "@/lib/type.event.ts";
+import {EventConfig} from "@/types/event";
 import {EllipsisWithTooltip} from "@/components/ui/etooltip.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
@@ -225,7 +225,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
 
               {/* Task Queue */}
               {taskQueue && taskQueue.length > 0 ? (
-                <ul className="space-y-0 h-35 overflow-auto pr-2 gap-2">
+                <ul className="space-y-0 h-35 overflow-auto pr-2 gap-2 flex flex-col">
                   {taskQueue.map((task, index) => (
                     <div
                       key={index}

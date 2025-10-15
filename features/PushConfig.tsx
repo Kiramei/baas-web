@@ -1,9 +1,8 @@
 import React, {useMemo, useState} from "react";
-import type {AppSettings} from "@/lib/types";
 import SwitchButton from "@/components/ui/SwitchButton";
 import {FormInput} from "@/components/ui/FormInput";
 import {useTranslation} from "react-i18next";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 type PushConfigProps = {
@@ -46,7 +45,7 @@ const PushConfig: React.FC<PushConfigProps> = ({
       };
 
   const handleSave = async () => {
-    const patch: Partial<AppSettings> = {};
+    const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
       if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
         (patch as any)[k] = draft[k];

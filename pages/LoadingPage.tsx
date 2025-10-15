@@ -1,5 +1,5 @@
 import Particles from "@/components/Particles"
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 
 interface LoadingPageProps {
   message?: string // 可选，loading 时的提示文案

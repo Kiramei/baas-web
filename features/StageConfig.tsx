@@ -5,10 +5,9 @@ import SwitchButton from "@/components/ui/SwitchButton";
 import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {useTranslation} from "react-i18next";
-import type {AppSettings} from "@/lib/types";
 import {Separator} from "@/components/ui/separator.tsx";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {DynamicConfig} from "@/lib/type.dynamic.ts";
+import {DynamicConfig} from "@/types/dynamic";
 import {getTimestampMs, serverMap} from "@/lib/utils.ts";
 import {toast} from "sonner";
 import {PageKey} from "@/App.tsx";
@@ -19,18 +18,18 @@ type StageConfigProps = {
   onClose: () => void;
 };
 
-const PROPERTY_MAP: Record<string, string> = {
-  burst: "爆发",
-  pierce: "贯穿",
-  mystic: "神秘",
-  shock: "振动",
-  Unused: "未使用",
-};
 
 interface Draft {
   manual_boss: boolean;
   explore_normal_task_list: string;
   explore_hard_task_list: string;
+}
+
+interface EventData {
+  activity_name: string;
+  story: Record<string, string>;
+  mission: Record<string, string>;
+  challenge: Record<string, string>;
 }
 
 const StageConfig: React.FC<StageConfigProps> = (
@@ -58,17 +57,28 @@ const StageConfig: React.FC<StageConfigProps> = (
     const [draft, setDraft] = useState<Draft>(ext);
     const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-    // mock 活动数据（真实数据应从 config.static_config 或接口获取）
-    const eventName = staticConfig.current_game_activity[serverMap[settings.server]] ?? t("stage.noEvent");
-    const [eventTable, setEventTable] = useState<[string, string][]>([
-      ["故事1", PROPERTY_MAP.burst],
-      ["任务1", PROPERTY_MAP.pierce],
-      ["挑战1", PROPERTY_MAP.mystic],
-      ["故事2", PROPERTY_MAP.shock],
-    ]);
+    const [eventTable, setEventTable] = useState<[string, string][]>([]);
+
+    const serverKey = serverMap[settings.server];
+    const event = staticConfig.current_game_activity[serverKey];
+    const eventName = event?.activity_name ?? t("stage.noEvent");
+
+    useEffect(() => {
+      if (!event) return;
+      const result: [string, string][] = [];
+      (["story", "mission", "challenge"] as const).forEach((type) => {
+        const section = event[type];
+        if (!section) return;
+        Object.entries(section).forEach(([name, prop]) => {
+          result.push([name, prop as string]);
+        });
+      });
+      setEventTable(result);
+    }, [event]);
+
 
     const handleSave = async () => {
-      const patch: Partial<AppSettings> = {};
+      const patch: Partial<DynamicConfig> = {};
       (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
         if (JSON.stringify(draft[k]) !== JSON.stringify(ext[k])) {
           (patch as any)[k] = draft[k];
@@ -94,7 +104,7 @@ const StageConfig: React.FC<StageConfigProps> = (
         if (taskName === "start_hard_task" && (!draft.explore_hard_task_list || draft.explore_hard_task_list.trim() === "")) {
           toast.error(t("stage.noHardTask"));
           return;
-        }else if (taskName === "start_normal_task" && (!draft.explore_normal_task_list || draft.explore_normal_task_list.trim() === "")) {
+        } else if (taskName === "start_normal_task" && (!draft.explore_normal_task_list || draft.explore_normal_task_list.trim() === "")) {
           toast.error(t("stage.noNormalTask"));
           return;
         }
@@ -107,7 +117,7 @@ const StageConfig: React.FC<StageConfigProps> = (
         payload: {
           task: taskName,
         }
-      }, (e) => {
+      }, () => {
         toast(t("stage.taskTriggerStart"), {
           description: t("stage.taskTriggered", {task: t(taskName)}),
         })
@@ -201,7 +211,7 @@ const StageConfig: React.FC<StageConfigProps> = (
                 {eventTable.map(([stage, attr], i) => (
                   <Card key={i} className="p-2 flex justify-between">
                     <span>{stage}</span>
-                    <span className="font-medium">{attr}</span>
+                    <span className="font-medium">{t(`property.${attr}`)}</span>
                   </Card>
                 ))}
               </div>
