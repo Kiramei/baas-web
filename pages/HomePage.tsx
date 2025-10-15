@@ -18,7 +18,7 @@ import {formatIsoToReadable, getTimestamp, getTimestampMs} from "@/lib/utils.ts"
 
 const HomePage: React.FC<ProfileProps> = ({profileId}) => {
   const {t} = useTranslation();
-  const [scrollToEnd, setScrollToEnd] = useState<boolean>(true);
+  const {uiSettings, setUiSettings} = useApp()
   // const [hotkeyModalOpen, setHotkeyModalOpen] = useState(false);
 
   const {profiles, activeProfile} = useApp();
@@ -129,9 +129,13 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
       <TaskStatus profileId={profileId}/>
 
       {/* 资产区 */}
-      <div className="shrink-0">
-        <AssetsDisplay profileId={profileId}/>
-      </div>
+      {
+        uiSettings?.assetsDisplay
+        &&
+        <div className="shrink-0">
+          <AssetsDisplay profileId={profileId}/>
+        </div>
+      }
 
       {/* 日志卡片 */}
       <Card className="flex-1 min-h-100 flex flex-col">
@@ -142,10 +146,12 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
             </div>
 
           </CardTitle>
-          <div className={'lg:flex hidden  items-center justify-center'}>
+          <div className={'sm:flex hidden  items-center justify-center'}>
             <SwitchButton
-              checked={scrollToEnd}
-              onChange={setScrollToEnd}
+              checked={uiSettings?.scrollToEnd}
+              onChange={value => {
+                setUiSettings(state => ({...state, scrollToEnd: value}));
+              }}
               label={t('log.scroll')}
               className="!px-4"
             />
@@ -157,11 +163,13 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
             </CButton>
           </div>
 
-          <div className={'lg:hidden flex  items-center justify-center'}>
+          <div className={'sm:hidden flex  items-center justify-center'}>
             <SwitchButton
-              checked={scrollToEnd}
-              onChange={setScrollToEnd}
-              label={t('log.scroll')}
+              checked={uiSettings?.scrollToEnd}
+              onChange={value => {
+                setUiSettings(state => ({...state, scrollToEnd: value}));
+              }}
+              label=""
               className="!px-4 ml-2 w-8 h-8"
             >
               <ListEnd size={20} className={'rounded w-4 h-4 translate-x-[-8px]'}/>
@@ -174,7 +182,7 @@ const HomePage: React.FC<ProfileProps> = ({profileId}) => {
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 p-0 flex overflow-x-hidden">
-          <Logger logs={logStore[`config:${profileId}`]} scrollToEnd={scrollToEnd}/>
+          <Logger logs={logStore[`config:${profileId}`]} scrollToEnd={uiSettings?.scrollToEnd}/>
         </CardContent>
       </Card>
 

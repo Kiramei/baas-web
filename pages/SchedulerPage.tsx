@@ -10,7 +10,7 @@ import {
   ArrowLeft,
   Settings,
   Search,
-  Ban,
+  Ban, ArrowUp, ArrowDown,
 } from "lucide-react";
 import {ProfileProps} from "@/types/app";
 import {FormInput} from "@/components/ui/FormInput";
@@ -62,13 +62,15 @@ const TaskRow = React.memo(function TaskRow(
           </CButton>
           <Separator orientation="vertical" className="!h-8"/>
           <CButton onClick={() => onMove(task, true)} className="rounded-[50%] w-8 h-8">
-            <ArrowRight className="w-4 h-4 translate-x-[-8px]"/>
+            <ArrowRight className="w-4 h-4 translate-x-[-8px] max-md:hidden"/>
+            <ArrowDown className="w-4 h-4 translate-x-[-8px] md:hidden"/>
           </CButton>
         </>
       ) : (
         <>
           <CButton onClick={() => onMove(task, false)} className="rounded-[50%] w-8 h-8">
-            <ArrowLeft className="w-4 h-4 translate-x-[-8px]"/>
+            <ArrowLeft className="w-4 h-4 translate-x-[-8px] max-md:hidden"/>
+            <ArrowUp className="w-4 h-4 translate-x-[-8px] md:hidden"/>
           </CButton>
           <Separator orientation="vertical" className="!h-8"/>
           <CButton onClick={() => onEdit(task)} className="rounded-[50%] w-8 h-8">
@@ -295,10 +297,11 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                 onClick={() => moveAll(true)}
                 className="rounded-[50%] w-8 h-8 mr-4.5"
               >
-                <ArrowRight className="w-4 h-4 translate-x-[-8px]"/>
+                <ArrowRight className="w-4 h-4 translate-x-[-8px] max-md:hidden"/>
+                <ArrowDown className="w-4 h-4 translate-x-[-8px] md:hidden"/>
               </CButton>
             </div>
-            <div className="flex-1 min-h-0 overflow-auto space-y-2 scroll-embedded pr-1">
+            <div className="flex-1 min-h-0 overflow-auto space-y-2 scroll-embedded pr-1 max-md:max-h-40">
               {left.map((task) => (
                 <TaskRow
                   key={task.func_name}
@@ -323,7 +326,8 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                 onClick={() => moveAll(false)}
                 className="rounded-[50%] w-8 h-8 ml-2"
               >
-                <ArrowLeft className="w-4 h-4 translate-x-[-8px]"/>
+                <ArrowLeft className="w-4 h-4 translate-x-[-8px] max-md:hidden"/>
+                <ArrowUp className="w-4 h-4 translate-x-[-8px] md:hidden"/>
               </CButton>
               <div className="flex items-center">
                 <span className="font-medium">
@@ -332,7 +336,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                 <CheckCircle2 className="w-5 h-5 ml-2 text-green-500"/>
               </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-auto space-y-2 scroll-embedded pr-1">
+            <div className="flex-1 min-h-0 overflow-auto space-y-2 scroll-embedded pr-1 max-md:max-h-40">
               {right.map((task) => (
                 <TaskRow
                   key={task.func_name}

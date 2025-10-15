@@ -68,33 +68,33 @@ const Header: React.FC = () => {
       server: configStore[key].server,
       settings: configStore[key]
     }));
-    StorageUtil.get<string[]>("tabOrder").then((order) => {
-      if (order && order.length) {
-        list.sort((a, b) => {
-          const ia = order.indexOf(a.id);
-          const ib = order.indexOf(b.id);
-          if (ia === -1 && ib === -1) return 0;
-          if (ia === -1) return 1;
-          if (ib === -1) return -1;
-          return ia - ib;
-        });
-      }
-      setTabs(list);
-      const exists = list.find(p => p.id === activeProfile?.id);
-      setActiveProfile(exists ?? list[0]);
-      (async () => {
-        setTimeout(() => {
-          if (!(exists ?? list[0])) return
-          const el = document.getElementById(`tab-${exists ?? list[0].id}`);
-          el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
-        }, 0);
-      })();
-    })
+    const order = StorageUtil.get("tabOrder");
+    if (order && order.length) {
+      list.sort((a, b) => {
+        const ia = order.indexOf(a.id);
+        const ib = order.indexOf(b.id);
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+    setTabs(list);
+    const exists = list.find(p => p.id === activeProfile?.id);
+    setActiveProfile(exists ?? list[0]);
+    (async () => {
+      setTimeout(() => {
+        if (!(exists ?? list[0])) return
+        const el = document.getElementById(`tab-${exists ?? list[0].id}`);
+        el?.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+      }, 0);
+    })();
+
   }, [configStore]);
 
-  const onReorder = async (next: Tab[]) => {
+  const onReorder = (next: Tab[]) => {
     setTabs(next);
-    await StorageUtil.set("tabOrder", next.map(t => t.id));
+    StorageUtil.set("tabOrder", next.map(t => t.id));
   };
 
   const onSelect = (tab: Tab) => {
@@ -264,10 +264,16 @@ const Header: React.FC = () => {
       <div className="ml-3">
         <button
           onClick={() => setEditor({mode: 'create'})}
-          className="flex items-center px-3 h-9 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+          className="hidden sm:flex items-center px-3 h-9 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
         >
           <FilePlus2 className="w-4 h-4 mr-2"/>
           {t('addProfile')}
+        </button>
+        <button
+          onClick={() => setEditor({mode: 'create'})}
+          className="flex sm:hidden items-center h-9 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors w-9"
+        >
+          <FilePlus2 className="w-5 h-5 translate-x-[8px]"/>
         </button>
       </div>
 

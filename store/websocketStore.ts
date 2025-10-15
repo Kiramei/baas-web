@@ -76,7 +76,6 @@ interface WebSocketState {
   configStore: any;
   staticStore: any;
   eventStore: any;
-  guiStore: any;
   updateStore: any;
   versionStore: any;
   statusStore: { [id: string]: StatusItem };
@@ -186,7 +185,6 @@ export const useWebSocketStore = create<WebSocketState>()(
     configStore: {},
     staticStore: {},
     eventStore: {},
-    guiStore: {},
     updateStore: {},
     statusStore: {},
     versionStore: {},
@@ -225,11 +223,6 @@ export const useWebSocketStore = create<WebSocketState>()(
         "static": (message: WsMessageItem) => {
           set((_) => ({
             staticStore: message.data,
-          }));
-        },
-        "gui": (message: WsMessageItem) => {
-          set((_) => ({
-            guiStore: message.data,
           }));
         },
         "setup_toml": (message: WsMessageItem) => {
@@ -490,14 +483,6 @@ export const useWebSocketStore = create<WebSocketState>()(
         (len) => len > 0
       );
 
-      get().send("sync", {type: "pull", resource: "gui"});
-      await waitFor(
-        get,
-        api.subscribe,
-        (s: WebSocketState) => Object.keys(s.guiStore).length,
-        (len) => len > 0
-      );
-
       get().send("sync", {type: "pull", resource: "setup_toml", resource_id: "global"});
       await waitFor(
         get,
@@ -575,9 +560,6 @@ export const useWebSocketStore = create<WebSocketState>()(
             break;
           case "event":
             storeKey = "eventStore";
-            break;
-          case "gui":
-            storeKey = "guiStore";
             break;
           case "setup_toml":
             storeKey = "updateStore";

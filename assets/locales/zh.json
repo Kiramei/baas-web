@@ -107,6 +107,8 @@
   "property.keystone.piece": "碎片",
   "property.pass": "通行证",
   "log.scroll": "滑动到底部",
+  "log.scroll.detail": "日志文本框滑动到底部",
+  "assetsDisplay.detail": "显示资产详细信息",
   "hotkeys": "快捷键",
   "Invalid hotkey format": "快捷键格式无效",
   "Duplicated hotkey": "快捷键重复",

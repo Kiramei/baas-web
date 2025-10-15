@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/Card';
 import {useTheme} from '../hooks/useTheme';
-import type {Theme} from '../types/app.d.ts';
+import type {Theme} from '@/types/app';
 import {useApp} from "@/contexts/AppContext.tsx";
 import {FormSelect} from "@/components/ui/FormSelect.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {formatIsoToReadable, getTimestampMs} from "@/lib/utils.ts";
+import SwitchButton from "@/components/ui/SwitchButton.tsx";
 
 type RepoConfig = {
   label: string;
@@ -68,7 +69,7 @@ const shaMethodsInit = [
 const SettingsPage: React.FC = () => {
   const {t, i18n} = useTranslation();
   const {theme, setTheme} = useTheme();
-  const {uiSettings} = useApp();
+  const {uiSettings, setUiSettings} = useApp();
   const trigger = useWebSocketStore(state => state.trigger);
   const updateConfig = useWebSocketStore(state => state.updateStore);
   const versionStore = useWebSocketStore(state => state.versionStore);
@@ -77,25 +78,17 @@ const SettingsPage: React.FC = () => {
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
+    setUiSettings(state => ({...state, theme: newTheme}));
   };
 
   const handleLanguageChange = (value: string) => {
     i18n.changeLanguage(value);
+    setUiSettings(state => ({...state, lang: value}));
   };
-
-  const [localZoom, setLocalZoom] = useState(uiSettings?.zoomScale ?? 100);
-
-// 当全局 uiSettings 改变时，同步回本地
-  useEffect(() => {
-    if (uiSettings?.zoomScale !== undefined) {
-      setLocalZoom(uiSettings.zoomScale);
-    }
-  }, [uiSettings?.zoomScale]);
 
   const handleZoomChange = (value: string) => {
     const newZoom = Number(value);
-    setLocalZoom(newZoom);
-    uiSettings.zoomScale = parseInt(value);
+    setUiSettings(state => ({...state, zoomScale: newZoom}));
   };
 
   const [localVersion, setLocalVersion] = useState(t("version.fetching"));
@@ -170,7 +163,6 @@ const SettingsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("[update]", updateConfig)
     if (updateConfig["mirrorcCdk"]) {
       setReposInitState([...reposInit, {
         label: "updateMethod.mirrorc",
@@ -349,6 +341,25 @@ const SettingsPage: React.FC = () => {
               50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150
             ].map((v) => ({value: v.toString(), label: `${v}%`}))}
           />
+
+          <Separator/>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <SwitchButton
+              label={t("log.scroll.detail")}
+              checked={uiSettings?.scrollToEnd}
+              onChange={value => {
+                setUiSettings(state => ({...state, scrollToEnd: value}));
+              }}
+            />
+            <SwitchButton
+              label={t("assetsDisplay.detail")}
+              checked={uiSettings?.assetsDisplay}
+              onChange={value => {
+                setUiSettings(state => ({...state, assetsDisplay: value}));
+              }}
+            />
+          </div>
 
         </CardContent>
       </Card>

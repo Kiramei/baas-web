@@ -11,10 +11,9 @@ export interface ConfigProfile {
 export interface UISettings {
   lang: string;
   theme: string;
-  startupWidth: number;
-  startupHeight: number;
   zoomScale: number;
   scrollToEnd: boolean;
+  assetsDisplay: boolean;
 }
 
 export type Theme = 'light' | 'dark' | 'system';

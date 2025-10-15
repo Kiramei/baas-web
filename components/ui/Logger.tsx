@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useEffect, useRef} from "react"
+import React, {useEffect, useLayoutEffect, useRef} from "react"
 import type {LogItem} from "@/store/websocketStore.ts"
 import {formatIsoToReadable, formatIsoToReadableTime} from "@/lib/utils.ts"
 import {List} from "react-window"
@@ -71,32 +71,35 @@ const Row = ({index, logs, style}: RowComponentProps<{ logs: LogItem[] }>) => {
 }
 
 const Logger: React.FC<LoggerProps> = ({logs, scrollToEnd}) => {
-  const listRef = useRef(null); // 根据你的 List 类型改
-
-  useEffect(() => {
-    if (scrollToEnd && listRef.current && logs.length > 0) {
-      listRef.current?.scrollToRow({index: logs.length - 1});
-    }
-  }, [logs, scrollToEnd]);
-
-  const rowHeight = useDynamicRowHeight({
-    defaultRowHeight: 28
-  });
-
+  const listRef = useRef(null);
+  useLayoutEffect(() => {
+    if (!scrollToEnd || !listRef.current) return;
+    let rafId = 0;
+    const tick = () => {
+      if (listRef.current && logs.length > 0) {
+        listRef.current.scrollToRow({index: logs.length - 1, align: "end"});
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(rafId);
+  }, [scrollToEnd, logs.length]);
+  const rowHeight = useDynamicRowHeight({defaultRowHeight: 28});
   return (
     <div
       className="w-full h-full bg-slate-900/80 dark:bg-slate/50 rounded-lg font-mono text-sm text-white py-1 pl-1 sm:py-4 sm:pl-4 overflow-x-auto allow-select-text">
-      {logs ?
+      {logs?.length ? (
         <List
           listRef={listRef}
           rowComponent={Row}
           rowCount={logs.length}
           rowHeight={rowHeight}
           rowProps={{logs}}
-          // className="min-w-[600px]"
-        /> : <></>}
+        />
+      ) : null}
     </div>
   );
 };
+
 
 export default Logger;

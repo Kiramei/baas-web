@@ -1,6 +1,5 @@
-// StorageUtil.ts
 export class StorageUtil {
-  static async get<T = any>(key: string): Promise<T | null> {
+  static get(key: string) {
     try {
       const raw = localStorage.getItem(key);
       return raw ? JSON.parse(raw) : null;
@@ -10,7 +9,7 @@ export class StorageUtil {
     }
   }
 
-  static async set(key: string, value: any): Promise<void> {
+  static set(key: string, value: any) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
@@ -18,7 +17,7 @@ export class StorageUtil {
     }
   }
 
-  static async remove(key: string): Promise<void> {
+  static remove(key: string) {
     try {
       localStorage.removeItem(key);
     } catch (e) {
@@ -26,7 +25,7 @@ export class StorageUtil {
     }
   }
 
-  static async clear(): Promise<void> {
+  static clear() {
     try {
       localStorage.clear();
     } catch (e) {

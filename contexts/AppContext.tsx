@@ -4,9 +4,11 @@ import {GlobalSelectProvider} from "@/components/ui/select-global"
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 import {StorageUtil} from "@/lib/storage.ts";
+import {useTranslation} from "react-i18next";
 
 interface AppContextType {
   uiSettings: UISettings;
+  setUiSettings: React.Dispatch<React.SetStateAction<UISettings>>;
   profiles: ConfigProfile[];
   activeProfile: ConfigProfile | null;
   setActiveProfile: (profile: ConfigProfile | null) => void;
@@ -50,21 +52,34 @@ export const AppProvider: React.FC<{ children: ReactNode, setReady: (value: bool
   const [activeProfile, setActiveProfile] = useState<ConfigProfile | null>(null);
 
   const [uiSettings, setUiSettings] = useState<UISettings | null>(null);
+  const {i18n} = useTranslation();
+
 
   configRes.read()
 
   const configStore = useWebSocketStore((s) => s.configStore);
 
   useEffect(() => {
-    setUiSettings({
-      "lang": "",
-      "theme": "",
-      "startupWidth": 1280,
-      "startupHeight": 720,
-      "zoomScale": 100,
-      "scrollToEnd": true
-    });
+    const _uiSettings: UISettings | null = StorageUtil.get("uiSettings")
+    if (!_uiSettings) {
+      const DEFAULT_UI_SETTINGS = {
+        lang: "",
+        theme: "",
+        zoomScale: 100,
+        scrollToEnd: true,
+        assetsDisplay: true
+      }
+      setUiSettings(DEFAULT_UI_SETTINGS);
+      StorageUtil.set("uiSettings", DEFAULT_UI_SETTINGS);
+    } else {
+      setUiSettings(_uiSettings);
+      i18n.changeLanguage(_uiSettings.lang)
+    }
   }, []);
+
+  useEffect(() => {
+    if (uiSettings) StorageUtil.set("uiSettings", uiSettings);
+  }, [uiSettings]);
 
 
   useEffect(() => {
@@ -76,7 +91,7 @@ export const AppProvider: React.FC<{ children: ReactNode, setReady: (value: bool
 
     if (list.length > 0 && !activeProfile) {
       (async () => {
-        const tabOrder = await StorageUtil.get<string[]>("tabOrder");
+        const tabOrder = await StorageUtil.get("tabOrder");
         if (tabOrder && tabOrder.length) {
           list.sort((a, b) => {
             const ia = tabOrder.indexOf(a.id);
@@ -101,6 +116,7 @@ export const AppProvider: React.FC<{ children: ReactNode, setReady: (value: bool
   const value = {
     profiles,
     uiSettings,
+    setUiSettings,
     activeProfile,
     setActiveProfile
   };
