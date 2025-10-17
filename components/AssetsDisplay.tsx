@@ -108,7 +108,7 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({ profileId }) => {
   ];
 
   return (
-    <div className="max-[320px]:hidden grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
+    <div className="max-[320px]:hidden grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
       {assetItems.map((item, idx) => (
         <Popover
           key={item.name}

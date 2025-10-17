@@ -372,7 +372,7 @@ const SettingsPage: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-1">
 
-            <div className="flex gap-2 items-center">
+            <div className="grid sm:flex gap-2 items-center">
               <FormInput
                 label={t("mirrorCdk")}
                 placeholder={t("enterCdk")}
@@ -418,7 +418,7 @@ const SettingsPage: React.FC = () => {
             options={reposInitState.map(r => ({value: r.method, label: t(r.label)}))}
           />
 
-          <div className="flex gap-2">
+          <div className="grid sm:flex gap-2">
 
             <FormSelect
               label={t("shaConnectivityTest")}

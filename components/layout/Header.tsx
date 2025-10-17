@@ -348,14 +348,14 @@ export default Header;
 
 const overlayCls = "fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50";
 
-function ProfileEditorModal(props: {
+const ProfileEditorModal = (props: {
   open: boolean;
   mode: 'create' | 'edit';
   initial: ProfileDTO | null;
   onClose: () => void;
   onSubmit: (vals: { name: string; server: string }) => Promise<void>;
   checkName: (name: string, selfId?: string) => boolean;
-}) {
+}) => {
   const {t} = useTranslation();
   const [name, setName] = React.useState(props.initial?.name ?? '');
   const [server, setServer] = React.useState('CN');
@@ -455,13 +455,13 @@ function ProfileEditorModal(props: {
   );
 }
 
-function ConfirmDeleteModal(props: {
+const ConfirmDeleteModal = (props: {
   open: boolean;
   name: string;
   disabled?: boolean;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
-}) {
+}) => {
   const {t} = useTranslation();
   if (!props.open) return null;
   return (
@@ -481,9 +481,9 @@ function ConfirmDeleteModal(props: {
             <Trash2 className="w-5 h-5"/>
           </div>
           <div className="flex-1">
-            <div className="text-lg font-semibold">{t('confirmDeleteTitle') || 'Delete configuration?'}</div>
+            <div className="text-lg font-semibold">{t('confirmDeleteTitle')}</div>
             <div className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              {t('confirmDeleteMessage', {name: props.name}) || `Are you sure you want to delete "${props.name}"?`}
+              {t('confirmDeleteMessage', {name: props.name})}
             </div>
           </div>
         </div>

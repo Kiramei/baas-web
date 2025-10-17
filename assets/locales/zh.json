@@ -133,7 +133,7 @@
   "creditpoints": "信用点",
   "pyroxene": "青辉石",
   "confirmDeleteTitle": "删除确认",
-  "confirmDeleteMessage": "确认删除该配置？该操作不可撤销。",
+  "confirmDeleteMessage": "确认删除配置“{{name}}”？该操作不可撤销！",
   "ui.zoom": "UI 缩放设置",
   "commonShop.title": "普通商店",
   "tacticalShop.title": "竞技场商店",
@@ -411,5 +411,8 @@
   "schedule.normal": "普通",
   "schedule.advanced": "高级",
   "schedule.superior": "特级",
-  "lesson.times": "日程次数"
+  "lesson.times": "日程次数",
+  "confirmUpdateTitle": "确认更新",
+  "updatePrompt": "检测到新版本，是否现在更新？",
+  "updateNotice": "更新前请停止当前运行中的任务。"
 }
