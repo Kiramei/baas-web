@@ -1,4 +1,6 @@
-// src/lib/hotkeys.ts
+/**
+ * Helpers for normalizing and validating keyboard shortcut combinations.
+ */
 import type { TFunction } from 'i18next';
 import type { HotkeyConfig } from '@/components/HotkeyConfig';
 
@@ -26,3 +28,5 @@ export function eventToCombo(e: KeyboardEvent): string {
   let main = e.key.length === 1 ? e.key.toUpperCase() : e.key.toUpperCase();
   return normalizeCombo([...mods, main].join('+'));
 }
+
+

@@ -1,4 +1,4 @@
-import React, {Suspense, useCallback, useEffect, useRef, useState} from 'react';
+import React, {Suspense, useCallback, useState} from 'react';
 import {AppProvider} from '@/contexts/AppContext';
 import {ThemeProvider} from '@/hooks/useTheme';
 import MainLayout from '@/components/layout/MainLayout';
@@ -9,10 +9,13 @@ import SettingsPage from '@/pages/SettingsPage';
 import WikiPage from "@/pages/WikiPage.tsx";
 import type {Variants} from 'framer-motion';
 import {motion} from 'framer-motion';
-import {useApp} from '@/contexts/AppContext'; // 新增：拿到 activeProfile
+import {useApp} from '@/contexts/AppContext';
 import {LoadingPage} from './pages/LoadingPage';
 import {Toaster} from "sonner";
 
+/**
+ * Shared motion variants that keep inactive pages mounted while keeping the transition lightweight.
+ */
 const variants: Variants = {
   show: {
     opacity: 1,
@@ -42,9 +45,9 @@ const App: React.FC = () => {
             animate={{opacity: ready ? 0 : 1}}
             transition={{duration: 0.2}}
             onAnimationComplete={(definition) => {
-              // definition 就是本次动画的属性，例如 { opacity: 0 }
+              // When the animation returns an opacity of zero the loading screen can be removed.
               if (ready && (definition as any).opacity === 0) {
-                setHideLoading(true); // 动画到 0 后卸载
+                setHideLoading(true);
               }
             }}
             className="fixed inset-0 z-[100]"
@@ -69,13 +72,22 @@ const App: React.FC = () => {
 };
 
 
+/**
+ * Identifiers for each primary application route.
+ */
 export type PageKey = 'home' | 'scheduler' | 'configuration' | 'settings' | 'wiki';
 
+/**
+ * Builds a stable key so each profile-specific page instance can preserve its internal state.
+ */
 const instanceKeyOf = (page: PageKey, pid?: string) =>
   page === 'home' || page === 'scheduler' || page === 'configuration'
     ? `${page}:${pid ?? 'none'}`
     : page;
 
+/**
+ * Extracts the page identifier and profile id from a composite key.
+ */
 const parseInstanceKey = (k: string): [PageKey, string | undefined] => {
   if (k.includes(':')) {
     const [p, pid] = k.split(':');
@@ -93,10 +105,14 @@ const Main: React.FC = () => {
 
   const [seenKeys, setSeenKeys] = React.useState<string[]>([instanceKeyOf('home', activePid)]);
 
+  // Track every page/profile combination that has been rendered so components keep their local state.
   React.useEffect(() => {
     setSeenKeys(prev => (prev.includes(currentKey) ? prev : [...prev, currentKey]));
   }, [currentKey]);
 
+  /**
+   * Lazily instantiate the requested page while injecting the active profile id when applicable.
+   */
   const renderPage = useCallback((page: PageKey, pid: string) => {
     switch (page) {
       case 'home':
@@ -141,3 +157,5 @@ const Main: React.FC = () => {
 
 
 export default App;
+
+

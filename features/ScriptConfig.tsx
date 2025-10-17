@@ -75,7 +75,7 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
 
   return (
     <div className="space-y-2">
-      {/* 截图间隔 */}
+      {/* Screenshot interval setting */}
       <FormInput
         type="number"
         label={t("script.screenshotInterval")}
@@ -88,7 +88,7 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
         step={0.1}
       />
 
-      {/* 自动启动 */}
+      {/* Auto-start toggle */}
       <SwitchButton
         label={t("script.autostart")}
         checked={draft.autostart}
@@ -96,7 +96,7 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
         className="w-full"
       />
 
-      {/* 完成后 */}
+      {/* Action after completion */}
       <FormSelect
         label={t("script.then")}
         value={draft.then}
@@ -108,32 +108,36 @@ const ScriptConfig: React.FC<ScriptConfigProps> = ({
       />
 
       <div className="flex items-center justify-between gap-2">
-        {/* 截图方式 */}
+        {/* Screenshot method (e.g., ADB / API / screen stream) */}
         <FormSelect
           label={t("script.screenshotMethod")}
           value={draft.screenshot_method}
           onChange={handleChange("screenshot_method")}
-          options={staticConfig?.screenshot_methods?.map((m: string) => ({
-            value: m,
-            label: m,
-          })) ?? []}
+          options={
+            staticConfig?.screenshot_methods?.map((m: string) => ({
+              value: m,
+              label: m,
+            })) ?? []
+          }
           className="flex-1"
         />
 
-        {/* 控制方式 */}
+        {/* Control method (e.g., ADB control / input simulation) */}
         <FormSelect
           label={t("script.controlMethod")}
           value={draft.control_method}
           onChange={handleChange("control_method")}
-          options={staticConfig?.control_methods?.map((m: string) => ({
-            value: m,
-            label: m,
-          })) ?? []}
+          options={
+            staticConfig?.control_methods?.map((m: string) => ({
+              value: m,
+              label: m,
+            })) ?? []
+          }
           className="flex-1"
         />
       </div>
 
-      {/* 保存按钮 */}
+      {/* Save button */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}

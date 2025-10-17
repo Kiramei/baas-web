@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({activePage, setActivePage}) => {
     {id: 'scheduler', label: t('scheduler'), icon: ListChecks},
     {id: 'configuration', label: t('configuration'), icon: SlidersHorizontal},
     {id: 'settings', label: t('settings'), icon: Settings},
-    {id: 'wiki', label: t('wiki'), icon: BookOpenText},
+    {id: 'wiki', label: t('title.wiki'), icon: BookOpenText},
   ];
 
   const handleUpdate = async (): Promise<void> => {

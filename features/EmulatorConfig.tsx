@@ -126,7 +126,7 @@ const EmulatorConfig: React.FC<EmulatorConfigProps> = (
             {/*  type="button"*/}
             {/*  className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-md"*/}
             {/*  onClick={() => {*/}
-            {/*    // TODO: 接入文件选择器*/}
+            {/* TODO: integrate the platform file picker once available. */}
             {/*    alert("选择文件逻辑待实现");*/}
             {/*  }}*/}
             {/*>*/}

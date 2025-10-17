@@ -12,9 +12,9 @@ type DrillConfigProps = {
 };
 
 const DrillConfig: React.FC<DrillConfigProps> = ({
-                                                   onClose,
-                                                   profileId
-                                                 }) => {
+  onClose,
+  profileId
+}) => {
   const {t} = useTranslation();
   const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
   const modify = useWebSocketStore(state => state.modify);
@@ -22,7 +22,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
   const party_nos = ["1", "2", "3", "4"];
   const total_assault_difficulties = ["1", "2", "3", "4"];
 
-  // 从外部配置拿初始值
+  // Hydrate the form with the latest drill configuration pulled from the server.
   const ext = useMemo(() => {
     return {
       drill_enable_sweep: settings.drill_enable_sweep,
@@ -34,7 +34,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
   const [draft, setDraft] = useState(ext);
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-  // 更新数组选择
+  // Generic updater for list-based selectors (party formation and difficulty).
   const handleListChange =
     (key: "drill_fight_formation_list" | "drill_difficulty_list", idx: number) =>
       (value: string) => {
@@ -45,21 +45,20 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
         });
       };
 
-  // 保存
+  // Persist current draft back to the backend if any values changed.
   const handleSave = async () => {
     const patch: Partial<DynamicConfig> = {
       drill_enable_sweep: draft.drill_enable_sweep,
       drill_fight_formation_list: draft.drill_fight_formation_list.map(Number),
       drill_difficulty_list: draft.drill_difficulty_list.map(Number),
     };
-    modify(`${profileId}::config`, patch)
-
+    modify(`${profileId}::config`, patch);
     onClose();
   };
 
   return (
     <div className="space-y-2">
-      {/* 开关 */}
+      {/* Sweep toggle */}
       <SwitchButton
         label={t("drill.useAllAfterSweep")}
         checked={draft.drill_enable_sweep}
@@ -71,7 +70,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
 
       <Separator/>
 
-      {/* 出击队伍编号 */}
+      {/* Party lineup configuration */}
       <div>
         <label className="block mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
           {t("drill.out_partyNo")}
@@ -93,7 +92,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
         </div>
       </div>
 
-      {/* 出击难度 */}
+      {/* Difficulty sequencing */}
       <div>
         <label className="block mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
           {t("drill.difficulty")}
@@ -118,7 +117,7 @@ const DrillConfig: React.FC<DrillConfigProps> = ({
         </div>
       </div>
 
-      {/* 保存按钮 */}
+      {/* Save action */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
         <button
           onClick={handleSave}

@@ -1,11 +1,7 @@
-// To parse this data:
-//
-//   import { Convert, DynamicConfig } from "./file";
-//
-//   const dynamicConfig = Convert.toDynamicConfig(json);
-//
-// These functions will throw an error if the JSON doesn't
-// match the expected interface, even if the JSON is valid.
+/**
+ * Type definitions for the dynamic configuration payload exchanged between the UI and backend.
+ * Regenerate this file alongside the service schema to keep type expectations synchronized.
+ */
 
 export interface DynamicConfig {
     name:                                         string;
@@ -188,7 +184,7 @@ function transform(val: any, typ: any, getProps: any, key: any = '', parent: any
     }
 
     function transformUnion(typs: any[], val: any): any {
-        // val must validate against one typ in typs
+        // Validate the incoming value against every candidate type until one succeeds.
         const l = typs.length;
         for (let i = 0; i < l; i++) {
             const typ = typs[i];
@@ -205,7 +201,7 @@ function transform(val: any, typ: any, getProps: any, key: any = '', parent: any
     }
 
     function transformArray(typ: any, val: any): any {
-        // val must be an array with no invalid elements
+        // Ensure every element in the array conforms to the declared schema.
         if (!Array.isArray(val)) return invalidValue(l("array"), val, key, parent);
         return val.map(el => transform(el, typ, getProps));
     }
@@ -257,7 +253,7 @@ function transform(val: any, typ: any, getProps: any, key: any = '', parent: any
             : typ.hasOwnProperty("props")         ? transformObject(getProps(typ), typ.additional, val)
             : invalidValue(typ, val, key, parent);
     }
-    // Numbers can be parsed by Date but shouldn't be.
+    // Prevent numeric values from being misinterpreted as Date instances.
     if (typ === Date && typeof val !== "number") return transformDate(val);
     return transformPrimitive(typ, val);
 }
@@ -421,3 +417,7 @@ const typeMap: any = {
         "Unused",
     ],
 };
+
+
+
+

@@ -62,7 +62,7 @@ const SelectorModal: React.FC<SelectorModalProps> = (
   const {t} = useTranslation()
   const [query, setQuery] = useState("");
 
-  // 搜索过滤
+  // Client-side filter that honours the free-text search input.
   const filtered = useMemo(() => {
     return alternatives.filter((s) =>
       (translatePrefix ? t(translatePrefix + "." + s) : s).toString().toLowerCase().includes(query.toLowerCase())
@@ -99,7 +99,7 @@ const SelectorModal: React.FC<SelectorModalProps> = (
             className="w-full mb-4 px-3 py-2 border rounded-md focus:ring-primary-500 focus:border-primary-500"
           />
 
-          {/* 学生列表 */}
+          {/* Candidate list */}
           <div className="flex flex-wrap gap-2 max-h-96 overflow-y-auto">
             {filtered.map((s) => {
               const name = s.toString();
@@ -140,17 +140,17 @@ export const OrderedMultiSelector: React.FC<MultiSelectorProps> = (
   const [isOpen, setIsOpen] = useState(false)
   const {t} = useTranslation()
 
-  // 删除
+  // Remove value from the ordered collection.
   const handleRemove = (name: string) => {
     onChange(values.filter((n) => n !== name))
   }
 
-  // 重排
+  // Apply the new order emitted by the drag-and-drop group.
   const handleReorder = (newOrder: string[]) => {
     onChange(newOrder)
   }
 
-  // 添加（打开 modal）
+  // Open the modal so the user can append new entries.
   const handleAdd = () => {
     setIsOpen(true)
   }
@@ -191,7 +191,7 @@ export const OrderedMultiSelector: React.FC<MultiSelectorProps> = (
                     "cursor-grab"
                   )}
                 >
-                  {/* 序号 */}
+                  {/* Index badge */}
                   <span
                     className="flex items-center justify-center w-5 h-5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
                     {index + 1}
@@ -199,7 +199,7 @@ export const OrderedMultiSelector: React.FC<MultiSelectorProps> = (
 
                   <span className="text-sm">{translatePrefix ? t(translatePrefix + "." + name) : name}</span>
 
-                  {/* 删除按钮 */}
+                  {/* Remove button */}
                   <button
                     onClick={() => handleRemove(name)}
                     className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition"
@@ -209,7 +209,7 @@ export const OrderedMultiSelector: React.FC<MultiSelectorProps> = (
                 </Reorder.Item>
               ))}
 
-              {/* 添加按钮 */}
+              {/* Add button */}
               <button
                 onClick={handleAdd}
                 className={cn(
@@ -226,14 +226,14 @@ export const OrderedMultiSelector: React.FC<MultiSelectorProps> = (
         </div>
       </div>
 
-      {/* 选择器弹窗 */}
+      {/* Selection modal */}
       <SelectorModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         alternatives={alternatives}
         selected={values}
         onChange={(list: any[]) => {
-          onChange(list)   // 直接透传
+          onChange(list); // Pass-through to parent handler.
         }}
         translatePrefix={translatePrefix}
       />

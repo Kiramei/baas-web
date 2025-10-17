@@ -62,7 +62,7 @@ const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
 
   const [activeTab, setActiveTab] = useState<TabKey>("common");
 
-  /** ext = 外部配置快照（带默认值） */
+  /** ext = Snapshot */
   const ext = useMemo(() => {
     return {
       CommonShopList:
@@ -121,7 +121,7 @@ const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
     }
   };
 
-  /** 保存 */
+  /** Save */
   const handleSave = async () => {
     if (!dirty) {
       onClose();
@@ -221,7 +221,7 @@ const ShopConfig: React.FC<{ profileId: string; onClose: () => void }> = ({
         })}
       </Tabs>
 
-      {/* 保存按钮 */}
+      {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}

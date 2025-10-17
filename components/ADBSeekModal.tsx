@@ -3,17 +3,17 @@ import {useTranslation} from "react-i18next";
 import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {Modal} from "@/components/ui/Modal";
-import {SearchCode} from "lucide-react"; // 用你给的 Modal
+import {SearchCode} from "lucide-react";
 import {Loader2} from "lucide-react";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
-import {getTimestampMs} from "@/lib/utils.ts";  // 如果想加 loading 图标可以用
+import {getTimestampMs} from "@/lib/utils.ts";
 
 type ADBSeekProps = {
   onDetect?: () => Promise<string[]>;
   onSelect?: (addr: string) => void;
 };
 
-// mock 数据
+// Default mock implementation that simulates ADB discovery.
 const mockDetect = async (): Promise<string[]> => {
   await new Promise((r) => setTimeout(r, 1000));
   return [
@@ -51,7 +51,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
 
   return (
     <>
-      {/* 外部按钮 */}
+      {/* Trigger button */}
       <CButton variant="primary" onClick={() => setOpen(true)} style={
         {
           borderRadius: "50%",
@@ -96,7 +96,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
                 className="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
                 onClick={() => {
                   onSelect?.(addr);
-                  setOpen(false); // 点击后关闭 modal
+                  setOpen(false); // Close the modal after a selection is made.
                 }}
               >
                 {addr}
@@ -104,7 +104,7 @@ const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect})
             ))}
             {results.length === 0 && !loading && (
               <p className="text-sm text-slate-500">
-                {t("adb.noData") || "暂无结果"}
+                {t("adb.noData") || "No results found"}
               </p>
             )}
           </div>

@@ -79,7 +79,7 @@ const fragment = /* glsl */ `
   precision highp float;
 
   uniform float uTime;
-  uniform float uMinPulseRatio; // [!code ++]
+  uniform float uMinPulseRatio; // Lower bound for the pulsing radius animation.
   varying vec4 vRandom;
   varying vec3 vColor;
 
@@ -90,31 +90,31 @@ const fragment = /* glsl */ `
     vec2 uv = gl_PointCoord - 0.5;
     float d = length(uv);
 
-    // 1. Map the range of the sin function from [-1, 1] to [0, 1]
+    // Step 1: normalize the sine wave output from [-1, 1] into [0, 1].
     float sin01 = (sin(uTime * 3.0 + vRandom.x * 6.28) + 1.0) * 0.5;
 
-    // 2. Based on uMinPulseRatio, map [0, 1] to the desired [min, max] range
-    //    Here max is 1.0, min is uMinPulseRatio, Here fixed to 0.5
+    // Step 2: remap the normalized signal into the configured pulse range.
+    //         In this shader the maximum radius is 1.0 and the minimum is uMinPulseRatio (default 0.5).
     float pulse = 0.5 + sin01 * (1.0 - 0.5);
 
-    // --- Subsequent logic remains unchanged, but is now driven by 'pulse' ---
+    // Subsequent calculations now derive from the pulse value.
 
-    // 3. Dynamically calculate the core and halo radius for the current frame
+    // Step 3: derive core and halo radii for the current frame.
     float dynamicCoreRadius = BASE_CORE_RADIUS * pulse;
     float dynamicHaloRadius = BASE_HALO_RADIUS * pulse;
 
-    // 4. Update discard condition
+    // Step 4: discard fragments outside the halo boundary.
     if (d > dynamicHaloRadius) discard;
 
-    // 5. Use dynamic radii to calculate core and halo shapes
+    // Step 5: compute the core and halo contributions based on the dynamic radii.
     float core = smoothstep(dynamicCoreRadius, dynamicCoreRadius - 0.02, d);
     float halo = smoothstep(dynamicHaloRadius, dynamicCoreRadius, d);
 
-    // 6. Intensity and color calculation logic
+    // Step 6: determine fragment intensity and resulting color.
     float intensity = (core * 1.5 + halo * 0.8);
     float finalAlpha = intensity * pulse;
 
-    // 7. Output premultiplied Alpha color
+    // Step 7: output the premultiplied alpha color.
     gl_FragColor = vec4(vColor * finalAlpha, finalAlpha);
   }
 `;
@@ -278,3 +278,4 @@ const Particles: React.FC<ParticlesProps> = (
 };
 
 export default Particles;
+

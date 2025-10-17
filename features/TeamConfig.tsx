@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {FormSelect} from "@/components/ui/FormSelect";
 import {DynamicConfig} from "@/types/dynamic";
@@ -55,8 +55,8 @@ const TeamConfig: React.FC<TeamConfigProps> = (
   const handleCellChange =
     (tableKey: string, row: number, col: number) => (value: string) => {
       setDraft((prev) => {
-        const newTable = prev[tableKey].map((r, ri) =>
-          ri === row ? r.map((c, ci) => (ci === col ? value : c)) : r
+        const newTable = prev[tableKey].map((r: any, ri: any) =>
+          ri === row ? r.map((c: any, ci: any) => (ci === col ? value : c)) : r
         );
         return {...prev, [tableKey]: newTable};
       });
@@ -95,8 +95,8 @@ const TeamConfig: React.FC<TeamConfigProps> = (
           }
         }
       >
-        {rows.map((row, ri) =>
-          row.map((val, ci) => (
+        {rows.map((row: any, ri: any) =>
+          row.map((val: any, ci: any) => (
             <FormSelect
               key={`${ri}-${ci}`}
               value={val}
@@ -126,7 +126,7 @@ const TeamConfig: React.FC<TeamConfigProps> = (
         }))}
       />
 
-      {/* 表格区域 */}
+      {/* Method Selection */}
       {draft.choose_team_method === "preset" && renderTable("preset_team_attribute")}
 
       {draft.choose_team_method === "side" && (
@@ -134,7 +134,7 @@ const TeamConfig: React.FC<TeamConfigProps> = (
         </div>
       )}
 
-      {/* 保存按钮 */}
+      {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}

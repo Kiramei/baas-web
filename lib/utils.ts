@@ -1,7 +1,5 @@
 import {clsx, type ClassValue} from "clsx"
 import {twMerge} from "tailwind-merge"
-import React from "react";
-import {useGlobalLogStore} from "@/store/globalLogStore.ts";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -26,9 +24,9 @@ export const deepMerge = <T extends Record<string, any>>(target: T, patch: any):
     if (isPlainObject(prev) && isPlainObject(next)) {
       out[key] = deepMerge(prev, next);
     } else if (Array.isArray(next)) {
-      out[key] = next.slice();          // 数组整体替换
+      out[key] = next.slice();          // Replace the entire array to prevent shared references.
     } else {
-      out[key] = next;                  // 基本类型或对象直接覆盖
+      out[key] = next;                  // Overwrite primitive or object values directly.
     }
   }
   return out as T;

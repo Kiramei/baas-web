@@ -1,4 +1,4 @@
-import React, {Dispatch, SetStateAction, useCallback, useMemo, useState} from 'react';
+import React, {Dispatch, SetStateAction, useMemo, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Card, CardDescription, CardHeader, CardTitle} from '../components/ui/Card';
 import {Modal} from '@/components/ui/Modal';
@@ -54,28 +54,37 @@ type Feature =
   | 'push'
   | 'other';
 
-const FeatureWidthDict = {
-  'cafe': 50,
-  'schedule': 50,
-  'shop': 50,
-  'artifact': 80,
-  'arena': 30,
-  'dailySweep': 70,
-  'server': 30,
-  'emulator': 50,
-  'push': 50,
-  'stage': 80,
-  'other': 30,
-}
+const FeatureWidthDict: Record<Feature, number> = {
+  cafe: 50,
+  schedule: 50,
+  shop: 50,
+  artifact: 80,
+  arena: 30,
+  dailySweep: 70,
+  tactical: 60,
+  drill: 50,
+  whitelist: 70,
+  server: 30,
+  script: 60,
+  emulator: 50,
+  stage: 80,
+  team: 70,
+  push: 50,
+  other: 30
+};
 
-// ✅ 新：给 Feature 的最小建议 props（向后兼容）
+/**
+ * Contract for feature configuration panels rendered inside the modal.
+ */
 export interface FeatureComponentProps {
   onClose: () => void;
   profileId?: string;
-  setActivePage?: Dispatch<SetStateAction<PageKey>>
+  setActivePage?: Dispatch<SetStateAction<PageKey>>;
 }
 
-// map 同名不变；我们会把 settings/onChange 注入给它们
+/**
+ * Registry that connects feature identifiers with their iconography, copy, and concrete implementation.
+ */
 const featureMap: Record<Feature, {
   icon: React.FC<LucideProps>,
   descKey: string,
@@ -101,11 +110,12 @@ const featureMap: Record<Feature, {
 };
 
 const gridVariants = {
-  show: {transition: {staggerChildren: 0.05}},
+  show: {transition: {staggerChildren: 0.05}}
 };
+
 const cardVariants: Variants = {
   hidden: {opacity: 0, y: 8, scale: 0.98},
-  show: {opacity: 1, y: 0, scale: 1, transition: {duration: 0.18, ease: 'easeOut'}},
+  show: {opacity: 1, y: 0, scale: 1, transition: {duration: 0.18, ease: 'easeOut'}}
 };
 
 const MotionCard: React.FC<React.PropsWithChildren<{ onClick?: () => void }>> = ({children, onClick}) => (
@@ -122,13 +132,19 @@ const MotionCard: React.FC<React.PropsWithChildren<{ onClick?: () => void }>> = 
   </motion.div>
 );
 
+/**
+ * Presents the full catalog of configurable features for the selected profile.
+ * Each tile launches a modal that exposes the respective configuration surface.
+ */
 const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) => {
   const {t} = useTranslation();
   const {profiles, activeProfile} = useApp();
 
-  // 当前配置 id
   const pid = profileId ?? activeProfile?.id;
-  const profile = useMemo(() => profiles.find(p => p.id === pid) ?? activeProfile ?? null, [profiles, pid, activeProfile]);
+  const profile = useMemo(
+    () => profiles.find(p => p.id === pid) ?? activeProfile ?? null,
+    [profiles, pid, activeProfile]
+  );
 
   const [modalContent, setModalContent] = useState<Feature | null>(null);
   const [modalWidth, setModalWidth] = useState<number | null>(null);
@@ -136,10 +152,11 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) =
   const openModal = (feature: Feature) => {
     setModalWidth(FeatureWidthDict[feature]);
     setModalContent(feature);
-  }
+  };
+
   const closeModal = () => {
     setModalContent(null);
-  }
+  };
 
   const featureGroups: Record<string, Feature[]> = {
     [t('featureSettings')]: ['cafe', 'schedule', 'shop', 'artifact', 'arena', 'dailySweep', 'tactical', 'drill', 'whitelist'],
@@ -151,7 +168,7 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) =
     return (
       <MotionCard key={feature} onClick={() => openModal(feature)}>
         <CardHeader>
-          <div className='flex items-center gap-4'>
+          <div className="flex items-center gap-4">
             <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-lg">
               <Icon className="w-6 h-6 text-primary-600 dark:text-primary-400"/>
             </div>
@@ -170,13 +187,13 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) =
   return (
     <div className="space-y-8">
       <div className="flex items-baseline justify-between">
-        <div className={'flex'}>
+        <div className="flex">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{t('configuration')}</h2>
           <h2 className="text-2xl ml-3 text-slate-500 dark:text-slate-400">#{profile?.name}</h2>
         </div>
       </div>
 
-      {/* 卡片栅格 + 入场级联动画 */}
+      {/* Feature catalog rendered as motion-enabled tiles. */}
       <motion.div variants={gridVariants} initial="show" animate="show" className="space-y-8">
         {Object.entries(featureGroups).map(([groupTitle, features]) => (
           <section key={groupTitle}>
@@ -188,7 +205,7 @@ const ConfigurationPage: React.FC<ProfileProps> = ({profileId, setActivePage}) =
         ))}
       </motion.div>
 
-      {/* 弹窗：把 profileId / settings / onChange 下发（Feature 可按需使用） */}
+      {/* Lazy render the selected feature panel inside a shared modal shell. */}
       {modalContent && CurrentModalContent && (
         <Modal isOpen title={t(modalContent)} onClose={closeModal} width={modalWidth}>
           <CurrentModalContent

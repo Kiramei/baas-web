@@ -1,98 +1,106 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {Calendar} from "@/components/ui/calendar"
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
-import {FormInput} from "@/components/ui/FormInput"
-import {cn} from "@/lib/utils"
-import {toast} from "sonner"
+import * as React from "react";
+import {startTransition} from "react";
+import {Calendar} from "@/components/ui/calendar";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {FormInput} from "@/components/ui/FormInput";
+import {cn} from "@/lib/utils";
+import {toast} from "sonner";
 import {useTranslation} from "react-i18next";
-import {startTransition} from "react";  // 假设你用 shadcn/ui 的 toast
 
 interface DateTimePickerProps {
-  value: number | null
-  onChange: (ts: number | null) => void
-  className?: string
-  delay?: number // 延迟提交的时间，默认 500ms
+  /**
+   * Unix timestamp expressed in milliseconds.
+   */
+  value: number | null;
+  /**
+   * Callback invoked whenever the user confirms a new timestamp.
+   */
+  onChange: (ts: number | null) => void;
+  className?: string;
+  /**
+   * Debounce duration for time input updates (milliseconds).
+   */
+  delay?: number;
 }
 
 const DateTimePickerBase: React.FC<DateTimePickerProps> = ({
-                                                             value,
-                                                             onChange,
-                                                             className,
-                                                             delay = 500,
-                                                           }) => {
-  const [open, setOpen] = React.useState(false)
-  const dateObj = value != null ? new Date(value) : null
-  const {t} = useTranslation()
+  value,
+  onChange,
+  className,
+  delay = 500
+}) => {
+  const [open, setOpen] = React.useState(false);
+  const dateObj = value != null ? new Date(value) : null;
+  const {t} = useTranslation();
 
-  // 日期字符串
+  // Pre-format date and time strings so the inputs remain controlled even with null values.
   const dateStr = dateObj
     ? `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(
       dateObj.getDate()
     ).padStart(2, "0")}`
-    : "0000-00-00"
+    : "0000-00-00";
 
-  // 时间字符串
   const timeStr = dateObj
     ? `${String(dateObj.getHours()).padStart(2, "0")}:${String(dateObj.getMinutes()).padStart(
       2,
       "0"
     )}:${String(dateObj.getSeconds()).padStart(2, "0")}`
-    : "00:00:00"
+    : "00:00:00";
 
-  // 本地状态缓存输入
-  const [localTime, setLocalTime] = React.useState(timeStr)
+  // Maintain the time input locally so we can debounce the write-back.
+  const [localTime, setLocalTime] = React.useState(timeStr);
 
   React.useEffect(() => {
-    // 外部值变化时同步到本地
     if (dateObj) {
-      const newStr = `${String(dateObj.getHours()).padStart(2, "0")}:${String(
-        dateObj.getMinutes()
-      ).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
-      setLocalTime(newStr)
+      setLocalTime(
+        `${String(dateObj.getHours()).padStart(2, "0")}:${String(
+          dateObj.getMinutes()
+        ).padStart(2, "0")}:${String(dateObj.getSeconds()).padStart(2, "0")}`
+      );
     }
-  }, [value])
+  }, [value]);
 
-  // ⏳ debounce 定时器
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  // Shared timeout handle for debounced time updates.
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // 更新日期
-  const handleDateSelect = React.useCallback((d?: Date) => {
-    if (!d) {
-      onChange(null)
-      return
+  const handleDateSelect = React.useCallback((selected?: Date) => {
+    if (!selected) {
+      onChange(null);
+      return;
     }
-    const newDate = dateObj ?? new Date()
-    newDate.setFullYear(d.getFullYear(), d.getMonth(), d.getDate())
+
+    const newDate = dateObj ?? new Date();
+    newDate.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
     startTransition(() => {
-      onChange(newDate.getTime())
-      setOpen(false)
-    })
+      onChange(newDate.getTime());
+      setOpen(false);
+    });
     toast(t("toast.dateUpdated"), {
-      description: newDate.toLocaleString(),
-    })
-  }, [dateObj, onChange])
+      description: newDate.toLocaleString()
+    });
+  }, [dateObj, onChange, t]);
 
-  // 更新时间（延迟触发）
-  const handleTimeInput = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setLocalTime(val)
+  const handleTimeInput = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const val = event.target.value;
+    setLocalTime(val);
 
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      const [h, m, s] = val.split(":").map((x) => parseInt(x, 10))
-      const newDate = dateObj ?? new Date()
-      newDate.setHours(h || 0, m || 0, s || 0)
-      // onChange(newDate.getTime())
+      const [h, m, s] = val.split(":").map((piece) => parseInt(piece, 10));
+      const newDate = dateObj ?? new Date();
+      newDate.setHours(h || 0, m || 0, s || 0);
+
       startTransition(() => {
-        onChange(newDate.getTime())
-      })
+        onChange(newDate.getTime());
+      });
+
       toast.success(t("toast.timeUpdated"), {
-        description: newDate.toLocaleString(),
-      })
-    }, delay)
-  }, [dateObj, onChange])
+        description: newDate.toLocaleString()
+      });
+    }, delay);
+  }, [dateObj, delay, onChange, t]);
 
   return (
     <div
@@ -138,7 +146,7 @@ const DateTimePickerBase: React.FC<DateTimePickerProps> = ({
         "
       />
     </div>
-  )
-}
+  );
+};
 
-export const DateTimePicker = React.memo(DateTimePickerBase)
+export const DateTimePicker = React.memo(DateTimePickerBase);

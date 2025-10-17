@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {Check, Plus, X} from "lucide-react";
 import {Reorder} from "framer-motion";
-import {Separator} from "@/components/ui/separator"
+import {Separator} from "@/components/ui/separator";
 import SwitchButton from "@/components/ui/SwitchButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
 import StudentSelectorModal from "@/components/StudentSelectorModal.tsx";
@@ -27,37 +27,36 @@ type Draft = {
 
 const levels = ["primary", "normal", "advanced", "superior"];
 
-const LessonConfig: React.FC<LessonConfigProps> = ({
-                                                     onClose,
-                                                     profileId,
-                                                   }) => {
+const LessonConfig: React.FC<LessonConfigProps> = ({onClose, profileId}) => {
   const {t} = useTranslation();
-  const settings: Partial<DynamicConfig> = useWebSocketStore(state => state.configStore[profileId]);
-  const modify = useWebSocketStore(state => state.modify);
-  const staticConfig = useWebSocketStore(state => state.staticStore);
+  const settings: Partial<DynamicConfig> = useWebSocketStore(
+    (state) => state.configStore[profileId]
+  );
+  const modify = useWebSocketStore((state) => state.modify);
+  const staticConfig = useWebSocketStore((state) => state.staticStore);
   const lessonNames = staticConfig.lesson_region_name[serverMap[settings.server]];
   const studentNames = staticConfig.student_names;
   const [showSelector, setShowSelector] = useState(false);
 
-  // 外部设置 → 默认值
+  // Convert external settings → default draft values
   const ext = useMemo(() => {
     return {
-      lesson_enableInviteFavorStudent: settings.lesson_enableInviteFavorStudent ?? false,
+      lesson_enableInviteFavorStudent:
+        settings.lesson_enableInviteFavorStudent ?? false,
       lesson_favorStudent: settings.lesson_favorStudent ?? [],
       lesson_relationship_first: settings.lesson_relationship_first ?? false,
       lesson_each_region_object_priority:
         settings.lesson_each_region_object_priority ??
         lessonNames.map(() => [...levels]),
-      lesson_times:
-        settings.lesson_times ?? lessonNames.map(() => 1),
+      lesson_times: settings.lesson_times ?? lessonNames.map(() => 1),
     };
   }, [settings]);
 
   const [draft, setDraft] = useState<Draft>(ext);
 
   useEffect(() => {
-    setDraft(prev => {
-      // 简单的浅比较，避免递归
+    setDraft((prev) => {
+      // Simple shallow comparison to prevent recursive updates
       if (JSON.stringify(prev) !== JSON.stringify(ext)) {
         return ext;
       }
@@ -65,10 +64,9 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
     });
   }, [ext]);
 
-
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-  // 保存
+  // Save configuration
   const handleSave = async () => {
     const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
@@ -81,11 +79,11 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
       onClose();
       return;
     }
-    modify(`${profileId}::config`, patch)
+    modify(`${profileId}::config`, patch);
     onClose();
   };
 
-  // Favor student tag 管理
+  // Remove a favorite student from the list
   const removeFavorStudent = (name: string) => {
     setDraft((d) => ({
       ...d,
@@ -93,7 +91,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
     }));
   };
 
-  // 更新区域等级选择
+  // Toggle region-level selection
   const toggleLevel = (i: number, level: string) => {
     setDraft((d) => {
       const copy = d.lesson_each_region_object_priority.map((arr) => [...arr]);
@@ -106,7 +104,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
     });
   };
 
-  // 更新次数
+  // Update number of repetitions per region
   const updateTimes = (i: number, val: string) => {
     const n = Number(val);
     if (Number.isFinite(n)) {
@@ -120,14 +118,16 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
 
   return (
     <div className="space-y-2">
-
-      {/* 优先做指定学生 */}
+      {/* Priority: Favor specific students */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <SwitchButton
           checked={draft.lesson_enableInviteFavorStudent}
           label={t("lesson.enableFavorStudent")}
           onChange={(checked) =>
-            setDraft((d) => ({...d, lesson_enableInviteFavorStudent: checked}))
+            setDraft((d) => ({
+              ...d,
+              lesson_enableInviteFavorStudent: checked,
+            }))
           }
         />
 
@@ -140,15 +140,14 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
         />
       </div>
 
-
-      {/* 指定学生 */}
+      {/* Favorite students section */}
       {draft.lesson_enableInviteFavorStudent && (
         <div>
           <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-200">
             {t("lesson.favorStudent")}
           </label>
 
-          {/* 外层容器：单行 + 滚动条 */}
+          {/* Outer container: single row with horizontal scroll */}
           <div className="overflow-x-auto pb-1 scroll-embedded">
             <Reorder.Group
               axis="x"
@@ -170,7 +169,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                     cursor-grab
                   "
                 >
-                  {/* 序号：小圆点 */}
+                  {/* Order number indicator */}
                   <span
                     className="flex items-center justify-center w-5 h-5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
                     {index + 1}
@@ -178,7 +177,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
 
                   <span className="text-sm">{name}</span>
 
-                  {/* 删除按钮：hover 时浅红背景 */}
+                  {/* Delete button (light red background on hover) */}
                   <button
                     onClick={() => removeFavorStudent(name)}
                     className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900 transition"
@@ -188,7 +187,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                 </Reorder.Item>
               ))}
 
-              {/* 添加按钮也放在同一行 */}
+              {/* Add button (same row as tags) */}
               <button
                 onClick={() => setShowSelector(true)}
                 className="
@@ -207,22 +206,27 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
 
       <Separator/>
 
-      {/* 区域表格 */}
-      <div className="overflow-y-auto overflow-x-auto border rounded-md" style={
-        {maxHeight: "calc(100vh - 320px)", minHeight: "80px"}
-      }>
+      {/* Region-level configuration table */}
+      <div
+        className="overflow-y-auto overflow-x-auto border rounded-md"
+        style={{maxHeight: "calc(100vh - 320px)", minHeight: "80px"}}
+      >
         <table className="min-w-full text-sm">
           <thead className="sticky top-0 bg-slate-100 dark:bg-slate-700 z-10">
           <tr>
-            <th className="px-2 py-1 border text-left">{t("lesson.region")}</th>
+            <th className="px-2 py-1 border text-left">
+              {t("lesson.region")}
+            </th>
             {levels.map((l) => (
-              <th key={l} className="px-2 py-1 border">{t(`schedule.${l}`)}</th>
+              <th key={l} className="px-2 py-1 border">
+                {t(`schedule.${l}`)}
+              </th>
             ))}
             <th className="px-2 py-1 border">{t("lesson.times")}</th>
           </tr>
           </thead>
           <tbody>
-          {lessonNames.map((name, i) => (
+          {lessonNames.map((name: any, i: number) => (
             <tr key={i}>
               <td className="px-2 py-1 border">{name}</td>
               {levels.map((lvl, j) => (
@@ -230,26 +234,28 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
                   <label className="relative inline-flex items-center cursor-pointer mt-1">
                     <input
                       type="checkbox"
-                      checked={draft.lesson_each_region_object_priority[i].includes(lvl)}
+                      checked={draft.lesson_each_region_object_priority[i].includes(
+                        lvl
+                      )}
                       onChange={() => toggleLevel(i, lvl)}
                       className="
-                        peer w-6 h-6 cursor-pointer
-                        appearance-none
-                        rounded-full border
-                        border-slate-500 dark:border-slate-400
-                        bg-slate-100 dark:bg-slate-700
-                        checked:bg-primary-400 checked:border-slate-500
-                        dark:checked:bg-primary-600 dark:checked:border-slate-400
-                        checked:text-primary-foreground
-                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-                        disabled:cursor-not-allowed disabled:opacity-50
-                      "
+                          peer w-6 h-6 cursor-pointer
+                          appearance-none
+                          rounded-full border
+                          border-slate-500 dark:border-slate-400
+                          bg-slate-100 dark:bg-slate-700
+                          checked:bg-primary-400 checked:border-slate-500
+                          dark:checked:bg-primary-600 dark:checked:border-slate-400
+                          checked:text-primary-foreground
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+                          disabled:cursor-not-allowed disabled:opacity-50
+                        "
                     />
                     <Check
                       className="
-                    pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 text-white
-                    opacity-0 peer-checked:opacity-100 transition-opacity
-                  "
+                          pointer-events-none absolute left-0.5 top-0.5 h-5 w-5 text-white
+                          opacity-0 peer-checked:opacity-100 transition-opacity
+                        "
                     />
                   </label>
                 </td>
@@ -282,7 +288,7 @@ const LessonConfig: React.FC<LessonConfigProps> = ({
         mode="multiple"
       />
 
-      {/* 保存 */}
+      {/* Save button */}
       <div className="flex justify-end pt-4 border-t">
         <button
           onClick={handleSave}

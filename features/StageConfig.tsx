@@ -219,7 +219,7 @@ const StageConfig: React.FC<StageConfigProps> = (
           </TabsContent>
         </Tabs>
 
-        {/* 保存按钮 */}
+        {/* Save Button */}
         <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
           <button
             onClick={handleSave}

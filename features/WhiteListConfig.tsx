@@ -80,7 +80,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* 输入 + 添加 */}
+      {/* Input + Add */}
       <div className="flex gap-2 items-center">
         <FormInput
           type="text"
@@ -97,7 +97,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
         </button>
       </div>
 
-      {/* 标签模式展示 */}
+      {/* Whitelist Showcase  */}
       <div className="flex flex-wrap gap-2">
         {draft.clear_friend_white_list.map((code) => (
           <span
@@ -118,7 +118,7 @@ const WhiteListConfig: React.FC<WhiteListConfigProps> = ({
         )}
       </div>
 
-      {/* 保存按钮 */}
+      {/* Save Button */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
         <button
           onClick={handleSave}

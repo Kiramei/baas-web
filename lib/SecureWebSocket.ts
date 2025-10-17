@@ -37,7 +37,7 @@ export class SecureWebSocket {
   private ws: WebSocket | null = null;
   private fernetSecret: any = null;
 
-  // 外部可绑定的回调
+  // Optional lifecycle callbacks that the consumer can attach to.
   public onOpen?: (event: Event) => void;
   public onClose?: (event: CloseEvent) => void;
   public onError?: (event: Event) => void;
@@ -69,7 +69,7 @@ export class SecureWebSocket {
             this.fernetSecret = await buildFernet(this.sharedSecret);
             console.log(`[${this.name}] Handshake OK`);
             handshakeDone = true;
-            resolve(); // 连接建立完成
+            resolve(); // Surface success once the cryptographic handshake completes.
           }
         } catch {
           if (!this.fernetSecret) return;
@@ -93,15 +93,15 @@ export class SecureWebSocket {
       this.ws.onerror = (e) => {
         console.error(`[${this.name}] Error:`, e);
         this.onError?.(e);
-        if (!handshakeDone) reject(e); // 若握手未完成，视为连接失败
+        if (!handshakeDone) reject(e); // Abort the connection if the handshake never finishes.
       };
 
       this.ws.onclose = (e) => {
         console.warn(
           `[${this.name}] Closed (code=${e.code}, reason=${e.reason || "none"})`
         );
-        this.onClose?.(e); // 通知外部
-        if (!handshakeDone) reject(e); // 若连接在握手前关闭，视为失败
+        this.onClose?.(e); // Bubble the close event to any registered listeners.
+        if (!handshakeDone) reject(e); // Treat an early close before handshake completion as a failure.
       };
     });
   }
@@ -123,3 +123,7 @@ export class SecureWebSocket {
     }
   }
 }
+
+
+
+

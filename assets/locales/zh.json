@@ -14,7 +14,6 @@
   "noTasksQueued": "队列中暂无任务",
   "logs": "日志",
   "assets": "资产",
-  "wiki": "文档",
   "lastUpdated": "上次更新",
   "secondsAgo": "{{count}}秒前",
   "minutesAgo": "{{count}}分钟前",
@@ -55,6 +54,11 @@
   "language": "语言",
   "english": "English",
   "chinese": "简体中文",
+  "japanese": "日本語",
+  "korean": "한국어",
+  "russian": "Русский",
+  "french": "Français",
+  "deutsch": "Deutsch",
   "cafe.useInvitation": "使用邀请券",
   "cafe.patRounds": "摸头轮数",
   "cafe.patRoundsDesc": "轮数越高越不容易漏摸",
@@ -414,5 +418,25 @@
   "lesson.times": "日程次数",
   "confirmUpdateTitle": "确认更新",
   "updatePrompt": "检测到新版本，是否现在更新？",
-  "updateNotice": "更新前请停止当前运行中的任务。"
+  "updateNotice": "更新前请停止当前运行中的任务。",
+  "title.wiki": "文档",
+  "wiki": {
+    "title": "百科文档",
+    "subtitle": "面向 BAAS 自动化平台的规范化指南与运维手册。",
+    "searchPlaceholder": "按主题、关键词或标签搜索…",
+    "clearSearch": "清空搜索",
+    "resultsCount": "共 {{count}} 篇文档",
+    "noResults": "暂无符合当前筛选条件的文档。",
+    "selectDocument": "请选择左侧的文档以查看正文。",
+    "category": {
+      "all": "全部",
+      "architecture": "架构",
+      "getting-started": "入门",
+      "environment": "环境配置",
+      "configuration": "配置管理",
+      "operations": "运营操作",
+      "support": "支持与反馈",
+      "formation": "编队策略"
+    }
+  }
 }

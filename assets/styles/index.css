@@ -4,6 +4,7 @@
 @import "./components/scrollbar.css";
 @import "./components/cursor.css";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

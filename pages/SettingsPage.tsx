@@ -82,8 +82,9 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleLanguageChange = (value: string) => {
-    i18n.changeLanguage(value);
-    setUiSettings(state => ({...state, lang: value}));
+    i18n.changeLanguage(value).then(() => {
+      setUiSettings(state => ({...state, lang: value}));
+    });
   };
 
   const handleZoomChange = (value: string) => {
@@ -197,7 +198,7 @@ const SettingsPage: React.FC = () => {
       payload: {}
     }, (e) => {
       setShaResults(
-        e.data.map(el => ({
+        e.data.map((el: { success: any; name: any; duration: number; value: any; }) => ({
           status: el.success ? "success" : "error",
           method: t(`shaMethod.${el.name}`),
           time: el.duration.toFixed(3),
@@ -221,7 +222,7 @@ const SettingsPage: React.FC = () => {
     setUpdateMethod(value)
   }
 
-  const handleTestCdk = (_, showMessage: boolean = true) => {
+  const handleTestCdk = (_: any, showMessage: boolean = true) => {
     if (!cdk) {
       if (showMessage) {
         toast.error(t("cdk.noCDKInput"))
@@ -328,7 +329,12 @@ const SettingsPage: React.FC = () => {
             onChange={handleLanguageChange}
             options={[
               {value: "en", label: t('english')},
-              {value: "zh", label: t('chinese')}
+              {value: "zh", label: t('chinese')},
+              {value: "ja", label: t('japanese')},
+              {value: "ko", label: t('korean')},
+              {value: "de", label: t('deutsch')},
+              {value: "ru", label: t('russian')},
+              {value: "fr", label: t('french')}
             ]}
           />
 

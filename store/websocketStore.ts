@@ -85,7 +85,7 @@ interface WebSocketState {
   init: () => Promise<void>;
   modify: (path: string, value: any, showToast?: boolean) => void;
   patch: (path: string, value: any) => void;
-  trigger: (payload: CommandPayload, callback?: (e) => void) => void;
+  trigger: (payload: CommandPayload, callback?: (e: any) => void) => void;
   pendingCallbacks: Record<string, (data?: any) => void>;
 
   _all_data_initialized: boolean;
@@ -170,8 +170,7 @@ export const waitForNormal = <T>(
         reject(err);
       }
     };
-
-    // 立即检查一次（防止初始就满足）
+    // Trigger an immediate evaluation so the caller does not wait for the first interval tick.
     check();
     const timer = setInterval(check, intervalMs);
   });
@@ -237,30 +236,30 @@ export const useWebSocketStore = create<WebSocketState>()(
           set((state): Partial<WebSocketState> => {
             const config_added = Object.fromEntries(
               message.data
-                .filter((id) => !(id in state.configStore))
-                .map((id) => [id, {}])
+                .filter((id: string) => !(id in state.configStore))
+                .map((id: string) => [id, {}])
             );
 
             const event_added = Object.fromEntries(
               message.data
-                .filter((id) => !(id in state.eventStore))
-                .map((id) => [id, []])
+                .filter((id: string) => !(id in state.eventStore))
+                .map((id: string) => [id, []])
             );
 
             const log_added = Object.fromEntries(
               message.data
-                .map((id) => {
+                .map((id: string) => {
                   const key = `config:${id}`;
                   if (key in state.logStore) return null;
                   return [key, []];
                 })
-                .filter((x): x is [string, LogItem[]] => Boolean(x))
+                .filter((x: any): x is [string, LogItem[]] => Boolean(x))
             );
 
             const status_added = Object.fromEntries(
               message.data
-                .filter((id) => !(id in state.statusStore))
-                .map((id) => [id, {}])
+                .filter((id: string) => !(id in state.statusStore))
+                .map((id: string) => [id, {}])
             );
 
             const config_kept = Object.fromEntries(
@@ -273,7 +272,7 @@ export const useWebSocketStore = create<WebSocketState>()(
 
             const log_kept = Object.fromEntries(
               Object.entries(state.logStore).filter(([key]) =>
-                message.data.some((id) => key === `config:${id}`)
+                message.data.some((id: string) => key === `config:${id}`)
               )
             );
 
@@ -324,7 +323,7 @@ export const useWebSocketStore = create<WebSocketState>()(
             return {
               logStore: {
                 ...state.logStore,
-                [data.scope]: [...prevLogs, info], // ✅ 返回新数组
+                [data.scope]: [...prevLogs, info], // Preserve existing log history while appending the new item.
               },
             };
           });
@@ -471,8 +470,9 @@ export const useWebSocketStore = create<WebSocketState>()(
       await connectWithRetry("heartbeat");
 
       await connectWithRetry("provider")
+      // Uncomment during deep diagnostics to halt before sync initialization.
       // await pause(Infinity)
-      // Sync Stage Init
+      // Establish the sync channel once the provider handshake succeeds.
       await connectWithRetry("sync")
 
       get().send("sync", {type: "pull", resource: "static"});
@@ -553,7 +553,7 @@ export const useWebSocketStore = create<WebSocketState>()(
 
       set((state) => {
         let storeKey: keyof WebSocketState;
-        // 确定目标 store
+        // Determine which store should receive the patch.
         switch (scope) {
           case "config":
             storeKey = "configStore";
@@ -572,13 +572,14 @@ export const useWebSocketStore = create<WebSocketState>()(
         const prev = store?.[resourceId] ?? {};
 
         if (!(keys[0] in prev) && patch === undefined) {
-          return; // No change
+          return; // No mutation required when the existing value is already in sync.
         }
 
         let base = {...prev};
-        // 直接更新指定的字段
+        // Apply the patch directly when targeting the root resource.
         if (keys.length === 0 || (keys.length === 1 && keys[0] === "")) base = patch;
         else {
+          // Walk the nested path so only the targeted leaf is replaced.
           let current = base;
           for (let i = 0; i < keys.length - 1; i++) {
             const key = keys[i];
@@ -653,4 +654,13 @@ export const useWebSocketStore = create<WebSocketState>()(
     }
   }))
 );
+
+
+
+
+
+
+
+
+
 

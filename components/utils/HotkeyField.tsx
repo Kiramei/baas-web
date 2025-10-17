@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 
 export interface HotkeyFieldProps {
   label?: string;
-  value: string;                       // 当前值（如：Ctrl+Shift+K）
-  onChange: (next: string) => void;    // 录制完成回调
+  value: string;                       // Current hotkey value (e.g. Ctrl+Shift+K)
+  onChange: (next: string) => void;    // Callback invoked when recording completes
   error?: string;
   className?: string;
 }
@@ -13,29 +13,28 @@ export interface HotkeyFieldProps {
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "");
 
 function normalizeCombo(e: KeyboardEvent): string | null {
-  // 只修饰键不算；需要有“主键”（字符/功能键）
+  // Require at least one non-modifier key; modifier-only presses are ignored.
   const { key, ctrlKey, shiftKey, altKey, metaKey } = e;
 
-  // 统一主键名
+  // Normalise the main key representation.
   let main = key;
 
-  // 忽略纯修饰键
+  // Skip pure modifier keys.
   if (["Shift", "Control", "Alt", "Meta"].includes(main)) return null;
 
-  // 规范：字母转大写，空格/特殊键等保持可读
+  // Standardise casing for readability while keeping special keys intact.
   if (main.length === 1) main = main.toUpperCase();
   if (main === " ") main = "Space";
-  // 功能键/方向键等保持原样（浏览器给出 F1..F12, ArrowUp 等）
 
   const parts: string[] = [];
   if (isMac) {
     if (metaKey) parts.push("Cmd");
     if (altKey)  parts.push("Option");
-    if (ctrlKey) parts.push("Ctrl");   // Mac 上也可能需要 Ctrl
+    if (ctrlKey) parts.push("Ctrl");   // Some mac configurations still use Ctrl
   } else {
     if (ctrlKey) parts.push("Ctrl");
     if (altKey)  parts.push("Alt");
-    if (metaKey) parts.push("Meta");   // Win 键
+    if (metaKey) parts.push("Meta");   // Windows key
   }
   if (shiftKey) parts.push("Shift");
 
@@ -59,10 +58,10 @@ export default function HotkeyField({
     if (!recording) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      // 防止页面触发原有快捷键
+      // Prevent the host page from executing its default shortcut handlers.
       e.preventDefault();
 
-      // Esc 取消
+      // Allow escape to cancel the recording session.
       if (e.key === "Escape") {
         setRecording(false);
         setHint("");
@@ -71,7 +70,7 @@ export default function HotkeyField({
 
       const combo = normalizeCombo(e);
       if (!combo) {
-        setHint(isMac ? "继续按主键…" : "Press a non-modifier key…");
+        setHint(isMac ? "Press a main key…" : "Press a non-modifier key…");
         return;
       }
 
@@ -80,8 +79,8 @@ export default function HotkeyField({
       setHint("");
     };
 
-    // 录制时给出提示
-    setHint(isMac ? "按下组合键，Esc 取消" : "Press keys, Esc to cancel");
+    // Surface contextual hints while recording.
+    setHint(isMac ? "Press the key combination, Esc to cancel" : "Press keys, Esc to cancel");
 
     window.addEventListener("keydown", onKeyDown, { capture: true });
     return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
@@ -103,7 +102,7 @@ export default function HotkeyField({
 
       <div className={`relative flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100
                        border transition ${borderClass}`}>
-        {/* 只读显示区 */}
+        {/* Read-only display slot */}
         <input
           type={"text"}
           readOnly
@@ -113,7 +112,7 @@ export default function HotkeyField({
                      ${recording ? "italic text-slate-500 dark:text-slate-400" : ""}`}
         />
 
-        {/* 清空按钮（有值时出现） */}
+        {/* Clear button – visible only when a value is present. */}
         {value && !recording && (
           <button
             type="button"
@@ -126,7 +125,7 @@ export default function HotkeyField({
           </button>
         )}
 
-        {/* 键盘按钮：开启/结束录制 */}
+        {/* Toggle recording state. */}
         <button
           type="button"
           onClick={() => setRecording(r => !r)}

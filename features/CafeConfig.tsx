@@ -40,7 +40,7 @@ type Draft = {
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-/* ---------- 主组件 ---------- */
+/* ---------- Main Component for CafeConfig ---------- */
 const CafeConfig: React.FC<CafeConfigProps> = ({
                                                  onClose,
                                                  profileId,
@@ -81,11 +81,11 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-  // 通用布尔
+  // Toggle handlers for boolean fields.
   const onBoolChange = (key: keyof Draft) => (value: boolean) =>
     setDraft((d) => ({...d, [key]: value}));
 
-  // 数字输入
+  // Normalize numeric input and keep it within the supported range.
   const onNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     if (raw === "") return setDraft((d) => ({...d, cafe_reward_affection_pat_round: ""}));
@@ -102,7 +102,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
     setDraft((d) => ({...d, [key]: value}));
   };
 
-  // 保存
+  // Persist only the fields that have diverged from the server state.
   const handleSave = async () => {
     const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof DynamicConfig)[]).forEach((k) => {
@@ -132,7 +132,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
           )}
         </TabsList>
 
-        {/* 基础设置 */}
+        {/* Basic Settings */}
         <TabsContent value="basic" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {[
@@ -328,7 +328,7 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 
       <Separator/>
 
-      {/* 保存按钮 */}
+      {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSave}
@@ -343,3 +343,5 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
 };
 
 export default CafeConfig;
+
+

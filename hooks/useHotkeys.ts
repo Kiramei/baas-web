@@ -1,9 +1,8 @@
-// src/hooks/useHotkeys.ts
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TFunction } from 'i18next';
-import type { HotkeyConfig } from '@/components/HotkeyConfig';
-import { eventToCombo, getDefaultHotkeys, normalizeCombo } from '@/lib/hotkeys';
-import { fetchHotkeys, saveHotkeys } from '@/services/hotkeyService';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {TFunction} from 'i18next';
+import type {HotkeyConfig} from '@/components/HotkeyConfig';
+import {eventToCombo, getDefaultHotkeys, normalizeCombo} from '@/lib/hotkeys';
+import {fetchHotkeys, saveHotkeys} from '@/services/hotkeyService';
 
 export type HotkeyId =
   | 'toggle-run' | 'toggle-scroll' | 'open-settings'
@@ -11,11 +10,14 @@ export type HotkeyId =
 
 export type HotkeyHandlers = Partial<Record<HotkeyId, () => void>>;
 
-/** 懒加载热键（在 enabled=true 时触发获取），并提供保存 */
+/**
+ * Lazily loads the remote hotkey configuration once the consuming component is ready.
+ * Falls back to the default key map if the remote endpoint is unavailable.
+ */
 export function useRemoteHotkeys(t: TFunction, enabled: boolean) {
   const [hotkeys, setHotkeys] = useState<HotkeyConfig[] | null>(null);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -25,7 +27,7 @@ export function useRemoteHotkeys(t: TFunction, enabled: boolean) {
       setHotkeys(remote && remote.length ? remote : getDefaultHotkeys(t));
     } catch (e: any) {
       setError(e?.message || 'failed to fetch hotkeys');
-      setHotkeys(getDefaultHotkeys(t)); // 失败时用默认
+      setHotkeys(getDefaultHotkeys(t));
     } finally {
       setLoading(false);
     }
@@ -39,10 +41,13 @@ export function useRemoteHotkeys(t: TFunction, enabled: boolean) {
     await saveHotkeys(list);
   }, []);
 
-  return { hotkeys, setHotkeys, loading, error, reload, save };
+  return {hotkeys, setHotkeys, loading, error, reload, save};
 }
 
-/** 绑定键盘事件 → 触发 handlers */
+/**
+ * Registers keydown listeners based on the provided hotkey configuration and handler map.
+ * Only normalized combos that have a matching handler are registered.
+ */
 export function useBindHotkeyHandlers(hotkeys: HotkeyConfig[] | null, handlers: HotkeyHandlers) {
   const comboMap = useMemo(() => {
     const map = new Map<string, () => void>();
@@ -59,7 +64,10 @@ export function useBindHotkeyHandlers(hotkeys: HotkeyConfig[] | null, handlers: 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const fn = comboMap.get(eventToCombo(e));
-      if (fn) { e.preventDefault(); fn(); }
+      if (fn) {
+        e.preventDefault();
+        fn();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

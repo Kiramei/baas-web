@@ -25,7 +25,7 @@ import {useWebSocketStore} from "@/store/websocketStore.ts";
 
 const EMPTY_ARRAY: any[] = [];
 
-// ✅ 单行任务组件，Memo 化
+// Memoized row to keep expensive controls from re-rendering unnecessarily.
 const TaskRow = React.memo(function TaskRow(
   {
     task,
@@ -190,7 +190,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
 
   return (
     <div className="h-full flex flex-col gap-4 min-h-0">
-      {/* 标题 */}
+      {/* Page heading with the active profile reference. */}
       <div className="flex">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
           {t("scheduler")}
@@ -210,7 +210,6 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              {/* Running Task */}
               <div className="border-dashed border-b-2 pb-1">
                 {runningTask ? (
                   <div className="px-3 py-2 bg-primary-100 dark:bg-primary-800 rounded-md">
@@ -224,8 +223,6 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
                   </p>
                 )}
               </div>
-
-              {/* Task Queue */}
               {taskQueue && taskQueue.length > 0 ? (
                 <ul className="space-y-0 h-35 overflow-auto pr-2 gap-2 flex flex-col">
                   {taskQueue.map((task, index) => (
@@ -246,9 +243,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           </CardContent>
         </Card>
       </div>
-
-
-      {/* 工具栏 */}
+      {/* Filtering toolbar for quick navigation and sorting. */}
       <div className="flex items-center justify-between gap-2">
         <Search size={20}/>
         <div className="flex-1 bg-white dark:bg-slate-800 rounded-md shadow-sm">
@@ -279,10 +274,9 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           <RefreshCw className="w-4 h-4 translate-x-[-8px]"/>
         </CButton>
       </div>
-
-      {/* 下半部分：任务穿梭面板 */}
+      {/* Dual column layout showing inactive and active task queues. */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 md:min-h-40">
-        {/* 左边 */}
+        {/* Inactive task backlog awaiting activation. */}
         <Card className="flex flex-col min-h-0">
           <CardContent className="pr-1 sm:pr-4 flex flex-col flex-1 min-h-0">
             <div className="flex justify-between mb-2">
@@ -316,8 +310,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
             </div>
           </CardContent>
         </Card>
-
-        {/* 右边 */}
+        {/* Active task queue currently scheduled for execution. */}
         <Card className="flex flex-col min-h-0">
           <CardContent className="flex flex-col flex-1 min-h-0">
             <div className="flex justify-between mb-2">
@@ -352,8 +345,7 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
           </CardContent>
         </Card>
       </div>
-
-      {/* 弹窗 */}
+      {/* Modal for editing the selected task configuration in depth. */}
       {modalTask && (
         <FeatureSwitchModal
           task={modalTask}
@@ -371,3 +363,5 @@ const SchedulerPage: React.FC<ProfileProps> = ({profileId}) => {
 };
 
 export default SchedulerPage;
+
+

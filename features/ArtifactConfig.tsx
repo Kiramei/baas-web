@@ -27,7 +27,7 @@ type Draft = {
   createPriority_phase1: string[];
   createPriority_phase2: string[];
   createPriority_phase3: string[];
-  // 分阶段配置
+  // Configuration overrides for each crafting phase.
   phases: {
     method: string;
     priority: string;
@@ -40,7 +40,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
   const settings = useWebSocketStore(state => state.configStore[profileId]);
   const modify = useWebSocketStore(state => state.modify);
 
-  /** 外部配置快照 */
+  /** Hydrate the form with the latest server-side values. */
   const ext = useMemo(() => {
     return {
       use_acceleration_ticket: settings.use_acceleration_ticket,
@@ -58,15 +58,15 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
 
   const [draft, setDraft] = useState<Draft>(ext);
 
-  /** 外部变动时同步 draft */
+  /** Reset the draft whenever the upstream configuration changes. */
   useEffect(() => {
     setDraft(ext);
   }, [ext]);
 
-  /** 脏检查 */
+  /** Track whether the user has modified the draft state. */
   const dirty = JSON.stringify(draft) !== JSON.stringify(ext);
 
-  /** 保存 */
+  /** Persist only the fields that have diverged from the server baseline. */
   const handleSave = async () => {
     const patch: Partial<DynamicConfig> = {};
     (Object.keys(draft) as (keyof Draft)[]).forEach((k) => {
@@ -96,7 +96,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
           ))}
         </TabsList>
 
-        {/* 全局配置 */}
+        {/* Global configuration */}
         <TabsContent value="global">
           <div className="flex flex-col justify-between gap-4 mt-4">
             <SwitchButton
@@ -136,7 +136,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
           </div>
         </TabsContent>
 
-        {/* 分阶段配置 */}
+        {/* Phase-specific configuration */}
         {Array.from({length: draft.create_phase}, (_, i) => i).map((i) => (
           <TabsContent key={i} value={`phase${i + 1}`}>
             <ArtifactPhaseConfig
@@ -149,7 +149,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
         ))}
       </Tabs>
 
-      {/* 保存按钮 */}
+      {/* Save action */}
       <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-700">
         <button
           onClick={handleSave}
@@ -163,7 +163,7 @@ const ArtifactConfig: React.FC<ArtifactConfigProps> = ({onClose, profileId}) => 
   );
 };
 
-/* ---------- Phase 子组件 ---------- */
+/* ---------- Phase Configuration ---------- */
 type ArtifactPhaseConfigProps = {
   phase: number;
   draft: Draft;
@@ -205,9 +205,9 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({
   ): string[] => {
     const indexes = staticConfig.create_phase2_recommended_priority[name];
     const originPriority = staticConfig.create_default_priority[serverMap[settings.server]]["phase2"];
-    const resPriority = indexes.map((i) => originPriority[i]);
+    const resPriority = indexes.map((i: any) => originPriority[i]);
 
-    originPriority.forEach((_, i) => {
+    originPriority.forEach((_: any, i: number) => {
       if (!indexes.includes(i)) {
         resPriority.push(originPriority[i]);
       }
@@ -217,7 +217,7 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* 材料选择 */}
+      {/* Material selection */}
       <div>
         <label className="block mb-1">{t("artifact.materialSelect")}</label>
         <Select
@@ -241,7 +241,7 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({
         </Select>
       </div>
 
-      {/* 推荐优先级 (phase2 特有) */}
+      {/* Recommended priority (phase 2 only) */}
       {phase === 2 && (
         <div>
           <label className="block mb-1">{t("artifact.phase2.recommend")}</label>
@@ -251,7 +251,7 @@ const ArtifactPhaseConfig: React.FC<ArtifactPhaseConfigProps> = ({
         </div>
       )}
 
-      {/* 制造优先级 */}
+      {/* Crafting priority */}
       <div>
         <label className="block mb-1">{t("artifact.priority")}</label>
         <Textarea
