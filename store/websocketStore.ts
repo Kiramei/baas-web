@@ -333,7 +333,7 @@ export const useWebSocketStore = create<WebSocketState>()(
         "status": (message: WsMessageItem) => {
           const data = message.status;
           if (typeof data === "string") return
-          if ("all_data_initialized" in data) {
+          if ("is_all_data_initialized" in data) {
             set(state => ({...state, _all_data_initialized: true}));
           } else {
             let k0 = Object.keys(data)[0];
@@ -353,7 +353,7 @@ export const useWebSocketStore = create<WebSocketState>()(
               set(state => ({
                 statusStore: {
                   ...state.statusStore,
-                  [data.config_id]: (data as WrappedStatusItem).status
+                  [(data as StatusItem).config_id]: (data as WrappedStatusItem).status
                 }
               }));
             }

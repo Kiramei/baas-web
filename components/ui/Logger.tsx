@@ -70,36 +70,40 @@ const Row = ({index, logs, style}: RowComponentProps<{ logs: LogItem[] }>) => {
   )
 }
 
-const Logger: React.FC<LoggerProps> = ({logs, scrollToEnd}) => {
-  const listRef = useRef(null);
+const Logger: React.FC<LoggerProps> = ({ logs = [], scrollToEnd = false }) => {
+  const listRef = useRef<any>(null);
+  const rowHeight = useDynamicRowHeight({ defaultRowHeight: 28 });
+
   useLayoutEffect(() => {
     if (!scrollToEnd || !listRef.current) return;
     let rafId = 0;
+
     const tick = () => {
       if (listRef.current && logs.length > 0) {
-        listRef.current.scrollToRow({index: logs.length - 1, align: "end"});
+        listRef.current.scrollToRow({ index: logs.length - 1, align: "end" });
       }
       rafId = requestAnimationFrame(tick);
     };
+
     tick();
     return () => cancelAnimationFrame(rafId);
   }, [scrollToEnd, logs.length]);
-  const rowHeight = useDynamicRowHeight({defaultRowHeight: 28});
+
   return (
-    <div
-      className="w-full h-full bg-slate-900/80 dark:bg-slate/50 rounded-lg font-mono text-sm text-white py-1 pl-1 sm:py-4 sm:pl-4 overflow-x-auto allow-select-text">
-      {logs?.length ? (
+    <div className="w-full h-full bg-slate-900/80 dark:bg-slate/50 rounded-lg font-mono text-sm text-white py-1 pl-1 sm:py-4 sm:pl-4 overflow-x-auto allow-select-text">
+      {logs.length > 0 ? (
         <List
           listRef={listRef}
           rowComponent={Row}
           rowCount={logs.length}
           rowHeight={rowHeight}
-          rowProps={{logs}}
+          rowProps={{ logs }}
         />
-      ) : null}
+      ) : (
+        <div className="text-slate-400 px-2 py-2 select-none">No logs yet.</div>
+      )}
     </div>
   );
 };
-
 
 export default Logger;
