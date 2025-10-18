@@ -438,5 +438,12 @@
       "support": "지원 및 피드백",
       "formation": "편성 전략"
     }
-  }
+  },
+  "enterSecretTitle": "공개 키 입력",
+  "enterSecretPrompt": "공개 키는 통신 보안을 위해 필요합니다.",
+  "secretLabel": "공개 키",
+  "secretPlaceholder": "여기에 공개 키를 입력하세요",
+  "secretRequired": "공개 키를 반드시 입력해야 합니다!",
+  "secretNotice": "공개 키는 서버 백엔드의 service.secret 파일에서 가져올 수 있습니다.",
+  "Confirm": "확인"
 }

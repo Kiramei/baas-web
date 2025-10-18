@@ -438,5 +438,12 @@
       "support": "サポートとフィードバック",
       "formation": "編成戦略"
     }
-  }
+  },
+  "enterSecretTitle": "公開鍵を入力",
+  "enterSecretPrompt": "公開鍵は通信の安全を確保するために必要です。",
+  "secretLabel": "公開鍵",
+  "secretPlaceholder": "ここに公開鍵を入力してください",
+  "secretRequired": "公開鍵の入力は必須です！",
+  "secretNotice": "公開鍵はサーバーの backend にある service.secret ファイルから取得できます。",
+  "Confirm": "確認"
 }

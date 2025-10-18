@@ -438,5 +438,12 @@
       "support": "Support & Feedback",
       "formation": "Formationsstrategie"
     }
-  }
+  },
+  "enterSecretTitle": "Öffentlichen Schlüssel eingeben",
+  "enterSecretPrompt": "Der öffentliche Schlüssel ist für die sichere Kommunikation erforderlich.",
+  "secretLabel": "Öffentlicher Schlüssel",
+  "secretPlaceholder": "Bitte geben Sie hier Ihren öffentlichen Schlüssel ein",
+  "secretRequired": "Der öffentliche Schlüssel muss eingegeben werden!",
+  "secretNotice": "Der öffentliche Schlüssel kann aus der Datei service.secret im Backend-Server abgerufen werden.",
+  "Confirm": "Bestätigen"
 }

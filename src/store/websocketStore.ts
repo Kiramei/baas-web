@@ -5,8 +5,8 @@ import {subscribeWithSelector} from "zustand/middleware";
 import {getTimestampMs, isPlainObject} from "@/lib/utils.ts";
 import {useGlobalLogStore} from "@/store/globalLogStore.ts";
 import {t} from "i18next";
+import {StorageUtil} from "@/lib/storage";
 
-const SECRET = "FOSL";
 const BASE = "ws://localhost:8190";
 
 type WsName = "provider" | "sync" | "trigger" | "heartbeat";
@@ -91,12 +91,13 @@ interface WebSocketState {
   _all_data_initialized: boolean;
   _heartbeat_time: number;
   _initiating: boolean;
+  _secret: string;
 }
 
 const {appendGlobalLog} = useGlobalLogStore.getState()
 
 const connectWithRetry = async (name: WsName, retryInterval = 1000) => {
-  const {connect} = useWebSocketStore.getState();
+  const {connect, _secret} = useWebSocketStore.getState();
 
   while (true) {
     try {
@@ -104,7 +105,13 @@ const connectWithRetry = async (name: WsName, retryInterval = 1000) => {
       console.log(`[${name}] connected successfully`);
       return;
     } catch (err) {
-      console.error(`[${name}] connect failed, retrying in ${retryInterval}ms`, err);
+      if (err.reason === "Invalid handshake response") {
+        console.error(`[${name}] connect failed, maybe Secret is Incorrect!`, err);
+        useWebSocketStore.setState(state => ({...state, _secret: ""}))
+        StorageUtil.set("SECRET", "")
+      } else {
+        console.error(`[${name}] connect failed, retrying in ${retryInterval}ms`, err);
+      }
       await new Promise((resolve) => setTimeout(resolve, retryInterval));
     }
   }
@@ -192,6 +199,7 @@ export const useWebSocketStore = create<WebSocketState>()(
     _all_data_initialized: false,
     _heartbeat_time: 0,
     _initiating: false,
+    _secret: "",
 
     connect: async (name: WsName) => {
       if (get().connections[name]) return;
@@ -421,7 +429,19 @@ export const useWebSocketStore = create<WebSocketState>()(
           set(state => ({...state, _heartbeat_time: timestamp}));
         }
       };
-      const ws = new SecureWebSocket(url, SECRET, name);
+
+      set(state => ({...state, _secret: StorageUtil.get("SECRET")}))
+
+      await waitFor(
+        get,
+        api.subscribe,
+        (s: WebSocketState) => s._secret,
+        (s: string) => s !== ""
+      )
+
+      StorageUtil.set("SECRET", get()._secret);
+
+      const ws = new SecureWebSocket(url, get()._secret, name);
       await ws.connect((msg) => {
         try {
           const message = JSON.parse(msg) as WsMessageItem;

@@ -438,5 +438,12 @@
       "support": "Support & Feedback",
       "formation": "Formation Strategy"
     }
-  }
+  },
+  "enterSecretTitle": "Enter Public Key",
+  "enterSecretPrompt": "Required for secure Communication.",
+  "secretLabel": "Public Key",
+  "secretPlaceholder": "Please enter your public key here",
+  "secretRequired": "The public key is required!",
+  "secretNotice": "Obtained from the service.secret file from backend.",
+  "Confirm": "Confirm"
 }

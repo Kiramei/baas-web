@@ -438,5 +438,12 @@
       "support": "Support et commentaires",
       "formation": "Stratégie de formation"
     }
-  }
+  },
+  "enterSecretTitle": "Entrer la clé publique",
+  "enterSecretPrompt": "La clé publique est requise pour assurer la sécurité des communications.",
+  "secretLabel": "Clé publique",
+  "secretPlaceholder": "Veuillez entrer votre clé publique ici",
+  "secretRequired": "La clé publique est requise !",
+  "secretNotice": "La clé publique peut être obtenue à partir du fichier service.secret sur le serveur.",
+  "Confirm": "Confirmer"
 }
