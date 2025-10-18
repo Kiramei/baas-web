@@ -1,11 +1,10 @@
 "use client"
 
-import React, {useEffect, useLayoutEffect, useRef} from "react"
+import React, {useLayoutEffect, useRef} from "react"
 import type {LogItem} from "@/store/websocketStore.ts"
-import {formatIsoToReadable, formatIsoToReadableTime} from "@/lib/utils.ts"
+import {formatIsoToReadableTime} from "@/lib/utils.ts"
 import {List} from "react-window"
 import {type RowComponentProps, useDynamicRowHeight} from "react-window";
-import {Button} from "@/components/ui/button.tsx";
 
 interface LoggerProps {
   logs: LogItem[]

@@ -8,7 +8,7 @@
   font-style: normal;
   font-weight: 200;
   font-display: swap;
-  src: url("/assets/fonts/apple-regular.ttf");
+  src: url("/src/assets/fonts/apple-regular.ttf");
 }
 
 @font-face {
@@ -16,5 +16,5 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/assets/fonts/JetBrainsMono.ttf");
+  src: url("/src/assets/fonts/JetBrainsMono.ttf");
 }

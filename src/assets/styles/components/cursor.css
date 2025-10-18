@@ -1,6 +1,6 @@
 /* 默认指针（普通状态） */
 * {
-    cursor: url('/assets/cursors/normal.cur'), auto;
+    cursor: url('/src/assets/cursors/normal.cur'), auto;
 }
 
 * {
@@ -24,7 +24,7 @@ select, select *,
 [role="button"], [role="button"] *,
 .cursor-pointer, .cursor-pointer *,
 input[type="button"], input[type="button"] * {
-    cursor: url('/assets/cursors/link.cur'), pointer !important;
+    cursor: url('/src/assets/cursors/link.cur'), pointer !important;
 }
 
 input[type="text"], input[type="text"] *,
@@ -34,9 +34,9 @@ input[type="time"], input[type="time"] *,
 textarea, textarea *,
 [contenteditable="true"], [contenteditable="true"] *,
 .cursor-text, .cursor-text * {
-    cursor: url('/assets/cursors/text_static_white.cur') 7 16, text;
+    cursor: url('/src/assets/cursors/text_static_white.cur') 7 16, text;
 }
 
 .cursor-grab, .cursor-grab * {
-    cursor: url('/assets/cursors/move.cur'), grab;
+    cursor: url('/src/assets/cursors/move.cur'), grab;
 }

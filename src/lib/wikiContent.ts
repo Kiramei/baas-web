@@ -79,13 +79,13 @@ export const wikiArticles: WikiArticle[] = [
     'frontend-development',
     'architecture',
     {
-      en: 'Frontend Development Guide',
-      zh: '企业级架构指南',
-      ja: 'フロントエンド開発ガイド',
-      ko: '프론트엔드 개발 가이드',
-      fr: 'Guide de développement Frontend',
-      ru: 'Руководство по фронтенд-разработке',
-      de: 'Leitfaden für die Frontend-Entwicklung',
+      en: "Frontend Development Guide",
+      zh: "前端开发指南",
+      ja: "フロントエンド開発ガイド",
+      ko: "프론트엔드 개발 가이드",
+      fr: "Guide de développement Frontend",
+      ru: "Руководство по фронтенд-разработке",
+      de: "Leitfaden für die Frontend-Entwicklung"
     },
     {
       en: 'System-level overview covering application shell, module responsibilities, state management, and extensibility checklist.',
