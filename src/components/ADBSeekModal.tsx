@@ -3,27 +3,15 @@ import {useTranslation} from "react-i18next";
 import CButton from "@/components/ui/CButton.tsx";
 import {Card} from "@/components/ui/Card";
 import {Modal} from "@/components/ui/Modal";
-import {SearchCode} from "lucide-react";
-import {Loader2} from "lucide-react";
+import {Loader2, SearchCode} from "lucide-react";
 import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {getTimestampMs} from "@/lib/utils.ts";
 
 type ADBSeekProps = {
-  onDetect?: () => Promise<string[]>;
   onSelect?: (addr: string) => void;
 };
 
-// Default mock implementation that simulates ADB discovery.
-const mockDetect = async (): Promise<string[]> => {
-  await new Promise((r) => setTimeout(r, 1000));
-  return [
-    "127.0.0.1:5555",
-    "192.168.1.101:5555",
-    "10.0.2.15:5555",
-  ];
-};
-
-const ADBSeekModal: React.FC<ADBSeekProps> = ({onDetect = mockDetect, onSelect}) => {
+const ADBSeekModal: React.FC<ADBSeekProps> = ({onSelect}) => {
   const {t} = useTranslation();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);

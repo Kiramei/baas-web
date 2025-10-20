@@ -113,7 +113,7 @@ const AssetsDisplay: React.FC<{ profileId: string }> = ({ profileId }) => {
         <Popover
           key={item.name}
           open={open[idx]}
-          onOpenChange={(newState) =>
+          onOpenChange={() =>
             setOpen((prev) => {
               const copy = [...prev];
               copy[idx] = false;

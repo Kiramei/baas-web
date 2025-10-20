@@ -97,7 +97,7 @@ interface WebSocketState {
 const {appendGlobalLog} = useGlobalLogStore.getState()
 
 const connectWithRetry = async (name: WsName, retryInterval = 1000) => {
-  const {connect, _secret} = useWebSocketStore.getState();
+  const {connect} = useWebSocketStore.getState();
 
   while (true) {
     try {
@@ -152,6 +152,7 @@ export const waitFor = <T>(
     }
   });
 }
+
 
 export const waitForNormal = <T>(
   getter: () => T,
@@ -215,7 +216,7 @@ export const useWebSocketStore = create<WebSocketState>()(
           set((state) => ({
             configStore: {
               ...state.configStore,
-              [message.resource_id]: message.data,
+              [message.resource_id!]: message.data,
             },
           }));
         },
@@ -223,7 +224,7 @@ export const useWebSocketStore = create<WebSocketState>()(
           set((state) => ({
             eventStore: {
               ...state.eventStore,
-              [message.resource_id]: message.data,
+              [message.resource_id!]: message.data,
             },
           }));
         },
@@ -298,14 +299,14 @@ export const useWebSocketStore = create<WebSocketState>()(
         },
 
         "snapshot": (message: WsMessageItem) => {
-          resourceCallBack[message.resource](message);
+          resourceCallBack[message.resource!](message);
         },
 
         "logs_full": (message: WsMessageItem) => {
           const scopes = message.scopes;
-          const log_added: { [key: string]: LogItem[] } = Object.fromEntries(scopes.map((id) => [id, []]));
+          const log_added: { [key: string]: LogItem[] } = Object.fromEntries(scopes!.map((id) => [id, []]));
           const entries = message.entries;
-          entries.forEach((e: RawLogItem) => {
+          entries!.forEach((e: RawLogItem) => {
             const info = {
               time: e.time,
               level: e.level,
@@ -321,37 +322,37 @@ export const useWebSocketStore = create<WebSocketState>()(
         "log": (message: WsMessageItem) => {
           const data = message.entry;
           const info = {
-            time: data.time,
-            level: data.level,
-            message: data.message,
+            time: data!.time,
+            level: data!.level,
+            message: data!.message,
           };
 
           set((state) => {
-            const prevLogs = state.logStore[data.scope] ?? [];
+            const prevLogs = state.logStore[data!.scope] ?? [];
             return {
               logStore: {
                 ...state.logStore,
-                [data.scope]: [...prevLogs, info], // Preserve existing log history while appending the new item.
+                [data!.scope]: [...prevLogs, info], // Preserve existing log history while appending the new item.
               },
             };
           });
-          if (data.scope == 'global') appendGlobalLog(info)
+          if (data!.scope == 'global') appendGlobalLog(info)
         },
         "status": (message: WsMessageItem) => {
           const data = message.status;
           if (typeof data === "string") return
-          if ("is_all_data_initialized" in data) {
+          if ("is_all_data_initialized" in data!) {
             set(state => ({...state, _all_data_initialized: true}));
           } else {
-            let k0 = Object.keys(data)[0];
-            if (typeof data[k0] === "object" && "config_id" in data[k0]) {
-              Object.keys(data).forEach((key) => {
+            let k0 = Object.keys(data!)[0];
+            if (typeof data![k0] === "object" && "config_id" in data![k0]) {
+              Object.keys(data!).forEach((key) => {
                 set(state => ({
                   statusStore: {
                     ...state.statusStore,
                     [key]: {
                       ...(state.statusStore[key] ?? {}),
-                      ...(data[key] as StatusItem)
+                      ...(data![key] as StatusItem)
                     }
                   }
                 }));
@@ -369,10 +370,10 @@ export const useWebSocketStore = create<WebSocketState>()(
         "command_response": (message: WsMessageItem) => {
           const {timestamp, command, data, status} = message;
 
-          const cb = get().pendingCallbacks[timestamp];
+          const cb = get().pendingCallbacks[timestamp!];
           if (cb) {
             cb({command, data, status});
-            delete get().pendingCallbacks[timestamp];
+            delete get().pendingCallbacks[timestamp!];
           } else {
             console.warn("CallBack Not Found:", message);
           }
@@ -415,10 +416,10 @@ export const useWebSocketStore = create<WebSocketState>()(
 
         "patch_ack": (message: WsMessageItem) => {
           const {timestamp} = message;
-          const cb = get().pendingCallbacks[timestamp];
+          const cb = get().pendingCallbacks[timestamp!];
           if (cb) {
             cb();
-            delete get().pendingCallbacks[timestamp];
+            delete get().pendingCallbacks[timestamp!];
           } else {
             console.warn("CallBack Not Found:", message);
           }
@@ -571,7 +572,8 @@ export const useWebSocketStore = create<WebSocketState>()(
       const [resourceId, scopeRaw] = path.split("::");
       const [scope, ...keys] = scopeRaw.split("/");
 
-      set((state) => {
+      // @ts-ignore
+      set((state: WebSocketState) => {
         let storeKey: keyof WebSocketState;
         // Determine which store should receive the patch.
         switch (scope) {
@@ -662,13 +664,13 @@ export const useWebSocketStore = create<WebSocketState>()(
     },
 
     trigger: (payload, callback) => {
-      const timestamp = payload.timestamp || Date.now();
+      const _timestamp = payload.timestamp || Date.now();
       if (callback) {
-        get().pendingCallbacks[timestamp] = callback;
+        get().pendingCallbacks[_timestamp] = callback;
       }
       get().send("trigger", {
         type: "command",
-        timestamp,
+        _timestamp,
         ...payload,
       });
     }

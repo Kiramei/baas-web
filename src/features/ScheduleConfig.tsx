@@ -30,10 +30,11 @@ const levels = ["primary", "normal", "advanced", "superior"];
 const LessonConfig: React.FC<LessonConfigProps> = ({onClose, profileId}) => {
   const {t} = useTranslation();
   const settings: Partial<DynamicConfig> = useWebSocketStore(
-    (state) => state.configStore[profileId]
+    (state) => state.configStore[profileId!]
   );
   const modify = useWebSocketStore((state) => state.modify);
   const staticConfig = useWebSocketStore((state) => state.staticStore);
+  console.log("[debug]", staticConfig.lesson_region_name);
   const lessonNames = staticConfig.lesson_region_name[serverMap[settings.server]];
   const studentNames = staticConfig.student_names;
   const [showSelector, setShowSelector] = useState(false);

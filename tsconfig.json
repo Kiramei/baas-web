@@ -24,6 +24,7 @@
         "./src/*"
       ]
     },
+    "strict": true,
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
