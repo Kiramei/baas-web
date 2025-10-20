@@ -1,5 +1,5 @@
 <div align="center">
-<h1> 🌌 Blue Archive Auto Script GUI For Web </h1>
+<h1> 🌌 Blue Archive Auto Script WebUI </h1>
 
 *Automation command center for multi-profile Blue Archive orchestration*
 
