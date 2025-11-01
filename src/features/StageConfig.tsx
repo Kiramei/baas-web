@@ -10,7 +10,7 @@ import {useWebSocketStore} from "@/store/websocketStore.ts";
 import {DynamicConfig} from "@/types/dynamic";
 import {getTimestampMs, serverMap} from "@/lib/utils.ts";
 import {toast} from "sonner";
-import {PageKey} from "@/App.tsx";
+import {PageKey} from "@/types/app";
 
 type StageConfigProps = {
   profileId: string;

@@ -34,7 +34,6 @@ const LessonConfig: React.FC<LessonConfigProps> = ({onClose, profileId}) => {
   );
   const modify = useWebSocketStore((state) => state.modify);
   const staticConfig = useWebSocketStore((state) => state.staticStore);
-  console.log("[debug]", staticConfig.lesson_region_name);
   const lessonNames = staticConfig.lesson_region_name[serverMapSpec[settings.server!]];
   const studentNames = staticConfig.student_names;
   const [showSelector, setShowSelector] = useState(false);
@@ -286,7 +285,6 @@ const LessonConfig: React.FC<LessonConfigProps> = ({onClose, profileId}) => {
           setDraft((d) => ({...d, lesson_favorStudent: names}))
         }
         lang={serverMap[settings.server!]}
-        mode="multiple"
       />
 
       {/* Save button */}

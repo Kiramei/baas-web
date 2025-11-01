@@ -313,7 +313,6 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         selected={draft.favorStudent1}
         onChange={(list) => setDraft((d) => ({...d, favorStudent1: list}))}
         lang={serverMap[settings.server]}
-        mode="multiple"
       />
 
       <StudentSelectorModal
@@ -323,7 +322,6 @@ const CafeConfig: React.FC<CafeConfigProps> = ({
         selected={draft.favorStudent2}
         onChange={(list) => setDraft((d) => ({...d, favorStudent2: list}))}
         lang={serverMap[settings.server]}
-        mode="multiple"
       />
 
       <Separator/>

@@ -19,7 +19,6 @@ type Props = {
   selected: string[];
   onChange: (list: string[]) => void;
   lang?: string;
-  mode?: "single" | "multiple";
 };
 
 const StudentSelectorModal: React.FC<Props> = ({
@@ -28,7 +27,7 @@ const StudentSelectorModal: React.FC<Props> = ({
                                                  allStudents,
                                                  selected,
                                                  onChange,
-                                                 lang = "JP",
+                                                 lang = "JP"
                                                }) => {
 
   const {t} = useTranslation();

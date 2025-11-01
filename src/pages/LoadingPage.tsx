@@ -109,7 +109,7 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
           }}
         >
           <img
-            src="/src/assets/images/logo.png"
+            src="/assets/images/logo.png"
             alt="App Logo"
             className="w-36 h-36 mb-6 fixed rounded-full drop-shadow-[0_0_80px_rgba(0,215,255,0.8)] dark:drop-shadow-[0_0_80px_rgba(59,130,246,0.8)]"
           />

@@ -40,7 +40,7 @@ import ArtifactConfig from "@/features/ArtifactConfig.tsx";
 import ScriptConfig from "@/features/ScriptConfig.tsx";
 import StageConfig from "@/features/StageConfig.tsx";
 import TeamConfig from "@/features/TeamConfig.tsx";
-import {PageKey} from "@/App.tsx";
+import {PageKey} from "@/types/app";
 
 type Feature =
   'cafe'
