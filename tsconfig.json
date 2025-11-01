@@ -27,6 +27,5 @@
     "strict": true,
     "allowImportingTsExtensions": true,
     "noEmit": true
-  },
-  "include": ["types", "vite-env.d.ts"]
+  }
 }

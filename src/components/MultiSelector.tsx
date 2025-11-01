@@ -5,9 +5,7 @@ import {cn} from "@/lib/utils"
 import {Dialog, DialogPanel, DialogTitle} from "@headlessui/react";
 import {useTranslation} from "react-i18next";
 import {LabelWithTooltip} from "@/components/ui/LabelWithTooltip.tsx";
-import CButton from "@/components/ui/CButton.tsx";
 import {FormInput} from "@/components/ui/FormInput.tsx";
-import {filter} from "framer-motion/m";
 
 interface MultiSelectorProps {
   label?: string

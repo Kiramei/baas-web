@@ -1,12 +1,12 @@
 import {create} from "zustand";
-import {LogItem} from "./websocketStore.js"
+import {LogItem} from "@/types/app"
 
 interface GlobalLogInterface {
   globalLogData: LogItem[]
   appendGlobalLog: (log: LogItem) => void
 }
 
-export const useGlobalLogStore = create<GlobalLogInterface>((set, get) => ({
+export const useGlobalLogStore = create<GlobalLogInterface>((set, _) => ({
   globalLogData: [],
 
   appendGlobalLog: (log: LogItem) => {

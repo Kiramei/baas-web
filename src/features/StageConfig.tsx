@@ -14,8 +14,8 @@ import {PageKey} from "@/App.tsx";
 
 type StageConfigProps = {
   profileId: string;
-  setActivePage: Dispatch<SetStateAction<PageKey>>;
   onClose: () => void;
+  setActivePage?: Dispatch<SetStateAction<PageKey>>;
 };
 
 
@@ -23,13 +23,6 @@ interface Draft {
   manual_boss: boolean;
   explore_normal_task_list: string;
   explore_hard_task_list: string;
-}
-
-interface EventData {
-  activity_name: string;
-  story: Record<string, string>;
-  mission: Record<string, string>;
-  challenge: Record<string, string>;
 }
 
 const StageConfig: React.FC<StageConfigProps> = (
@@ -59,7 +52,7 @@ const StageConfig: React.FC<StageConfigProps> = (
 
     const [eventTable, setEventTable] = useState<[string, string][]>([]);
 
-    const serverKey = serverMap[settings.server];
+    const serverKey = serverMap[settings.server!];
     const event = staticConfig.current_game_activity[serverKey];
     const eventName = event?.activity_name ?? t("stage.noEvent");
 
@@ -123,7 +116,7 @@ const StageConfig: React.FC<StageConfigProps> = (
         })
       });
       onClose();
-      setActivePage("home")
+      setActivePage?.("home")
     }
 
 
